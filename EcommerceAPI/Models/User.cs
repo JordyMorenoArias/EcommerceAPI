@@ -23,6 +23,7 @@ namespace EcommerceAPI.Models
         [Required, PasswordPropertyText]
         public string PasswordHash { get; set; } = string.Empty;
 
+        [MaxLength(50)]
         public string Role { get; set; } = "Customer";
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -31,5 +32,6 @@ namespace EcommerceAPI.Models
 
         [MaxLength(100)]
         public string EmailConfirmedToken { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true;
     }
 }

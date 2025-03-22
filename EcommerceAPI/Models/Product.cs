@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EcommerceAPI.Models
 {
@@ -13,9 +14,10 @@ namespace EcommerceAPI.Models
         [MaxLength(500)]
         public string? Description { get; set; }
 
-        public string Category { get; set; }
+        [MaxLength(50)]
+        public string Category { get; set; } = string.Empty;
 
-        [Required]
+        [Required, Column(TypeName = "decimal(18, 2)")]
         public decimal Price { get; set; } = 0;
 
         public int Stock { get; set; }
