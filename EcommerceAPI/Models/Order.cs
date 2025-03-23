@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using EcommerceAPI.Constants;
 
 namespace EcommerceAPI.Models
 {
@@ -18,8 +19,7 @@ namespace EcommerceAPI.Models
 
         [Column(TypeName = "decimal(18, 2)")]
         public decimal TotalAmount { get; set; }
-        [MaxLength(50)]
-        public string Status { get; set; } = "Pending"; // can be "Pending", "Paid", "Shipped", "Cancelled"
+        public OrderStatus Status { get; set; } = OrderStatus.Pending;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();

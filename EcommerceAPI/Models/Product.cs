@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using EcommerceAPI.Constants;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EcommerceAPI.Models
@@ -14,18 +16,24 @@ namespace EcommerceAPI.Models
         [MaxLength(500)]
         public string? Description { get; set; }
 
-        [MaxLength(50)]
-        public string Category { get; set; } = string.Empty;
+        [Required]
+        public CategoryProduct Category { get; set; }
 
         [Required, Column(TypeName = "decimal(18, 2)")]
         public decimal Price { get; set; } = 0;
 
+        [Required]
         public int Stock { get; set; }
 
-        public string ImageUrl { get; set; } = string.Empty;
+        [MaxLength(500)]
+        public string? ImageUrl { get; set; }
 
         public bool IsActive { get; set; } = true;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        [Required, ForeignKey("User")]
+        public int? UserId { get; set; }
+        public User User { get; set; } = null!;
     }
 }

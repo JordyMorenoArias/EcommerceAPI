@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using EcommerceAPI.Constants;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace EcommerceAPI.Models
@@ -23,8 +24,7 @@ namespace EcommerceAPI.Models
         [Required, PasswordPropertyText]
         public string PasswordHash { get; set; } = string.Empty;
 
-        [MaxLength(50)]
-        public string Role { get; set; } = "Customer";
+        public UserRole Role { get; set; } = UserRole.Customer;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
