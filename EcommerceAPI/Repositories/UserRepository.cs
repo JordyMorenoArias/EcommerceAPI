@@ -1,5 +1,6 @@
 ﻿using EcommerceAPI.Data;
 using EcommerceAPI.Models;
+using EcommerceAPI.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace EcommerceAPI.Repositories
@@ -47,7 +48,7 @@ namespace EcommerceAPI.Repositories
         /// <returns>The added user.</returns>
         public async Task<User> AddUser(User user)
         {
-            _context.Users.Add(user);
+            await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
             return user;
         }
@@ -57,11 +58,15 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="user">The user entity with updated information.</param>
         /// <returns>The updated user if successful; otherwise, null.</returns>
-        public async Task<User?> UpdateUser(User user)
+        public async Task<bool> UpdateUser(User user)
         {
+            var existingUser = await _context.Users.FindAsync(user.Id);
+            if (existingUser is null)
+                return false;
+
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
-            return user;
+            return true;
         }
 
         /// <summary>
@@ -69,15 +74,15 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="id">The ID of the user to delete.</param>
         /// <returns>The deleted user if found; otherwise, null.</returns>
-        public async Task<User?> DeleteUser(int id)
+        public async Task<bool> DeleteUser(int id)
         {
             var user = await _context.Users.FindAsync(id);
-            if (user != null)
-            {
-                _context.Users.Remove(user);
-                await _context.SaveChangesAsync();
-            }
-            return user;
+            if (user is null)
+                return false;
+
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         /// <summary>
@@ -93,6 +98,7 @@ namespace EcommerceAPI.Repositories
             {
                 user.IsEmailConfirmed = true;
                 user.EmailConfirmedToken = string.Empty;
+                _context.Users.Update(user);
                 await _context.SaveChangesAsync();
             }
 

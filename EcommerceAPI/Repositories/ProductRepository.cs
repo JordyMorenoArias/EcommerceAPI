@@ -96,7 +96,7 @@ namespace EcommerceAPI.Repositories
         /// <returns>The product after being added to the database.</returns>
         public async Task<Product> AddProduct(Product product)
         {
-            _context.Products.Add(product);
+            await _context.Products.AddAsync(product);
             await _context.SaveChangesAsync();
             return product;
         }
@@ -106,11 +106,15 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="product">The product with updated information.</param>
         /// <returns>The updated product.</returns>
-        public async Task<Product> UpdateProduct(Product product)
+        public async Task<bool> UpdateProduct(Product product)
         {
+            var existingProduct = await _context.Products.FindAsync(product.Id);
+            if (existingProduct is null)
+                return false;
+
             _context.Products.Update(product);
             await _context.SaveChangesAsync();
-            return product;
+            return true;
         }
 
         /// <summary>
@@ -118,13 +122,16 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="id">The product's identifier.</param>
         /// <returns>The deleted product, or null if not found.</returns>
-        public async Task<Product?> DeleteProduct(int id)
+        public async Task<bool> DeleteProduct(int id)
         {
             var product = await _context.Products.FindAsync(id);
 
+            if (product is null)
+                return false;
+
             _context.Products.Remove(product!);
             await _context.SaveChangesAsync();
-            return product;
+            return true;
         }
     }
 }
