@@ -115,12 +115,9 @@ namespace EcommerceAPI.Repositories
             if (address is null)
                 return false;
 
-            var addresses = await GetAddressesByUserId(address.UserId);
-            foreach (var a in addresses)
-            {
-                a.IsDefault = a.Id == id;
-                _context.Addresses.Update(a);
-            }
+            await _context.Addresses
+                .Where(a => a.UserId == address.UserId)
+                .ForEachAsync(a => a.IsDefault = a.Id == id);
 
             return await _context.SaveChangesAsync() > 0;
         }
