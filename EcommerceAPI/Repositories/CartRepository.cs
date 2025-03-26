@@ -132,8 +132,7 @@ namespace EcommerceAPI.Repositories
             else
                 item.Quantity = quantity;
 
-            await _context.SaveChangesAsync();
-            return true;
+            return await _context.SaveChangesAsync() > 0; ;
         }
 
         /// <summary>
@@ -152,8 +151,7 @@ namespace EcommerceAPI.Repositories
                 return false;
 
             item.UnitPrice = newPrice;
-            await _context.SaveChangesAsync();
-            return true;
+            return await _context.SaveChangesAsync() > 0; ;
         }
 
         /// <summary>
@@ -168,8 +166,7 @@ namespace EcommerceAPI.Repositories
                 return false;
 
             _context.CartItems.Remove(item);
-            await _context.SaveChangesAsync();
-            return true;
+            return await _context.SaveChangesAsync() > 0;
         }
 
         /// <summary>

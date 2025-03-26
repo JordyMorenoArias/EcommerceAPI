@@ -141,8 +141,7 @@ namespace EcommerceAPI.Repositories
                 return false;
 
             _context.Orders.Update(order);
-            await _context.SaveChangesAsync();
-            return true;
+            return await _context.SaveChangesAsync() > 0;
         }
 
         /// <summary>
@@ -158,8 +157,7 @@ namespace EcommerceAPI.Repositories
                 return false;
 
             _context.Orders.Remove(order);
-            await _context.SaveChangesAsync();
-            return true;
+            return await _context.SaveChangesAsync() > 0;
         }
 
         /// <summary>
@@ -176,8 +174,7 @@ namespace EcommerceAPI.Repositories
                 return false;
 
             order!.Status = newStatus;
-            await _context.SaveChangesAsync();
-            return true;
+            return await _context.SaveChangesAsync() > 0;
         }
 
         /// <summary>

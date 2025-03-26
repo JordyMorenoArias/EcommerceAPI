@@ -65,8 +65,7 @@ namespace EcommerceAPI.Repositories
                 return false;
 
             _context.Users.Update(user);
-            await _context.SaveChangesAsync();
-            return true;
+            return await _context.SaveChangesAsync() > 0;
         }
 
         /// <summary>
@@ -81,8 +80,7 @@ namespace EcommerceAPI.Repositories
                 return false;
 
             _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-            return true;
+            return await _context.SaveChangesAsync() > 0;
         }
 
         /// <summary>
