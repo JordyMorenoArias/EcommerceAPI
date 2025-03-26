@@ -24,7 +24,9 @@ namespace EcommerceAPI.Repositories
         /// <returns>A collection of all payments.</returns>
         public async Task<IEnumerable<Payment>> GetAllPayments()
         {
-            return await _context.Payments.ToListAsync();
+            return await _context.Payments
+                .AsNoTracking()
+                .ToListAsync();
         }
 
         /// <summary>
@@ -46,6 +48,7 @@ namespace EcommerceAPI.Repositories
         {
             return await _context.Payments
                 .Where(p => p.Order.UserId == userId)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -58,6 +61,7 @@ namespace EcommerceAPI.Repositories
         {
             return await _context.Payments
                 .Include(p => p.Order)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
@@ -129,6 +133,7 @@ namespace EcommerceAPI.Repositories
         {
             return await _context.Payments
                 .Where(p => p.Status == status)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -141,6 +146,7 @@ namespace EcommerceAPI.Repositories
         {
             return await _context.Payments
                 .Where(p => p.PaymentMethod == method)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -153,6 +159,7 @@ namespace EcommerceAPI.Repositories
         {
             return await _context.Payments
                 .Where(p => p.OrderId == orderId)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -165,6 +172,7 @@ namespace EcommerceAPI.Repositories
         {
             return await _context.Payments
                 .Where(p => p.Order.UserId == userId)
+                .AsNoTracking()
                 .SumAsync(p => p.Amount);
         }
 
@@ -178,6 +186,7 @@ namespace EcommerceAPI.Repositories
         {
             return await _context.Payments
                 .Where(p => p.CreatedAt >= startDate && p.CreatedAt <= endDate)
+                .AsNoTracking()
                 .SumAsync(p => p.Amount);
         }
     }

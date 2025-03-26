@@ -27,7 +27,9 @@ namespace EcommerceAPI.Repositories
         /// <returns>A list of all addresses.</returns>
         public async Task<IEnumerable<Address>> GetAllAddresses()
         {
-            return await _context.Addresses.ToListAsync();
+            return await _context.Addresses
+                .AsNoTracking()
+                .ToListAsync();
         }
 
         /// <summary>
@@ -47,7 +49,10 @@ namespace EcommerceAPI.Repositories
         /// <returns>A list of addresses for the specified user.</returns>
         public async Task<IEnumerable<Address>> GetAddressesByUserId(int userId)
         {
-            return await _context.Addresses.Where(a => a.UserId == userId).ToListAsync();
+            return await _context.Addresses
+                .Where(a => a.UserId == userId)
+                .AsNoTracking()
+                .ToListAsync();
         }
 
         /// <summary>
@@ -100,7 +105,9 @@ namespace EcommerceAPI.Repositories
         /// <returns>The default address or null if none is found.</returns>
         public async Task<Address?> GetDefaultAddressForUserAsync(int userId)
         {
-            return await _context.Addresses.FirstOrDefaultAsync(a => a.UserId == userId && a.IsDefault);
+            return await _context.Addresses
+                .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.UserId == userId && a.IsDefault);
         }
 
         /// <summary>

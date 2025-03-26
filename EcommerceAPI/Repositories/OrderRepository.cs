@@ -32,6 +32,7 @@ namespace EcommerceAPI.Repositories
             return await _context.Orders
                 .Include(o => o.User)
                 .Include(o => o.ShippingAddress)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -56,6 +57,7 @@ namespace EcommerceAPI.Repositories
                 .Where(o => o.UserId == userId)
                 .Include(o => o.User)
                 .Include(o => o.ShippingAddress)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -69,6 +71,7 @@ namespace EcommerceAPI.Repositories
             return await _context.Orders
                 .Where(o => o.Status == status)
                 .Include(o => o.ShippingAddress)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -84,6 +87,7 @@ namespace EcommerceAPI.Repositories
                 .Include(o => o.ShippingAddress)
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.Product)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(o => o.Id == orderId);
         }
 
@@ -185,6 +189,7 @@ namespace EcommerceAPI.Repositories
         {
             var totalSales = await _context.Orders
                 .Where(o => o.Status == OrderStatus.Paid)
+                .AsNoTracking()
                 .SumAsync(o => o.TotalAmount);
 
             return totalSales;

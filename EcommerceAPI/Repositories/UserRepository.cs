@@ -38,7 +38,7 @@ namespace EcommerceAPI.Repositories
         /// <returns>The user if found; otherwise, null.</returns>
         public async Task<User?> GetUserByEmail(string email)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            return await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email);
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace EcommerceAPI.Repositories
         /// <returns>The updated user if successful; otherwise, null.</returns>
         public async Task<bool> UpdateUser(User user)
         {
-            var existingUser = await _context.Users.FindAsync(user.Id);
+            var existingUser = await GetUserById(user.Id);
             if (existingUser is null)
                 return false;
 
@@ -75,7 +75,7 @@ namespace EcommerceAPI.Repositories
         /// <returns>The deleted user if found; otherwise, null.</returns>
         public async Task<bool> DeleteUser(int id)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await GetUserById(id);
             if (user is null)
                 return false;
 

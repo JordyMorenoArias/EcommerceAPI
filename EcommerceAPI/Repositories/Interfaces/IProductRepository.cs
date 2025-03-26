@@ -11,6 +11,7 @@ namespace EcommerceAPI.Repositories
         Task<IEnumerable<Product>> GetActiveProductsByCategory(CategoryProduct category);
         Task<IEnumerable<Product>> GetActiveProductsByUserId(int userId);
         Task<IEnumerable<Product>> GetAllProducts();
+        Task<Product?> GetProductById(int id);
         Task<IEnumerable<Product>> GetProductsByCategory(CategoryProduct category);
         Task<IEnumerable<Product>> GetProductsByUserId(int userId);
         Task<bool> UpdateProduct(Product product);

@@ -31,7 +31,8 @@ namespace EcommerceAPI.Repositories
         {
             return await _context.Carts
                 .Include(c => c.CartItems)
-                 .ThenInclude(ci => ci.Product)
+                    .ThenInclude(ci => ci.Product)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.UserId == userId);
         }
 
@@ -78,6 +79,8 @@ namespace EcommerceAPI.Repositories
         public async Task<CartItem?> GetCartItem(int cartId, int productId)
         {
             return await _context.CartItems
+                .Include(ci => ci.Product)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(ci => ci.CartId == cartId && ci.ProductId == productId);
         }
 
@@ -179,6 +182,7 @@ namespace EcommerceAPI.Repositories
             return await _context.CartItems
                 .Where(ci => ci.CartId == cartId)
                 .Include(ci => ci.Product)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -191,6 +195,7 @@ namespace EcommerceAPI.Repositories
         {
             return await _context.CartItems
                 .Where(ci => ci.CartId == cartId)
+                .AsNoTracking()
                 .SumAsync(ci => ci.Quantity * ci.UnitPrice);
         }
     }
