@@ -1,6 +1,6 @@
 ﻿using EcommerceAPI.Constants;
 using EcommerceAPI.Data;
-using EcommerceAPI.Models;
+using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 

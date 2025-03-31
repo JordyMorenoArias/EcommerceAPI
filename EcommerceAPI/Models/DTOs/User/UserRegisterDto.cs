@@ -1,14 +1,11 @@
 ﻿using EcommerceAPI.Constants;
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel;
 
-namespace EcommerceAPI.Models
+namespace EcommerceAPI.Models.DTOs.User
 {
-    public class User
+    public class UserRegisterDto
     {
-        [Key]
-        public int Id { get; set; }
-
         [Required(ErrorMessage = "FirstName is required")]
         public string FirstName { get; set; } = string.Empty;
 
@@ -22,16 +19,9 @@ namespace EcommerceAPI.Models
         public string Email { get; set; } = string.Empty;
 
         [Required, PasswordPropertyText]
-        public string PasswordHash { get; set; } = string.Empty;
-
-        public UserRole Role { get; set; } = UserRole.Customer;
-
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        public bool IsEmailConfirmed { get; set; } = false;
-
+        public string Password { get; set; } = string.Empty;
+        
         [MaxLength(100)]
-        public string EmailConfirmedToken { get; set; } = string.Empty;
-        public bool IsActive { get; set; } = true;
+        public string? EmailConfirmedToken { get; set; }
     }
 }

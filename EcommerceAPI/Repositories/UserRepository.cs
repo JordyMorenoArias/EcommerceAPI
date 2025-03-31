@@ -1,5 +1,5 @@
 ﻿using EcommerceAPI.Data;
-using EcommerceAPI.Models;
+using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -46,11 +46,11 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="user">The user entity to add.</param>
         /// <returns>The added user.</returns>
-        public async Task<User> AddUser(User user)
+        public async Task<bool> AddUser(User user)
         {
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
-            return user;
+            return await _context.SaveChangesAsync() > 0;
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="token">The email confirmation token.</param>
         /// <returns>The confirmed user if successful; otherwise, null.</returns>
-        public async Task<User?> ConfirmUser(string token)
+        public async Task<bool> ConfirmUser(string token)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.EmailConfirmedToken == token);
 
@@ -100,7 +100,7 @@ namespace EcommerceAPI.Repositories
                 await _context.SaveChangesAsync();
             }
 
-            return user;
+            return await _context.SaveChangesAsync() > 0;
         }
     }
 }

@@ -1,11 +1,11 @@
-﻿using EcommerceAPI.Models;
+﻿using EcommerceAPI.Models.Entities;
 
 namespace EcommerceAPI.Repositories.Interfaces
 {
     public interface IUserRepository
     {
-        Task<User> AddUser(User user);
-        Task<User?> ConfirmUser(string token);
+        Task<bool> AddUser(User user);
+        Task<bool> ConfirmUser(string token);
         Task<bool> DeleteUser(int id);
         Task<User?> GetUserByEmail(string email);
         Task<User?> GetUserById(int id);

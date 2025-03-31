@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using EcommerceAPI.Constants;
 
-namespace EcommerceAPI.Models
+namespace EcommerceAPI.Models.Entities
 {
     public class Order
     {

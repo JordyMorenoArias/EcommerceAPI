@@ -1,4 +1,5 @@
 ﻿using EcommerceAPI.Constants;
+using EcommerceAPI.Models.Entities;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
