@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using EcommerceAPI.Services.Security.Interfaces;
+using System.Security.Cryptography;
 
 namespace EcommerceAPI.Services.Security
 {
@@ -13,6 +14,12 @@ namespace EcommerceAPI.Services.Security
                 .TrimEnd('=');
 
             return token;
+        }
+
+        public int Generate6DigitToken()
+        {
+            int code = RandomNumberGenerator.GetInt32(100000, 1000000);
+            return code;
         }
     }
 }

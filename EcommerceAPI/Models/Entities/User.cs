@@ -32,8 +32,7 @@ namespace EcommerceAPI.Models.Entities
 
         [MaxLength(100)]
         public string? EmailConfirmedToken { get; set; }
-        [MaxLength(100)]
-        public string? ResetPasswordToken { get; set; }
+        public int? ResetPasswordCode { get; set; }
         public DateTime? ResetTokenExpiresAt { get; set; }
         public bool IsActive { get; set; } = true;
     }

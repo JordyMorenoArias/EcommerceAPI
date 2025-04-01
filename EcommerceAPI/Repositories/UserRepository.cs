@@ -48,8 +48,11 @@ namespace EcommerceAPI.Repositories
         /// <returns>The added user.</returns>
         public async Task<bool> AddUser(User user)
         {
+            var existingUser = await GetUserByEmail(user.Email);
+            if (existingUser != null)
+                return false;
+
             await _context.Users.AddAsync(user);
-            await _context.SaveChangesAsync();
             return await _context.SaveChangesAsync() > 0;
         }
 

@@ -20,8 +20,5 @@ namespace EcommerceAPI.Models.DTOs.User
 
         [Required, PasswordPropertyText]
         public string Password { get; set; } = string.Empty;
-        
-        [MaxLength(100)]
-        public string? EmailConfirmedToken { get; set; }
     }
 }

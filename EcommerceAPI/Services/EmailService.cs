@@ -61,18 +61,16 @@ namespace EcommerceAPI.Services
         /// </summary>
         /// <param name="email">Recipient's email address.</param>
         /// <returns>Returns <c>true</c> if the email was sent successfully; otherwise, <c>false</c>.</returns>
-        public bool SendForgotPassword(string email)
+        public bool SendForgotPassword(string email, int code)
         {
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress("EcommerceAPI", _username));
             message.To.Add(new MailboxAddress("", email));
             message.Subject = "Password Reset";
 
-            var verificationLink = $"{_BaseURL}/api/auth/reset-password?email={email}";
-
             message.Body = new TextPart("html")
             {
-                Text = $"<h1>Password Reset</h1><p>Please reset your password by clicking <a href='{verificationLink}'>here</a></p>"
+                Text = $"<h1>Password Reset</h1><p>Your password reset code is: {code}</p>"
             };
 
             using (var client = new SmtpClient())

@@ -5,6 +5,7 @@ using EcommerceAPI.Repositories.Interfaces;
 using EcommerceAPI.Services;
 using EcommerceAPI.Services.Interfaces;
 using EcommerceAPI.Services.Security;
+using EcommerceAPI.Services.Security.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddSwaggerGen( options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo 
+    { 
+        Title = "EcommerceAPI", 
+        Version = "v1",
+        Description = "A simple e-commerce API",
+    });
+});
+
 builder.Services.AddDbContext<EcommerceContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
@@ -32,6 +43,8 @@ builder.Services.AddScoped<PasswordHasher<User>>();
 
 builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 
 var jwtKey = builder.Configuration["Jwt:Key"];
@@ -81,6 +94,8 @@ using (var scope = app.Services.CreateScope())
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseSwagger();
+    app.UseSwaggerUI();
     app.MapOpenApi();
 }
 

@@ -1,6 +1,6 @@
 ﻿using EcommerceAPI.Models.Entities;
 
-namespace EcommerceAPI.Services.Security
+namespace EcommerceAPI.Services.Security.Interfaces
 {
     public interface IJwtService
     {
