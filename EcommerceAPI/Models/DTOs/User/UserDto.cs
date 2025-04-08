@@ -11,7 +11,7 @@ namespace EcommerceAPI.Models.DTOs.User
         public string FirstName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "LastName is required")]
-        public string LastName { get; set; } = string.Empty;
+        public string? LastName { get; set; } = string.Empty;
 
         [MaxLength(100)]
         public string? PhoneNumber { get; set; }
@@ -22,9 +22,5 @@ namespace EcommerceAPI.Models.DTOs.User
         public UserRole Role { get; set; } = UserRole.Customer;
 
         public DateTime CreatedAt { get; set; }
-
-        public bool IsEmailConfirmed { get; set; }
-
-        public bool IsActive { get; set; }
     }
 }

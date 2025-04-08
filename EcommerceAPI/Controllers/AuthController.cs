@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EcommerceAPI.Controllers
 {
+    /// <summary>
+    /// Controller responsible for user authentication and account management.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
@@ -18,6 +21,11 @@ namespace EcommerceAPI.Controllers
             _userService = userService;
         }
 
+        /// <summary>
+        /// Authenticates a user and returns a token.
+        /// </summary>
+        /// <param name="UserLogin">Login credentials.</param>
+        /// <returns>JWT and user info if successful.</returns>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginDto UserLogin)
         {
@@ -25,6 +33,11 @@ namespace EcommerceAPI.Controllers
             return Ok(response);
         }
 
+        /// <summary>
+        /// Registers a new user account.
+        /// </summary>
+        /// <param name="userRegister">User registration info.</param>
+        /// <returns>Status message indicating success or failure.</returns>
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDto userRegister)
         {
@@ -36,6 +49,12 @@ namespace EcommerceAPI.Controllers
                 return BadRequest(new { Message = "User registration failed" });
         }
 
+        /// <summary>
+        /// Confirms the user's email using a token.
+        /// </summary>
+        /// <param name="email">User email.</param>
+        /// <param name="token">Confirmation token.</param>
+        /// <returns>Status message.</returns>
         [HttpGet("confirm-email")]
         public async Task<IActionResult> ConfirmEmail([FromQuery] string email, [FromQuery] string token)
         {
@@ -47,11 +66,15 @@ namespace EcommerceAPI.Controllers
                 return BadRequest(new { Message = "Email confirmation failed" });
         }
 
+        /// <summary>
+        /// Allows an authenticated user to change their password.
+        /// </summary>
+        /// <param name="userChangePassword">Current and new password info.</param>
+        /// <returns>Status message.</returns>
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] UserChangePasswordDto userChangePassword)
         {
             var userAuth = _userService.GetAuthenticatedUser(HttpContext);
-
             var result = await _authService.ChangePassword(userAuth.Id, userChangePassword);
 
             if (result)
@@ -60,6 +83,11 @@ namespace EcommerceAPI.Controllers
                 return BadRequest(new { Message = "Password change failed" });
         }
 
+        /// <summary>
+        /// Sends a password reset email to the user.
+        /// </summary>
+        /// <param name="email">User email.</param>
+        /// <returns>Status message.</returns>
         [HttpPost("send-forgot-password")]
         public async Task<IActionResult> SendForgotPasswordEmail([FromBody] string email)
         {
@@ -71,6 +99,11 @@ namespace EcommerceAPI.Controllers
                 return BadRequest(new { Message = "Password reset email failed" });
         }
 
+        /// <summary>
+        /// Verifies the reset code sent to the user's email.
+        /// </summary>
+        /// <param name="verifyResetCode">Reset code verification data.</param>
+        /// <returns>Status message.</returns>
         [HttpPost("verify-reset-code")]
         public async Task<IActionResult> VerifyResetCode([FromBody] UserVerifyResetCodeDto verifyResetCode)
         {
@@ -82,6 +115,11 @@ namespace EcommerceAPI.Controllers
                 return BadRequest(new { Message = "Reset code verification failed" });
         }
 
+        /// <summary>
+        /// Resets the user's password using the provided reset token/code.
+        /// </summary>
+        /// <param name="userResetPassword">Password reset info.</param>
+        /// <returns>Status message.</returns>
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] UserResetPasswordDto userResetPassword)
         {

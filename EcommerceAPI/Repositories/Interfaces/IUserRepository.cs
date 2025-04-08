@@ -1,14 +1,18 @@
-﻿using EcommerceAPI.Models.Entities;
+﻿using EcommerceAPI.Constants;
+using EcommerceAPI.Models.DTOs.User;
+using EcommerceAPI.Models.Entities;
 
 namespace EcommerceAPI.Repositories.Interfaces
 {
     public interface IUserRepository
     {
-        Task<bool> AddUser(User user);
+        Task<UserDto> AddUser(User user);
         Task<bool> ConfirmUser(string token);
-        Task<bool> DeleteUser(int id);
+        Task<bool> DeleteUser(User user);
+        Task<IEnumerable<User>> GetAllUsers();
         Task<User?> GetUserByEmail(string email);
         Task<User?> GetUserById(int id);
-        Task<bool> UpdateUser(User user);
+        Task<IEnumerable<User>> GetUsersByRole(UserRole role);
+        Task<UserDto?> UpdateUser(User user);
     }
 }

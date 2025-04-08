@@ -96,9 +96,9 @@ namespace EcommerceAPI.Services
                 EmailConfirmedToken = token
             };
 
-            var result = await _userRepository.AddUser(newUser);
+            var userResult = await _userRepository.AddUser(newUser);
 
-            if (!result)
+            if (userResult is null)
                 throw new InvalidOperationException("Failed to register user");
 
 
@@ -148,12 +148,22 @@ namespace EcommerceAPI.Services
 
             user.PasswordHash = _passwordHasher.HashPassword(user, changePassword.NewPassword);
 
-            var result = await _userRepository.UpdateUser(user);
+            var updatedUserDto = new UserDto
+            {
+                Id = user.Id,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                PhoneNumber = user.PhoneNumber,
+                Role = user.Role
+            };
 
-            if (!result)
+            var userResult = await _userRepository.UpdateUser(user);
+
+            if (userResult is null)
                 throw new InvalidOperationException("Failed to change password");
 
-            return result;
+            return true;
         }
 
         /// <summary>
@@ -174,9 +184,9 @@ namespace EcommerceAPI.Services
             user.ResetPasswordCode = token;
             user.ResetTokenExpiresAt = DateTime.UtcNow.AddHours(1);
 
-            var result = await _userRepository.UpdateUser(user);
+            var userResult = await _userRepository.UpdateUser(user);
 
-            if (!result)
+            if (userResult is null)
                 throw new InvalidOperationException("Failed to generate reset token");
 
             var emailResult = _emailService.SendForgotPassword(email, token);
@@ -234,12 +244,12 @@ namespace EcommerceAPI.Services
 
             user.ResetPasswordCode = null;
             user.ResetTokenExpiresAt = null;
-            var result = await _userRepository.UpdateUser(user);
+            var userResult = await _userRepository.UpdateUser(user);
 
-            if (!result)
+            if (userResult is null)
                 throw new InvalidOperationException("Failed to reset password");
 
-            return result;
+            return true;
         }
     }
 }
