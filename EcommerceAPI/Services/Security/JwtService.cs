@@ -1,4 +1,5 @@
-﻿using EcommerceAPI.Models.Entities;
+﻿using EcommerceAPI.Models.DTOs.User;
+using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.Security.Interfaces;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -16,7 +17,7 @@ namespace EcommerceAPI.Services.Security
             _jwtOptions = configuration.GetSection("Jwt").Get<JwtOptions>()!;
         }
 
-        public string GenerateJwtToken(User user)
+        public string GenerateJwtToken(UserGenerateTokenDto user)
         {
             var claims = new[]
 {

@@ -38,14 +38,14 @@ builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-builder.Services.AddTransient<ITokenGenerator, TokenGenerator>();
 builder.Services.AddScoped<PasswordHasher<User>>();
+builder.Services.AddTransient<ITokenGenerator, TokenGenerator>();
 
 builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
-
+builder.Services.AddScoped<IOAuthProviderService, GoogleAuthService>();
 
 var jwtKey = builder.Configuration["Jwt:Key"];
 

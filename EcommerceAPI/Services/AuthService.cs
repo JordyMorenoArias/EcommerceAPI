@@ -46,12 +46,17 @@ namespace EcommerceAPI.Services
         {
             var user = await _userRepository.GetUserByEmail(loginDto.Email);
 
-            if (user == null || _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginDto.Password) == PasswordVerificationResult.Failed)
+            if (user == null || _passwordHasher.VerifyHashedPassword(user, user.PasswordHash!, loginDto.Password) == PasswordVerificationResult.Failed)
             {
                 throw new UnauthorizedAccessException("Invalid email or password");
             }
 
-            var token = _jwtService.GenerateJwtToken(user);
+            var token = _jwtService.GenerateJwtToken(new UserGenerateTokenDto
+            {
+                Id = user.Id,
+                Email = user.Email,
+                Role = user.Role
+            });
 
             return new AuthResponseDto
             {
@@ -141,7 +146,7 @@ namespace EcommerceAPI.Services
         {
             var user = await _userRepository.GetUserById(id);
 
-            if (user == null || _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, changePassword.OldPassword) == PasswordVerificationResult.Failed)
+            if (user == null || _passwordHasher.VerifyHashedPassword(user, user.PasswordHash!, changePassword.OldPassword) == PasswordVerificationResult.Failed)
             {
                 throw new UnauthorizedAccessException("Invalid password");
             }
