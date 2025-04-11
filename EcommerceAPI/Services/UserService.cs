@@ -1,4 +1,5 @@
-﻿using EcommerceAPI.Constants;
+﻿using AutoMapper;
+using EcommerceAPI.Constants;
 using EcommerceAPI.Models.DTOs.User;
 using EcommerceAPI.Repositories.Interfaces;
 using EcommerceAPI.Services.Interfaces;
@@ -12,10 +13,12 @@ namespace EcommerceAPI.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapper;
 
-        public UserService(IUserRepository userRepository)
+        public UserService(IUserRepository userRepository, IMapper mapper)
         {
             _userRepository = userRepository;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -29,16 +32,16 @@ namespace EcommerceAPI.Services
         public UserAuthenticatedDto GetAuthenticatedUser(HttpContext httpContext)
         {
             var userIdClaim = httpContext.User.FindFirst("Id")?.Value;
-            var userEmaimClaim = httpContext.User.FindFirst("Email")?.Value;
+            var userEmailClaim = httpContext.User.FindFirst("Email")?.Value;
             var userRoleClaim = httpContext.User.FindFirst("Role")?.Value;
 
-            if (string.IsNullOrEmpty(userIdClaim) || string.IsNullOrEmpty(userEmaimClaim) || string.IsNullOrEmpty(userRoleClaim))
+            if (string.IsNullOrEmpty(userIdClaim) || string.IsNullOrEmpty(userEmailClaim) || string.IsNullOrEmpty(userRoleClaim))
                 throw new UnauthorizedAccessException("Invalid token or unauthorized access.");
 
             return new UserAuthenticatedDto
             {
                 Id = int.Parse(userIdClaim),
-                Email = userEmaimClaim,
+                Email = userEmailClaim,
                 Role = Enum.Parse<UserRole>(userRoleClaim)
             };
         }
@@ -56,15 +59,7 @@ namespace EcommerceAPI.Services
             if (user == null)
                 throw new KeyNotFoundException("User not found.");
 
-            return new UserDto
-            {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                Role = user.Role,
-                CreatedAt = user.CreatedAt,
-            };
+            return _mapper.Map<UserDto>(user);
         }
 
         /// <summary>
@@ -79,15 +74,7 @@ namespace EcommerceAPI.Services
             if (users == null || !users.Any())
                 throw new KeyNotFoundException("No users found.");
 
-            return users.Select(user => new UserDto
-            {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                Role = user.Role,
-                CreatedAt = user.CreatedAt,
-            });
+            return _mapper.Map<IEnumerable<UserDto>>(users);
         }
 
         /// <summary>
@@ -114,15 +101,7 @@ namespace EcommerceAPI.Services
             if (userUpdated is null)
                 throw new Exception("Failed to update user.");
 
-            return new UserDto
-            {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                Role = user.Role,
-                CreatedAt = user.CreatedAt,
-            };
+            return _mapper.Map<UserDto>(userUpdated);
         }
 
         /// <summary>
@@ -154,15 +133,7 @@ namespace EcommerceAPI.Services
             if (user == null)
                 throw new KeyNotFoundException("User not found.");
 
-            return new UserDto
-            {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                Role = user.Role,
-                CreatedAt = user.CreatedAt,
-            };
+            return _mapper.Map<UserDto>(user);
         }
 
         /// <summary>
@@ -186,15 +157,7 @@ namespace EcommerceAPI.Services
             if (userUpdated is null)
                 throw new Exception("Failed to update user.");
 
-            return new UserDto
-            {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                Role = user.Role,
-                CreatedAt = user.CreatedAt,
-            };
+            return _mapper.Map<UserDto>(userUpdated);
         }
 
         /// <summary>
@@ -210,15 +173,7 @@ namespace EcommerceAPI.Services
             if (users == null || !users.Any())
                 throw new KeyNotFoundException("No users found.");
 
-            return users.Select(user => new UserDto
-            {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                Role = user.Role,
-                CreatedAt = user.CreatedAt,
-            });
+            return _mapper.Map<IEnumerable<UserDto>>(users);
         }
     }
 }

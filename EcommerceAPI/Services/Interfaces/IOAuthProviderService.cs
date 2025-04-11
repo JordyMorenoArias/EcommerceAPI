@@ -1,6 +1,9 @@
-﻿namespace EcommerceAPI.Services.Interfaces
+﻿using EcommerceAPI.Models.DTOs.Auth;
+
+namespace EcommerceAPI.Services.Interfaces
 {
-    public class IOAuthProviderService
+    public interface IOAuthProviderService
     {
+        Task<AuthResponseDto> GetUserInfoAsync(string code);
     }
 }

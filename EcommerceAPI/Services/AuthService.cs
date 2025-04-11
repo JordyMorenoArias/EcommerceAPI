@@ -11,6 +11,7 @@ using System.Text;
 using EcommerceAPI.Models.DTOs.User;
 using System.Security.Cryptography;
 using EcommerceAPI.Services.Security.Interfaces;
+using AutoMapper;
 
 namespace EcommerceAPI.Services
 {
@@ -25,14 +26,16 @@ namespace EcommerceAPI.Services
         private readonly ITokenGenerator _tokenGenerator;
         private readonly IEmailService _emailService;
         private readonly PasswordHasher<User> _passwordHasher;
+        private readonly IMapper _mapper;
 
-        public AuthService(IUserRepository userRepository, IJwtService jwtService, ITokenGenerator tokenGenerator, IEmailService emailService, PasswordHasher<User> passwordHasher)
+        public AuthService(IUserRepository userRepository, IJwtService jwtService, ITokenGenerator tokenGenerator, IEmailService emailService, PasswordHasher<User> passwordHasher, IMapper mapper)
         {
             _userRepository = userRepository;
             _jwtService = jwtService;
             _tokenGenerator = tokenGenerator;
             _emailService = emailService;
             _passwordHasher = passwordHasher;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -51,26 +54,13 @@ namespace EcommerceAPI.Services
                 throw new UnauthorizedAccessException("Invalid email or password");
             }
 
-            var token = _jwtService.GenerateJwtToken(new UserGenerateTokenDto
-            {
-                Id = user.Id,
-                Email = user.Email,
-                Role = user.Role
-            });
+            var token = _jwtService.GenerateJwtToken(_mapper.Map<UserGenerateTokenDto>(user));
 
             return new AuthResponseDto
             {
                 Token = token,
                 Expires = DateTime.UtcNow.AddHours(3),
-                User = new UserDto
-                {
-                    Id = user.Id,
-                    Email = user.Email,
-                    FirstName = user.FirstName,
-                    LastName = user.LastName!,
-                    PhoneNumber = user.PhoneNumber,
-                    Role = user.Role
-                }
+                User = _mapper.Map<UserDto>(user)
             };
         }
 
@@ -91,15 +81,8 @@ namespace EcommerceAPI.Services
 
             string token = _tokenGenerator.GenerateToken();
 
-            User newUser = new User
-            {
-                FirstName = userRegister.FirstName,
-                LastName = userRegister.LastName,
-                PhoneNumber = userRegister.PhoneNumber,
-                Email = userRegister.Email,
-                PasswordHash = userRegister.Password,
-                EmailConfirmedToken = token
-            };
+            var newUser = _mapper.Map<User>(userRegister);
+            newUser.EmailConfirmedToken = token;
 
             var userResult = await _userRepository.AddUser(newUser);
 
@@ -152,16 +135,6 @@ namespace EcommerceAPI.Services
             }
 
             user.PasswordHash = _passwordHasher.HashPassword(user, changePassword.NewPassword);
-
-            var updatedUserDto = new UserDto
-            {
-                Id = user.Id,
-                Email = user.Email,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                PhoneNumber = user.PhoneNumber,
-                Role = user.Role
-            };
 
             var userResult = await _userRepository.UpdateUser(user);
 

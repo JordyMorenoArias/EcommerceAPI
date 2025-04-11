@@ -1,4 +1,5 @@
-﻿using EcommerceAPI.Models.DTOs.Auth;
+﻿using AutoMapper;
+using EcommerceAPI.Models.DTOs.Auth;
 using EcommerceAPI.Models.DTOs.User;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Repositories.Interfaces;
@@ -15,12 +16,14 @@ namespace EcommerceAPI.Services
         private readonly IConfiguration _configuration;
         private readonly IUserRepository _userRepository;
         private readonly IJwtService _jwtService;
+        private readonly IMapper _mapper;
 
-        public GoogleAuthService(IConfiguration configuration, IUserRepository userRepository, IJwtService jwtService)
+        public GoogleAuthService(IConfiguration configuration, IUserRepository userRepository, IJwtService jwtService, IMapper mapper)
         {
             _configuration = configuration;
             _userRepository = userRepository;
             _jwtService = jwtService;
+            _mapper = mapper;
         }
 
         public async Task<AuthResponseDto> GetUserInfoAsync(string code)
@@ -69,23 +72,13 @@ namespace EcommerceAPI.Services
 
             if (existingUser != null)
             {
-                var jwtTokenForExistingUser = _jwtService.GenerateJwtToken(new UserGenerateTokenDto
-                {
-                    Id = existingUser.Id,
-                    Email = existingUser.Email,
-                    Role = existingUser.Role
-                });
+                var jwtTokenForExistingUser = _jwtService.GenerateJwtToken(_mapper.Map<UserGenerateTokenDto>(existingUser));
 
                 return new AuthResponseDto
                 {
                     Token = jwtTokenForExistingUser,
                     Expires = DateTime.UtcNow.AddHours(3),
-                    User = new UserDto
-                    {
-                        Id = existingUser.Id,
-                        Email = existingUser.Email,
-                        Role = existingUser.Role
-                    }
+                    User = _mapper.Map<UserDto>(existingUser)
                 };
             }
 
@@ -102,23 +95,13 @@ namespace EcommerceAPI.Services
             if (userCreated == null)
                 throw new Exception("Failed to create user in the database.");
 
-            var jwtTokenForNewUser = _jwtService.GenerateJwtToken(new UserGenerateTokenDto
-            {
-                Id = userCreated.Id,
-                Email = userCreated.Email,
-                Role = userCreated.Role
-            });
+            var jwtTokenForNewUser = _jwtService.GenerateJwtToken(_mapper.Map<UserGenerateTokenDto>(userCreated));
 
             return new AuthResponseDto
             {
                 Token = jwtTokenForNewUser,
                 Expires = DateTime.UtcNow.AddHours(3),
-                User = new UserDto
-                {
-                    Id = userCreated.Id,
-                    Email =userCreated.Email,
-                    Role = userCreated.Role
-                }
+                User = _mapper.Map<UserDto>(userCreated)
             };
         }
     }

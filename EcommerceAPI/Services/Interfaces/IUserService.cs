@@ -1,4 +1,5 @@
-﻿using EcommerceAPI.Constants;
+﻿using AutoMapper;
+using EcommerceAPI.Constants;
 using EcommerceAPI.Models.DTOs.User;
 
 namespace EcommerceAPI.Services.Interfaces
