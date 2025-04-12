@@ -8,7 +8,7 @@ namespace EcommerceAPI.AutoMapper
     {
         public AutoMapping()
         {
-            // User to DTO mappings and reverse
+            // User to DTO assignments and reverse
             CreateMap<User, UserAuthenticatedDto>().ReverseMap();
             CreateMap<User, UserDto>().ReverseMap();
             CreateMap<User, UserGenerateTokenDto>().ReverseMap();
