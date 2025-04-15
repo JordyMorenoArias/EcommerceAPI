@@ -22,28 +22,74 @@ namespace EcommerceAPI.Repositories
         }
 
         /// <summary>
+        /// Retrieves a product by its unique identifier.
+        /// </summary>
+        /// <param name="id">The product's identifier.</param>
+        public async Task<ProductEntity?> GetProductById(int id)
+        {
+            return await _context.Products.FindAsync(id);
+        }
+
+        /// <summary>
         /// Retrieves all products from the database regardless of their active state.
         /// </summary>
         /// <returns>A list of all products.</returns>
-        public async Task<IEnumerable<Product>> GetAllProducts()
+        public async Task<IEnumerable<ProductEntity>> GetAllProducts()
         {
             return await _context.Products.AsNoTracking().ToListAsync();
         }
 
         /// <summary>
-        /// Retrieves a product by its unique identifier.
+        /// Retrieves products based on a search query.
         /// </summary>
-        /// <param name="id">The product's identifier.</param>
-        public async Task<Product?> GetProductById(int id)
+        /// <returns>A list of products matching the search query.</returns>
+        public async Task<IEnumerable<ProductEntity>> SearchProducts(string query)
         {
-            return await _context.Products.FindAsync(id);
+            var normalizedQuery = query.ToLower();
+
+            var nameQuery = _context.Products
+                .Where(p => p.Name != null &&
+                            (p.Name.StartsWith(normalizedQuery) ||
+                            p.Name.ToLower().Contains($" {normalizedQuery}")))
+                .Select(p => new
+                {
+                    Product = p,
+                    Score = 100
+                });
+
+            var descriptionQuery = _context.Products
+                .Where(p => p.Description != null &&
+                            p.Description.ToLower().Contains(normalizedQuery))
+                .Select(p => new
+                {
+                    Product = p,
+                    Score = 50
+                });
+
+            var nameResults = await nameQuery.AsNoTracking().ToListAsync();
+            var descriptionResults = await descriptionQuery.AsNoTracking().ToListAsync();
+
+            var combinedResults = nameResults
+                .Concat(descriptionResults)
+                .GroupBy(x => x.Product.Id)
+                .Select(g => new
+                {
+                    Product = g.First().Product,
+                    Score = g.Max(x => x.Score)
+                })
+                .OrderByDescending(x => x.Score)
+                .ThenBy(x => x.Product.Name)
+                .Select(x => x.Product)
+                .ToList();
+
+            return combinedResults;
         }
 
         /// <summary>
         /// Retrieves only the active products from the database.
         /// </summary>
         /// <returns>A list of active products.</returns>
-        public async Task<IEnumerable<Product>> GetActiveProducts()
+        public async Task<IEnumerable<ProductEntity>> GetActiveProducts()
         {
             return await _context.Products
                 .Where(p => p.IsActive)
@@ -56,7 +102,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="userId">The user's identifier.</param>
         /// <returns>A list of products for the given user.</returns>
-        public async Task<IEnumerable<Product>> GetProductsByUserId(int userId)
+        public async Task<IEnumerable<ProductEntity>> GetProductsByUserId(int userId)
         {
             return await _context.Products
                 .Where(p => p.UserId == userId)
@@ -69,7 +115,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="userId">The user's identifier.</param>
         /// <returns>A list of active products for the given user.</returns>
-        public async Task<IEnumerable<Product>> GetActiveProductsByUserId(int userId)
+        public async Task<IEnumerable<ProductEntity>> GetActiveProductsByUserId(int userId)
         {
             return await _context.Products
                 .Where(p => p.UserId == userId && p.IsActive)
@@ -82,7 +128,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="category">The category of the products.</param>
         /// <returns>A list of products in the given category.</returns>
-        public async Task<IEnumerable<Product>> GetProductsByCategory(CategoryProduct category)
+        public async Task<IEnumerable<ProductEntity>> GetProductsByCategory(CategoryProduct category)
         {
             return await _context.Products
                 .Where(p => p.Category == category)
@@ -95,7 +141,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="category">The category of the products.</param>
         /// <returns>A list of active products in the given category.</returns>
-        public async Task<IEnumerable<Product>> GetActiveProductsByCategory(CategoryProduct category)
+        public async Task<IEnumerable<ProductEntity>> GetActiveProductsByCategory(CategoryProduct category)
         {
             return await _context.Products
                 .Where(p => p.Category == category && p.IsActive)
@@ -108,7 +154,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="product">The product to add.</param>
         /// <returns>The product after being added to the database.</returns>
-        public async Task<Product> AddProduct(Product product)
+        public async Task<ProductEntity> AddProduct(ProductEntity product)
         {
             await _context.Products.AddAsync(product);
             await _context.SaveChangesAsync();
@@ -120,7 +166,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="product">The product with updated information.</param>
         /// <returns>The updated product.</returns>
-        public async Task<bool> UpdateProduct(Product product)
+        public async Task<bool> UpdateProduct(ProductEntity product)
         {
             var existingProduct = await GetProductById(product.Id);
             if (existingProduct is null)

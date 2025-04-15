@@ -27,7 +27,7 @@ namespace EcommerceAPI.Repositories
         /// Retrieves all orders with user and shipping address details.
         /// </summary>
         /// <returns>A collection of all orders.</returns>
-        public async Task<IEnumerable<Order>> GetAllOrders()
+        public async Task<IEnumerable<OrderEntity>> GetAllOrders()
         {
             return await _context.Orders
                 .Include(o => o.User)
@@ -41,7 +41,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="id">Order ID.</param>
         /// <returns>The order if found; otherwise, null.</returns>
-        public async Task<Order?> GetOrderById(int id)
+        public async Task<OrderEntity?> GetOrderById(int id)
         {
             return await _context.Orders.FindAsync(id);
         }
@@ -51,7 +51,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="userId">User ID.</param>
         /// <returns>A collection of orders for the specified user.</returns>
-        public async Task<IEnumerable<Order>> GetAllOrdersByUserId(int userId)
+        public async Task<IEnumerable<OrderEntity>> GetAllOrdersByUserId(int userId)
         {
             return await _context.Orders
                 .Where(o => o.UserId == userId)
@@ -66,7 +66,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="status">Order status.</param>
         /// <returns>A collection of orders matching the status.</returns>
-        public async Task<IEnumerable<Order>> GetOrdersByStatus(OrderStatus status)
+        public async Task<IEnumerable<OrderEntity>> GetOrdersByStatus(OrderStatus status)
         {
             return await _context.Orders
                 .Where(o => o.Status == status)
@@ -80,7 +80,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="orderId">Order ID.</param>
         /// <returns>The order with its details if found; otherwise, null.</returns>
-        public async Task<Order?> GetOrderWithDetails(int orderId)
+        public async Task<OrderEntity?> GetOrderWithDetails(int orderId)
         {
             return await _context.Orders
                 .Include(o => o.User)
@@ -96,7 +96,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="order">The order to add.</param>
         /// <returns>True if the order was added successfully; otherwise, false.</returns>
-        public async Task<Order?> AddOrder(Order order)
+        public async Task<OrderEntity?> AddOrder(OrderEntity order)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -137,7 +137,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="order">The updated order data.</param>
         /// <returns>True if the update was successful; otherwise, false.</returns>
-        public async Task<bool> UpdateOrder(Order order)
+        public async Task<bool> UpdateOrder(OrderEntity order)
         {
             var existingOrder = await GetOrderById(order.Id);
 

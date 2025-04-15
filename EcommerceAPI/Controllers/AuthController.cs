@@ -1,6 +1,6 @@
 ﻿using EcommerceAPI.Models.DTOs.User;
-using EcommerceAPI.Services.Interfaces;
-using EcommerceAPI.Services.Security.Interfaces;
+using EcommerceAPI.Services.Auth.Interfaces;
+using EcommerceAPI.Services.User.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EcommerceAPI.Controllers

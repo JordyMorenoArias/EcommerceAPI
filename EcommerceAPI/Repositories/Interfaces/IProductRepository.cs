@@ -5,15 +5,16 @@ namespace EcommerceAPI.Repositories
 {
     public interface IProductRepository
     {
-        Task<Product> AddProduct(Product product);
+        Task<ProductEntity> AddProduct(ProductEntity product);
         Task<bool> DeleteProduct(int id);
-        Task<IEnumerable<Product>> GetActiveProducts();
-        Task<IEnumerable<Product>> GetActiveProductsByCategory(CategoryProduct category);
-        Task<IEnumerable<Product>> GetActiveProductsByUserId(int userId);
-        Task<IEnumerable<Product>> GetAllProducts();
-        Task<Product?> GetProductById(int id);
-        Task<IEnumerable<Product>> GetProductsByCategory(CategoryProduct category);
-        Task<IEnumerable<Product>> GetProductsByUserId(int userId);
-        Task<bool> UpdateProduct(Product product);
+        Task<IEnumerable<ProductEntity>> GetActiveProducts();
+        Task<IEnumerable<ProductEntity>> GetActiveProductsByCategory(CategoryProduct category);
+        Task<IEnumerable<ProductEntity>> GetActiveProductsByUserId(int userId);
+        Task<IEnumerable<ProductEntity>> GetAllProducts();
+        Task<ProductEntity?> GetProductById(int id);
+        Task<IEnumerable<ProductEntity>> GetProductsByCategory(CategoryProduct category);
+        Task<IEnumerable<ProductEntity>> GetProductsByUserId(int userId);
+        Task<IEnumerable<ProductEntity>> SearchProducts(string query);
+        Task<bool> UpdateProduct(ProductEntity product);
     }
 }

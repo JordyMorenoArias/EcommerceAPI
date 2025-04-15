@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EcommerceAPI.Models.Entities
 {
-    public class User
+    public class UserEntity
     {
         [Key]
         public int Id { get; set; }

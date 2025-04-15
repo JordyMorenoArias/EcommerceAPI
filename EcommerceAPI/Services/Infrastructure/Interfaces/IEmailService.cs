@@ -1,4 +1,4 @@
-﻿namespace EcommerceAPI.Services.Interfaces
+﻿namespace EcommerceAPI.Services.Infrastructure.Interfaces
 {
     public interface IEmailService
     {

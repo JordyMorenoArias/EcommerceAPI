@@ -1,4 +1,4 @@
-﻿namespace EcommerceAPI.Models.Entities
+﻿namespace EcommerceAPI.Configurations
 {
     public class JwtOptions
     {

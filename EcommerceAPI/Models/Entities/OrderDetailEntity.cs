@@ -3,19 +3,19 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EcommerceAPI.Models.Entities
 {
-    public class OrderDetail
+    public class OrderDetailEntity
     {
         [Key]
         public int Id { get; set; }
 
         [Required, ForeignKey("Order")]
         public int OrderId { get; set; }
-        public Order Order { get; set; } = null!;
+        public OrderEntity Order { get; set; } = null!;
 
 
         [Required, ForeignKey("Product")]
         public int ProductId { get; set; }
-        public Product Product { get; set; } = null!;
+        public ProductEntity Product { get; set; } = null!;
 
 
         public int Quantity { get; set; }

@@ -1,7 +1,7 @@
-﻿using EcommerceAPI.Services.Interfaces;
+﻿using EcommerceAPI.Services.Infrastructure.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace EcommerceAPI.Services
+namespace EcommerceAPI.Services.Infrastructure
 {
     public class MemoryCacheService : ICacheService
     {

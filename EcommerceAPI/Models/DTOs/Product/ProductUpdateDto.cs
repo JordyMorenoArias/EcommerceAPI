@@ -1,16 +1,11 @@
 ﻿using EcommerceAPI.Constants;
-using EcommerceAPI.Models.Entities;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
-namespace EcommerceAPI.Models
+namespace EcommerceAPI.Models.DTOs.Product
 {
-    public class Product
+    public class ProductUpdateDto
     {
-        [Key]
-        public int Id { get; set; }
-
         [Required, MaxLength(200)]
         public string Name { get; set; } = string.Empty;
 
@@ -28,13 +23,5 @@ namespace EcommerceAPI.Models
 
         [MaxLength(500)]
         public string? ImageUrl { get; set; }
-
-        public bool IsActive { get; set; } = true;
-
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        [Required, ForeignKey("User")]
-        public int? UserId { get; set; }
-        public User User { get; set; } = null!;
     }
 }

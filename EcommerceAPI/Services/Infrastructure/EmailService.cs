@@ -1,8 +1,8 @@
-﻿using EcommerceAPI.Services.Interfaces;
-using MimeKit;
+﻿using MimeKit;
 using MailKit.Net.Smtp;
+using EcommerceAPI.Services.Infrastructure.Interfaces;
 
-namespace EcommerceAPI.Services
+namespace EcommerceAPI.Services.Infrastructure
 {
     /// <summary>
     /// Email service for account verification and password recovery.

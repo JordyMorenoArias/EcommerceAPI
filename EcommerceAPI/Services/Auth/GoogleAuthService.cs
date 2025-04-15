@@ -3,13 +3,13 @@ using EcommerceAPI.Models.DTOs.Auth;
 using EcommerceAPI.Models.DTOs.User;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Repositories.Interfaces;
-using EcommerceAPI.Services.Interfaces;
+using EcommerceAPI.Services.Auth.Interfaces;
 using EcommerceAPI.Services.Security.Interfaces;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
 
-namespace EcommerceAPI.Services
+namespace EcommerceAPI.Services.Auth
 {
     public class GoogleAuthService : IOAuthProviderService
     {

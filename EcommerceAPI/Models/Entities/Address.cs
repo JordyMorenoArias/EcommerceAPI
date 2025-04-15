@@ -10,7 +10,7 @@ namespace EcommerceAPI.Models.Entities
 
         [Required, ForeignKey("User")]
         public int UserId { get; set; }
-        public User User { get; set; } = null!;
+        public UserEntity User { get; set; } = null!;
 
         [Required, MaxLength(100)]
         public string StreetAddress { get; set; } = string.Empty;

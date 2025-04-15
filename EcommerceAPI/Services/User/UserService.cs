@@ -2,9 +2,9 @@
 using EcommerceAPI.Constants;
 using EcommerceAPI.Models.DTOs.User;
 using EcommerceAPI.Repositories.Interfaces;
-using EcommerceAPI.Services.Interfaces;
+using EcommerceAPI.Services.User.Interfaces;
 
-namespace EcommerceAPI.Services
+namespace EcommerceAPI.Services.User
 {
     /// <summary>
     /// Provides operations related to user management, including retrieval,
@@ -84,17 +84,14 @@ namespace EcommerceAPI.Services
         /// <returns>The updated <see cref="UserDto"/>.</returns>
         /// <exception cref="KeyNotFoundException">Thrown when the user is not found.</exception>
         /// <exception cref="Exception">Thrown when the update operation fails.</exception>
-        public async Task<UserDto> UpdateUser(UserDto userDto)
+        public async Task<UserDto> UpdateUser(int userId, UserUpdateDto userUpdateDto)
         {
-            var user = await _userRepository.GetUserById(userDto.Id);
+            var user = await _userRepository.GetUserById(userId);
 
             if (user == null)
                 throw new KeyNotFoundException("User not found.");
 
-            user.FirstName = userDto.FirstName;
-            user.LastName = userDto.LastName;
-            user.Email = userDto.Email;
-            user.Role = userDto.Role;
+            _mapper.Map(userUpdateDto, user);
 
             var userUpdated = await _userRepository.UpdateUser(user);
 

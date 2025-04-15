@@ -2,7 +2,7 @@
 using EcommerceAPI.Constants;
 using EcommerceAPI.Models.DTOs.User;
 
-namespace EcommerceAPI.Services.Interfaces
+namespace EcommerceAPI.Services.User.Interfaces
 {
     public interface IUserService
     {
@@ -13,6 +13,6 @@ namespace EcommerceAPI.Services.Interfaces
         Task<UserDto> GetUserByEmail(string email);
         Task<UserDto> GetUserById(int id);
         Task<IEnumerable<UserDto>> GetUsersByRole(UserRole role);
-        Task<UserDto> UpdateUser(UserDto userDto);
+        Task<UserDto> UpdateUser(int userId, UserUpdateDto userUpdateDto);
     }
 }

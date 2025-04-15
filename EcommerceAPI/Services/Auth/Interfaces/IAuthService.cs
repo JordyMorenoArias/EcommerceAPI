@@ -1,7 +1,7 @@
 ﻿using EcommerceAPI.Models.DTOs.Auth;
 using EcommerceAPI.Models.DTOs.User;
 
-namespace EcommerceAPI.Services.Security.Interfaces
+namespace EcommerceAPI.Services.Auth.Interfaces
 {
     public interface IAuthService
     {

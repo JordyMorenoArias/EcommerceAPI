@@ -2,10 +2,14 @@ using EcommerceAPI.Data;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Repositories;
 using EcommerceAPI.Repositories.Interfaces;
-using EcommerceAPI.Services;
-using EcommerceAPI.Services.Interfaces;
+using EcommerceAPI.Services.Auth;
+using EcommerceAPI.Services.Auth.Interfaces;
+using EcommerceAPI.Services.Infrastructure;
+using EcommerceAPI.Services.Infrastructure.Interfaces;
 using EcommerceAPI.Services.Security;
 using EcommerceAPI.Services.Security.Interfaces;
+using EcommerceAPI.Services.User;
+using EcommerceAPI.Services.User.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -30,8 +34,13 @@ builder.Services.AddSwaggerGen( options =>
 });
 
 builder.Services.AddDbContext<EcommerceContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+builder.Services.AddMemoryCache();
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("RedisConnection");
+});
 
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
@@ -40,7 +49,7 @@ builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-builder.Services.AddScoped<PasswordHasher<User>>();
+builder.Services.AddScoped<PasswordHasher<UserEntity>>();
 builder.Services.AddTransient<ITokenGenerator, TokenGenerator>();
 
 builder.Services.AddSingleton<IJwtService, JwtService>();

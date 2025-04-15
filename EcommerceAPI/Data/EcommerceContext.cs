@@ -11,12 +11,12 @@ namespace EcommerceAPI.Data
         }
 
         public DbSet<Address> Addresses { get; set; }
-        public DbSet<Cart> Carts { get; set; }
-        public DbSet<CartItem> CartItems { get; set; }
-        public DbSet<Order> Orders { get; set; }
-        public DbSet<OrderDetail> OrderDetails { get; set; }
-        public DbSet<Payment> Payments { get; set; }
-        public DbSet<Product> Products { get; set; }
-        public DbSet<User> Users { get; set; }
+        public DbSet<CartEntity> Carts { get; set; }
+        public DbSet<CartItemEntity> CartItems { get; set; }
+        public DbSet<OrderEntity> Orders { get; set; }
+        public DbSet<OrderDetailEntity> OrderDetails { get; set; }
+        public DbSet<PaymentEntity> Payments { get; set; }
+        public DbSet<ProductEntity> Products { get; set; }
+        public DbSet<UserEntity> Users { get; set; }
     }
 }

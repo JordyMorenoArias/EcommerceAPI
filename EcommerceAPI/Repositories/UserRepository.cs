@@ -28,7 +28,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="id">The user ID.</param>
         /// <returns>The user if found; otherwise, null.</returns>
-        public async Task<User?> GetUserById(int id)
+        public async Task<UserEntity?> GetUserById(int id)
         {
             return await _context.Users.FindAsync(id);
         }
@@ -37,7 +37,7 @@ namespace EcommerceAPI.Repositories
         /// Gets all users.
         /// </summary>
         /// <returns></returns>
-        public async Task<IEnumerable<User>> GetAllUsers()
+        public async Task<IEnumerable<UserEntity>> GetAllUsers()
         {
             return await _context.Users.AsNoTracking().ToListAsync();
         }
@@ -47,7 +47,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="email">The user's email.</param>
         /// <returns>The user if found; otherwise, null.</returns>
-        public async Task<User?> GetUserByEmail(string email)
+        public async Task<UserEntity?> GetUserByEmail(string email)
         {
             return await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email);
         }
@@ -57,19 +57,11 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="user">The user entity to add.</param>
         /// <returns>The added user.</returns>
-        public async Task<UserDto> AddUser(User user)
+        public async Task<UserEntity> AddUser(UserEntity user)
         {
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
-            return new UserDto
-            {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                Role = user.Role,
-                CreatedAt = user.CreatedAt,
-            };
+            return user;
         }
 
         /// <summary>
@@ -77,7 +69,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="user">The user entity with updated information.</param>
         /// <returns>The updated user if successful; otherwise, null.</returns>
-        public async Task<UserDto?> UpdateUser(User user)
+        public async Task<UserEntity?> UpdateUser(UserEntity user)
         {
             var existingUser = await GetUserById(user.Id);
             if (existingUser is null)
@@ -85,15 +77,7 @@ namespace EcommerceAPI.Repositories
 
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
-            return new UserDto
-            {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                Role = user.Role,
-                CreatedAt = user.CreatedAt,
-            };
+            return user;
         }
 
         /// <summary>
@@ -101,7 +85,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="id">The ID of the user to delete.</param>
         /// <returns>The deleted user if found; otherwise, null.</returns>
-        public async Task<bool> DeleteUser(User user)
+        public async Task<bool> DeleteUser(UserEntity user)
         {
             _context.Users.Remove(user);
             return await _context.SaveChangesAsync() > 0;
@@ -132,7 +116,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="role">The role.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<User>> GetUsersByRole(UserRole role)
+        public async Task<IEnumerable<UserEntity>> GetUsersByRole(UserRole role)
         {
             return await _context.Users
                 .Where(u => u.Role == role)

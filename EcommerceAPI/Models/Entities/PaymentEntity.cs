@@ -4,14 +4,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EcommerceAPI.Models.Entities
 {
-    public class Payment
+    public class PaymentEntity
     {
         [Key]
         public int Id { get; set; }
 
         [Required, ForeignKey("Order")]
         public int OrderId { get; set; }
-        public Order Order { get; set; } = null!;
+        public OrderEntity Order { get; set; } = null!;
 
         [Column(TypeName = "decimal(18, 2)")]
         public decimal Amount { get; set; }

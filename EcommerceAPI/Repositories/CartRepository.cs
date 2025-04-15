@@ -28,7 +28,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="userId">User ID to search for.</param>
         /// <returns>The user's cart or null if not found.</returns>
-        public async Task<Cart?> GetCartByUserId(int userId)
+        public async Task<CartEntity?> GetCartByUserId(int userId)
         {
             return await _context.Carts
                 .Include(c => c.CartItems)
@@ -42,13 +42,13 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="userId">User ID for whom the cart is created.</param>
         /// <returns>The newly created cart.</returns>
-        public async Task<Cart> CreateCart(int userId)
+        public async Task<CartEntity> CreateCart(int userId)
         {
             var existingCart = await GetCartByUserId(userId);
             if (existingCart is not null)
                 return existingCart;
 
-            var cart = new Cart { UserId = userId };
+            var cart = new CartEntity { UserId = userId };
             await _context.Carts.AddAsync(cart);
             await _context.SaveChangesAsync();
             return cart;
@@ -77,7 +77,7 @@ namespace EcommerceAPI.Repositories
         /// <param name="cartId">Cart ID.</param>
         /// <param name="productId">Product ID.</param>
         /// <returns>The cart item or null if not found.</returns>
-        public async Task<CartItem?> GetCartItem(int cartId, int productId)
+        public async Task<CartItemEntity?> GetCartItem(int cartId, int productId)
         {
             return await _context.CartItems
                 .Include(ci => ci.Product)
@@ -91,7 +91,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="userId">User ID.</param>
         /// <param name="item">Cart item to be added.</param>
-        public async Task<CartItem?> AddItemToCart(int userId, CartItem item)
+        public async Task<CartItemEntity?> AddItemToCart(int userId, CartItemEntity item)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -126,7 +126,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="item">Cart item to update.</param>
         /// <param name="quantity">New quantity value.</param>
-        public async Task<bool> UpdateCartItemQuantity(CartItem item, int quantity)
+        public async Task<bool> UpdateCartItemQuantity(CartItemEntity item, int quantity)
         {
             if (item is null) 
                 return false;
@@ -178,7 +178,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="cartId">Cart ID.</param>
         /// <returns>List of cart items.</returns>
-        public async Task<IEnumerable<CartItem>> GetCartItems(int cartId)
+        public async Task<IEnumerable<CartItemEntity>> GetCartItems(int cartId)
         {
             return await _context.CartItems
                 .Where(ci => ci.CartId == cartId)

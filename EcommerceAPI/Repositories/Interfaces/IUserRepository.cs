@@ -6,13 +6,13 @@ namespace EcommerceAPI.Repositories.Interfaces
 {
     public interface IUserRepository
     {
-        Task<UserDto> AddUser(User user);
+        Task<UserEntity> AddUser(UserEntity user);
         Task<bool> ConfirmUser(string token);
-        Task<bool> DeleteUser(User user);
-        Task<IEnumerable<User>> GetAllUsers();
-        Task<User?> GetUserByEmail(string email);
-        Task<User?> GetUserById(int id);
-        Task<IEnumerable<User>> GetUsersByRole(UserRole role);
-        Task<UserDto?> UpdateUser(User user);
+        Task<bool> DeleteUser(UserEntity user);
+        Task<IEnumerable<UserEntity>> GetAllUsers();
+        Task<UserEntity?> GetUserByEmail(string email);
+        Task<UserEntity?> GetUserById(int id);
+        Task<IEnumerable<UserEntity>> GetUsersByRole(UserRole role);
+        Task<UserEntity?> UpdateUser(UserEntity user);
     }
 }

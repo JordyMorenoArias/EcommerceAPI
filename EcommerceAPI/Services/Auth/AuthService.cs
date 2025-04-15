@@ -1,19 +1,15 @@
 ﻿using EcommerceAPI.Models.DTOs.Auth;
 using EcommerceAPI.Repositories.Interfaces;
-using EcommerceAPI.Services.Interfaces;
-using EcommerceAPI.Models.Entities;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
-using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using EcommerceAPI.Models.DTOs.User;
 using System.Security.Cryptography;
 using EcommerceAPI.Services.Security.Interfaces;
 using AutoMapper;
+using EcommerceAPI.Models.Entities;
+using EcommerceAPI.Services.Auth.Interfaces;
+using EcommerceAPI.Services.Infrastructure.Interfaces;
 
-namespace EcommerceAPI.Services
+namespace EcommerceAPI.Services.Auth
 {
     /// <summary>
     /// Provides authentication services, including user login, registration, password management,
@@ -25,10 +21,10 @@ namespace EcommerceAPI.Services
         private readonly IJwtService _jwtService;
         private readonly ITokenGenerator _tokenGenerator;
         private readonly IEmailService _emailService;
-        private readonly PasswordHasher<User> _passwordHasher;
+        private readonly PasswordHasher<UserEntity> _passwordHasher;
         private readonly IMapper _mapper;
 
-        public AuthService(IUserRepository userRepository, IJwtService jwtService, ITokenGenerator tokenGenerator, IEmailService emailService, PasswordHasher<User> passwordHasher, IMapper mapper)
+        public AuthService(IUserRepository userRepository, IJwtService jwtService, ITokenGenerator tokenGenerator, IEmailService emailService, PasswordHasher<UserEntity> passwordHasher, IMapper mapper)
         {
             _userRepository = userRepository;
             _jwtService = jwtService;
@@ -53,7 +49,7 @@ namespace EcommerceAPI.Services
             {
                 throw new UnauthorizedAccessException("Invalid email or password");
             }
-
+            
             var token = _jwtService.GenerateJwtToken(_mapper.Map<UserGenerateTokenDto>(user));
 
             return new AuthResponseDto
@@ -77,11 +73,11 @@ namespace EcommerceAPI.Services
             if (user != null)
                 throw new InvalidOperationException("User with this email already exists");
 
-            userRegister.Password = _passwordHasher.HashPassword(new User(), userRegister.Password);
+            userRegister.Password = _passwordHasher.HashPassword(new UserEntity(), userRegister.Password);
 
             string token = _tokenGenerator.GenerateToken();
 
-            var newUser = _mapper.Map<User>(userRegister);
+            var newUser = _mapper.Map<UserEntity>(userRegister);
             newUser.EmailConfirmedToken = token;
 
             var userResult = await _userRepository.AddUser(newUser);

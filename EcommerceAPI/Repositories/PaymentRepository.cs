@@ -22,7 +22,7 @@ namespace EcommerceAPI.Repositories
         /// Retrieves all payments.
         /// </summary>
         /// <returns>A collection of all payments.</returns>
-        public async Task<IEnumerable<Payment>> GetAllPayments()
+        public async Task<IEnumerable<PaymentEntity>> GetAllPayments()
         {
             return await _context.Payments
                 .AsNoTracking()
@@ -34,7 +34,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="id">The payment ID.</param>
         /// <returns>The payment if found, otherwise null.</returns>
-        public async Task<Payment?> GetPaymentById(int id)
+        public async Task<PaymentEntity?> GetPaymentById(int id)
         {
             return await _context.Payments.FindAsync(id);
         }
@@ -44,7 +44,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="userId">The user ID.</param>
         /// <returns>A collection of payments made by the user.</returns>
-        public async Task<IEnumerable<Payment>> GetPaymentsByUserId(int userId)
+        public async Task<IEnumerable<PaymentEntity>> GetPaymentsByUserId(int userId)
         {
             return await _context.Payments
                 .Where(p => p.Order.UserId == userId)
@@ -57,7 +57,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="id">The payment ID.</param>
         /// <returns>The payment including order details, or null if not found.</returns>
-        public async Task<Payment?> GetPaymentByIdWithOrder(int id)
+        public async Task<PaymentEntity?> GetPaymentByIdWithOrder(int id)
         {
             return await _context.Payments
                 .Include(p => p.Order)
@@ -70,7 +70,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="payment">The payment to add.</param>
         /// <returns>True if the payment was added successfully, otherwise false.</returns>
-        public async Task<bool> AddPayment(Payment payment)
+        public async Task<bool> AddPayment(PaymentEntity payment)
         {
             _context.Payments.Add(payment);
             return await _context.SaveChangesAsync() > 0;
@@ -81,7 +81,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="payment">The payment with updated details.</param>
         /// <returns>True if the update was successful, otherwise false.</returns>
-        public async Task<bool> UpdatePayment(Payment payment)
+        public async Task<bool> UpdatePayment(PaymentEntity payment)
         {
             var existingPayment = await GetPaymentById(payment.Id);
 
@@ -129,7 +129,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="status">The payment status to filter by.</param>
         /// <returns>A collection of payments with the specified status.</returns>
-        public async Task<IEnumerable<Payment>> GetPaymentsByStatus(PaymentStatus status)
+        public async Task<IEnumerable<PaymentEntity>> GetPaymentsByStatus(PaymentStatus status)
         {
             return await _context.Payments
                 .Where(p => p.Status == status)
@@ -142,7 +142,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="method">The payment method to filter by.</param>
         /// <returns>A collection of payments made with the specified method.</returns>
-        public async Task<IEnumerable<Payment>> GetPaymentsByMethod(PaymentMethod method)
+        public async Task<IEnumerable<PaymentEntity>> GetPaymentsByMethod(PaymentMethod method)
         {
             return await _context.Payments
                 .Where(p => p.PaymentMethod == method)
@@ -155,7 +155,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="orderId">The order ID.</param>
         /// <returns>A collection of payments for the order.</returns>
-        public async Task<IEnumerable<Payment>> GetPaymentsByOrderIdAsync(int orderId)
+        public async Task<IEnumerable<PaymentEntity>> GetPaymentsByOrderIdAsync(int orderId)
         {
             return await _context.Payments
                 .Where(p => p.OrderId == orderId)

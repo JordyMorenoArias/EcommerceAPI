@@ -5,15 +5,15 @@ namespace EcommerceAPI.Repositories.Interfaces
 {
     public interface ICartRepository
     {
-        Task<CartItem?> AddItemToCart(int userId, CartItem item);
+        Task<CartItemEntity?> AddItemToCart(int userId, CartItemEntity item);
         Task ClearCart(int userId);
-        Task<Cart> CreateCart(int userId);
-        Task<Cart?> GetCartByUserId(int userId);
-        Task<CartItem?> GetCartItem(int cartId, int productId);
-        Task<IEnumerable<CartItem>> GetCartItems(int cartId);
+        Task<CartEntity> CreateCart(int userId);
+        Task<CartEntity?> GetCartByUserId(int userId);
+        Task<CartItemEntity?> GetCartItem(int cartId, int productId);
+        Task<IEnumerable<CartItemEntity>> GetCartItems(int cartId);
         Task<decimal> GetCartTotal(int cartId);
         Task<bool> RemoveItemFromCart(int cartItemId);
         Task<bool> UpdateCartItemPrice(int cartItemId, decimal newPrice);
-        Task<bool> UpdateCartItemQuantity(CartItem item, int quantity);
+        Task<bool> UpdateCartItemQuantity(CartItemEntity item, int quantity);
     }
 }
