@@ -12,6 +12,7 @@ namespace EcommerceAPI.Controllers
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
+    [AuthorizeRole(UserRole.Admin, UserRole.Seller, UserRole.Customer)]
     public class UserController : Controller
     {
         private readonly IUserService _userService;
@@ -28,7 +29,7 @@ namespace EcommerceAPI.Controllers
         /// </summary>
         /// <param name="id">The user's ID.</param>
         /// <returns>The user data.</returns>
-        [HttpGet]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById([FromQuery] int id)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
@@ -58,6 +59,7 @@ namespace EcommerceAPI.Controllers
         /// </summary>
         /// <param name="role">The user role to filter by.</param>
         /// <returns>A list of users with the given role.</returns>
+        [AuthorizeRole(UserRole.Admin)]
         [HttpGet("by-role")]
         public async Task<IActionResult> GetUsersByRole([FromQuery] UserRole role)
         {
@@ -76,14 +78,10 @@ namespace EcommerceAPI.Controllers
         /// Only accessible by administrators.
         /// </summary>
         /// <returns>A list of all users.</returns>
-        [HttpGet("all")]
-        public async Task<IActionResult> GetAllUsers()
+        [AuthorizeRole(UserRole.Admin)]
+        [HttpGet("users")]
+        public async Task<IActionResult> GetUsers()
         {
-            var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
-
-            if (userAuthenticated.Role != UserRole.Admin)
-                return Unauthorized("You are not authorized to access this resource.");
-
             var users = await _userService.GetAllUsers();
             return Ok(users);
         }

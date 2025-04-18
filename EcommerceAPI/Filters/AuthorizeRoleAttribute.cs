@@ -20,9 +20,15 @@ namespace EcommerceAPI.Filters
             var userService = context.HttpContext.RequestServices.GetService(typeof(IUserService)) as IUserService;
             var user = userService?.GetAuthenticatedUser(context.HttpContext);
 
-            if (user == null || !_roles.Contains(user.Role))
+            if (user == null)
             {
-                context.Result = new UnauthorizedObjectResult("You are not authorized to access this resource.");
+                context.Result = new UnauthorizedObjectResult("Authentication is required.");
+                return;
+            }
+
+            if (!_roles.Contains(user.Role))
+            {
+                context.Result = new ForbidResult();
             }
         }
     }

@@ -1,5 +1,6 @@
 ﻿
 using EcommerceAPI.Constants;
+using EcommerceAPI.Models.DTOs;
 using EcommerceAPI.Models.DTOs.Product;
 
 namespace EcommerceAPI.Services.Product.Interfaces
@@ -8,13 +9,14 @@ namespace EcommerceAPI.Services.Product.Interfaces
     {
         Task<ProductDto> AddProduct(int userId, ProductAddDto productAdd);
         Task<bool> DeleteProduct(int userId, int productId);
-        Task<IEnumerable<ProductDto>> GetActiveProducts();
-        Task<IEnumerable<ProductDto>> GetActiveProductsByCategory(CategoryProduct category);
-        Task<IEnumerable<ProductDto>> GetActiveProductsByUserId(int userId);
-        Task<IEnumerable<ProductDto>> GetAllProducts();
         Task<ProductDto?> GetProductById(int productId);
-        Task<IEnumerable<ProductDto>> GetProductsByCategory(CategoryProduct category);
-        Task<IEnumerable<ProductDto>> SearchProducts(string query);
         Task<ProductDto?> UpdateProduct(int userId, int productId, ProductUpdateDto productUpdate);
+        Task<PagedResult<ProductDto>> GetActiveProductsByUserId(int userId, int page, int pageSize);
+        Task<PagedResult<ProductDto>> GetProductsByUserId(int userId, int page, int pageSize);
+        Task<PagedResult<ProductDto>> GetActiveProductsByCategory(CategoryProduct category, int page, int pageSize);
+        Task<PagedResult<ProductDto>> GetProductsByCategory(CategoryProduct category, int page, int pageSize);
+        Task<PagedResult<ProductDto>> GetActiveProducts(int page, int pageSize);
+        Task<PagedResult<ProductDto>> GetProducts(int page, int pageSize);
+        Task<PagedResult<ProductDto>> SearchProducts(string query, int page, int pageSize);
     }
 }

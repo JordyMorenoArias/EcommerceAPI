@@ -1,6 +1,9 @@
-﻿using EcommerceAPI.Constants;
+﻿using AutoMapper;
+using EcommerceAPI.Constants;
 using EcommerceAPI.Data;
 using EcommerceAPI.Models;
+using EcommerceAPI.Models.DTOs;
+using EcommerceAPI.Models.DTOs.Product;
 using Microsoft.EntityFrameworkCore;
 
 namespace EcommerceAPI.Repositories
@@ -11,14 +14,16 @@ namespace EcommerceAPI.Repositories
     public class ProductRepository : IProductRepository
     {
         private readonly EcommerceContext _context;
+        private readonly IMapper _mapper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProductRepository"/> class.
         /// </summary>
         /// <param name="context">The database context for ecommerce.</param>
-        public ProductRepository(EcommerceContext context)
+        public ProductRepository(EcommerceContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -33,24 +38,160 @@ namespace EcommerceAPI.Repositories
         /// <summary>
         /// Retrieves all products from the database regardless of their active state.
         /// </summary>
-        /// <returns>A list of all products.</returns>
-        public async Task<IEnumerable<ProductEntity>> GetAllProducts()
+        /// <returns>A paged result of all products.</returns>
+        public async Task<PagedResult<ProductDto>> GetProducts(int page, int pageSize)
         {
-            return await _context.Products.AsNoTracking().ToListAsync();
+            var query = _context.Products.AsQueryable();
+
+            var totalItems = await query.CountAsync();
+            var products = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<ProductDto>
+            {
+                Items = products.Select(p => _mapper.Map<ProductDto>(p)),
+                TotalItems = totalItems,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+
+        /// <summary>
+        /// Retrieves only the active products from the database.
+        /// </summary>
+        /// <returns>A list of active products.</returns>
+        public async Task<PagedResult<ProductDto>> GetActiveProducts(int page, int pageSize)
+        {
+            var query = _context.Products.AsQueryable();
+
+            var totalItems = await query.Where(p => p.IsActive).CountAsync();
+            var products = await query
+                .Where(p => p.IsActive)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<ProductDto>
+            {
+                Items = products.Select(p => _mapper.Map<ProductDto>(p)),
+                TotalItems = totalItems,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+
+        /// <summary>
+        /// Retrieves all products for a specific user.
+        /// </summary>
+        /// <param name="userId">The user's identifier.</param>
+        /// <returns>A list of products for the given user.</returns>
+        public async Task<PagedResult<ProductDto>> GetProductsByUserId(int userId, int page, int pageSize)
+        {
+            var query = _context.Products.AsQueryable();
+
+            var totalItems = await query.Where(p => p.UserId == userId).CountAsync();
+            var products = await query
+                .Where(p => p.UserId == userId)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<ProductDto>
+            {
+                Items = products.Select(p => _mapper.Map<ProductDto>(p)),
+                TotalItems = totalItems,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+
+        /// <summary>
+        /// Retrieves only the active products for a specific user.
+        /// </summary>
+        /// <param name="userId">The user's identifier.</param>
+        /// <returns>A list of active products for the given user.</returns>
+        public async Task<PagedResult<ProductDto>> GetActiveProductsByUserId(int userId, int page, int pageSize)
+        {
+            var query = _context.Products.AsQueryable();
+
+            var totalItems = await query.Where(p => p.UserId == userId && p.IsActive).CountAsync();
+            var products = await query
+                .Where(p => p.UserId == userId && p.IsActive)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<ProductDto>
+            {
+                Items = products.Select(p => _mapper.Map<ProductDto>(p)),
+                TotalItems = totalItems,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+
+        /// <summary>
+        /// Retrieves all products belonging to a specific category.
+        /// </summary>
+        /// <param name="category">The category of the products.</param>
+        /// <returns>A list of products in the given category.</returns>
+        public async Task<PagedResult<ProductDto>> GetProductsByCategory(CategoryProduct category, int page, int pageSize)
+        {
+            var query = _context.Products.AsQueryable();
+
+            var totalItems = await query.Where(p => p.Category == category).CountAsync();
+            var products = await query
+                .Where(p => p.Category == category)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<ProductDto>
+            {
+                Items = products.Select(p => _mapper.Map<ProductDto>(p)),
+                TotalItems = totalItems,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+
+        /// <summary>
+        /// Retrieves only the active products belonging to a specific category.
+        /// </summary>
+        /// <param name="category">The category of the products.</param>
+        /// <returns>A list of active products in the given category.</returns>
+        public async Task<PagedResult<ProductDto>> GetActiveProductsByCategory(CategoryProduct category, int page, int pageSize)
+        {
+            var query = _context.Products.AsQueryable();
+
+            var totalItems = await query.Where(p => p.Category == category && p.IsActive).CountAsync();
+            var products = await query
+                .Where(p => p.Category == category && p.IsActive)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<ProductDto>
+            {
+                Items = products.Select(p => _mapper.Map<ProductDto>(p)),
+                TotalItems = totalItems,
+                Page = page,
+                PageSize = pageSize
+            };
         }
 
         /// <summary>
         /// Retrieves products based on a search query.
         /// </summary>
         /// <returns>A list of products matching the search query.</returns>
-        public async Task<IEnumerable<ProductEntity>> SearchProducts(string query)
+        public async Task<PagedResult<ProductDto>> SearchProducts(string query, int page, int pageSize)
         {
             var normalizedQuery = query.ToLower();
 
             var nameQuery = _context.Products
-                .Where(p => p.Name != null &&
-                            (p.Name.StartsWith(normalizedQuery) ||
-                            p.Name.ToLower().Contains($" {normalizedQuery}")))
+                .Where(p => p.Name != null && (p.Name.StartsWith(normalizedQuery) || p.Name.ToLower().Contains($" {normalizedQuery}")) && p.IsActive)
                 .Select(p => new
                 {
                     Product = p,
@@ -58,8 +199,7 @@ namespace EcommerceAPI.Repositories
                 });
 
             var descriptionQuery = _context.Products
-                .Where(p => p.Description != null &&
-                            p.Description.ToLower().Contains(normalizedQuery))
+                .Where(p => p.Description != null && p.Description.ToLower().Contains(normalizedQuery) && p.IsActive)
                 .Select(p => new
                 {
                     Product = p,
@@ -82,71 +222,20 @@ namespace EcommerceAPI.Repositories
                 .Select(x => x.Product)
                 .ToList();
 
-            return combinedResults;
-        }
+            var totalItems = combinedResults.Count;
 
-        /// <summary>
-        /// Retrieves only the active products from the database.
-        /// </summary>
-        /// <returns>A list of active products.</returns>
-        public async Task<IEnumerable<ProductEntity>> GetActiveProducts()
-        {
-            return await _context.Products
-                .Where(p => p.IsActive)
-                .AsNoTracking()
-                .ToListAsync();
-        }
+            var pagedProducts = combinedResults
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(p => _mapper.Map<ProductDto>(p));
 
-        /// <summary>
-        /// Retrieves all products for a specific user.
-        /// </summary>
-        /// <param name="userId">The user's identifier.</param>
-        /// <returns>A list of products for the given user.</returns>
-        public async Task<IEnumerable<ProductEntity>> GetProductsByUserId(int userId)
-        {
-            return await _context.Products
-                .Where(p => p.UserId == userId)
-                .AsNoTracking()
-                .ToListAsync();
-        }
-
-        /// <summary>
-        /// Retrieves only the active products for a specific user.
-        /// </summary>
-        /// <param name="userId">The user's identifier.</param>
-        /// <returns>A list of active products for the given user.</returns>
-        public async Task<IEnumerable<ProductEntity>> GetActiveProductsByUserId(int userId)
-        {
-            return await _context.Products
-                .Where(p => p.UserId == userId && p.IsActive)
-                .AsNoTracking()
-                .ToListAsync();
-        }
-
-        /// <summary>
-        /// Retrieves all products belonging to a specific category.
-        /// </summary>
-        /// <param name="category">The category of the products.</param>
-        /// <returns>A list of products in the given category.</returns>
-        public async Task<IEnumerable<ProductEntity>> GetProductsByCategory(CategoryProduct category)
-        {
-            return await _context.Products
-                .Where(p => p.Category == category)
-                .AsNoTracking()
-                .ToListAsync();
-        }
-
-        /// <summary>
-        /// Retrieves only the active products belonging to a specific category.
-        /// </summary>
-        /// <param name="category">The category of the products.</param>
-        /// <returns>A list of active products in the given category.</returns>
-        public async Task<IEnumerable<ProductEntity>> GetActiveProductsByCategory(CategoryProduct category)
-        {
-            return await _context.Products
-                .Where(p => p.Category == category && p.IsActive)
-                .AsNoTracking()
-                .ToListAsync();
+            return new PagedResult<ProductDto>
+            {
+                Items = pagedProducts,
+                TotalItems = totalItems,
+                Page = page,
+                PageSize = pageSize
+            };
         }
 
         /// <summary>

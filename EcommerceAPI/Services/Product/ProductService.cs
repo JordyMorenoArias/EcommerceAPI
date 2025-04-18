@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using EcommerceAPI.Constants;
 using EcommerceAPI.Models;
+using EcommerceAPI.Models.DTOs;
 using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Repositories;
 using EcommerceAPI.Services.Infrastructure.Interfaces;
@@ -55,40 +56,38 @@ namespace EcommerceAPI.Services.Product
         /// Retrieves all products, using cache if available.
         /// </summary>
         /// <returns>A collection of all product DTOs.</returns>
-        public async Task<IEnumerable<ProductDto>> GetAllProducts()
+        public async Task<PagedResult<ProductDto>> GetProducts(int page, int pageSize)
         {
-            var cacheKey = "AllProducts";
-            var cachedProducts = await _cacheService.Get<IEnumerable<ProductDto>>(cacheKey);
+            var cacheKey = $"Products_Page_{page}_Size_{pageSize}";
+            var cachedpagedResult = await _cacheService.Get<PagedResult<ProductDto>>(cacheKey);
 
-            if (cachedProducts != null)
-                return cachedProducts;
+            if (cachedpagedResult != null)
+                return cachedpagedResult;
 
-            var products = await _productRepository.GetAllProducts();
-            var productDtos = _mapper.Map<IEnumerable<ProductDto>>(products);
+            var pagedResult = await _productRepository.GetProducts(page, pageSize);
 
-            await _cacheService.Set(cacheKey, productDtos, TimeSpan.FromMinutes(5));
+            await _cacheService.Set(cacheKey, pagedResult, TimeSpan.FromMinutes(5));
 
-            return productDtos;
+            return pagedResult;
         }
 
         /// <summary>
         /// Retrieves all active products, using cache if available.
         /// </summary>
         /// <returns>A collection of active product DTOs.</returns>
-        public async Task<IEnumerable<ProductDto>> GetActiveProducts()
+        public async Task<PagedResult<ProductDto>> GetActiveProducts(int page, int pageSize)
         {
-            var cacheKey = "ActiveProducts";
-            var cachedProducts = await _cacheService.Get<IEnumerable<ProductDto>>(cacheKey);
+            var cacheKey = $"ActiveProducts_Page_{page}_Size_{pageSize}";
+            var cachedpagedResult = await _cacheService.Get<PagedResult<ProductDto>>(cacheKey);
 
-            if (cachedProducts != null)
-                return cachedProducts;
+            if (cachedpagedResult != null)
+                return cachedpagedResult;
 
-            var products = await _productRepository.GetActiveProducts();
-            var productDtos = _mapper.Map<IEnumerable<ProductDto>>(products);
+            var pagedResult = await _productRepository.GetActiveProducts(page, pageSize);
 
-            await _cacheService.Set(cacheKey, productDtos, TimeSpan.FromMinutes(5));
+            await _cacheService.Set(cacheKey, pagedResult, TimeSpan.FromMinutes(5));
 
-            return productDtos;
+            return pagedResult;
         }
 
         /// <summary>
@@ -96,11 +95,9 @@ namespace EcommerceAPI.Services.Product
         /// </summary>
         /// <param name="query">The search query.</param>
         /// <returns>A collection of matching product DTOs.</returns>
-        public async Task<IEnumerable<ProductDto>> SearchProducts(string query)
+        public async Task<PagedResult<ProductDto>> SearchProducts(string query, int page, int pageSize)
         {
-            var products = await _productRepository.SearchProducts(query);
-
-            return _mapper.Map<IEnumerable<ProductDto>>(products);
+            return await _productRepository.SearchProducts(query, page, pageSize);
         }
 
         /// <summary>
@@ -108,20 +105,19 @@ namespace EcommerceAPI.Services.Product
         /// </summary>
         /// <param name="category">The category to filter products by.</param>
         /// <returns>A collection of product DTOs in the specified category.</returns>
-        public async Task<IEnumerable<ProductDto>> GetProductsByCategory(CategoryProduct category)
+        public async Task<PagedResult<ProductDto>> GetProductsByCategory(CategoryProduct category, int page, int pageSize)
         {
-            var cacheKey = $"ProductsByCategory_{category.ToString()}";
-            var cachedProducts = await _cacheService.Get<IEnumerable<ProductDto>>(cacheKey);
+            var cacheKey = $"Products_{category.ToString()}_Page_{page}_Size_{pageSize}";
+            var cachedpagedResult = await _cacheService.Get<PagedResult<ProductDto>>(cacheKey);
 
-            if (cachedProducts != null)
-                return cachedProducts;
+            if (cachedpagedResult != null)
+                return cachedpagedResult;
 
-            var products = await _productRepository.GetProductsByCategory(category);
-            var productDtos = _mapper.Map<IEnumerable<ProductDto>>(products);
+            var pagedResult = await _productRepository.GetProductsByCategory(category, page, pageSize);
 
-            await _cacheService.Set(cacheKey, productDtos, TimeSpan.FromMinutes(5));
+            await _cacheService.Set(cacheKey, pagedResult, TimeSpan.FromMinutes(5));
 
-            return productDtos;
+            return pagedResult;
         }
 
         /// <summary>
@@ -129,20 +125,39 @@ namespace EcommerceAPI.Services.Product
         /// </summary>
         /// <param name="category">The category to filter products by.</param>
         /// <returns>A collection of active product DTOs in the specified category.</returns>
-        public async Task<IEnumerable<ProductDto>> GetActiveProductsByCategory(CategoryProduct category)
+        public async Task<PagedResult<ProductDto>> GetActiveProductsByCategory(CategoryProduct category, int page, int pageSize)
         {
-            var cacheKey = $"ActiveProductsByCategory_{category.ToString()}";
-            var cachedProducts = await _cacheService.Get<IEnumerable<ProductDto>>(cacheKey);
+            var cacheKey = $"Active_Products_{category.ToString()}_Page_{page}_Size_{pageSize}";
+            var cachedpagedResult = await _cacheService.Get<PagedResult<ProductDto>>(cacheKey);
 
-            if (cachedProducts != null)
-                return cachedProducts;
+            if (cachedpagedResult != null)
+                return cachedpagedResult;
 
-            var products = await _productRepository.GetActiveProductsByCategory(category);
-            var productDtos = _mapper.Map<IEnumerable<ProductDto>>(products);
+            var pagedResult = await _productRepository.GetActiveProductsByCategory(category, page, pageSize);
 
-            await _cacheService.Set(cacheKey, productDtos, TimeSpan.FromMinutes(5));
+            await _cacheService.Set(cacheKey, pagedResult, TimeSpan.FromMinutes(5));
 
-            return productDtos;
+            return pagedResult;
+        }
+
+        /// <summary>
+        /// Gets the products by user identifier.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <returns>A collection of the user's product DTOs.</returns>
+        public async Task<PagedResult<ProductDto>> GetProductsByUserId(int userId, int page, int pageSize)
+        {
+            var cacheKey = $"Products_{userId}_Page_{page}_Size_{pageSize}";
+            var cachedpagedResult = await _cacheService.Get<PagedResult<ProductDto>>(cacheKey);
+
+            if (cachedpagedResult != null)
+                return cachedpagedResult;
+
+            var pagedResult = await _productRepository.GetProductsByUserId(userId, page, pageSize);
+
+            await _cacheService.Set(cacheKey, pagedResult, TimeSpan.FromMinutes(5));
+
+            return pagedResult;
         }
 
         /// <summary>
@@ -150,20 +165,19 @@ namespace EcommerceAPI.Services.Product
         /// </summary>
         /// <param name="userId">The user ID.</param>
         /// <returns>A collection of the user's active product DTOs.</returns>
-        public async Task<IEnumerable<ProductDto>> GetActiveProductsByUserId(int userId)
+        public async Task<PagedResult<ProductDto>> GetActiveProductsByUserId(int userId, int page, int pageSize)
         {
-            var cacheKey = $"ActiveProductsByUserId_{userId}";
-            var cachedProducts = await _cacheService.Get<IEnumerable<ProductDto>>(cacheKey);
+            var cacheKey = $"Active_Products_{userId}_Page_{page}_Size_{pageSize}";
+            var cachedpagedResult = await _cacheService.Get<PagedResult<ProductDto>>(cacheKey);
 
-            if (cachedProducts != null)
-                return cachedProducts;
+            if (cachedpagedResult != null)
+                return cachedpagedResult;
 
-            var products = await _productRepository.GetActiveProductsByUserId(userId);
-            var productDtos = _mapper.Map<IEnumerable<ProductDto>>(products);
+            var pagedResult = await _productRepository.GetActiveProductsByUserId(userId, page, pageSize);
 
-            await _cacheService.Set(cacheKey, productDtos, TimeSpan.FromMinutes(5));
+            await _cacheService.Set(cacheKey, pagedResult, TimeSpan.FromMinutes(5));
 
-            return productDtos;
+            return pagedResult;
         }
 
         /// <summary>
@@ -195,7 +209,10 @@ namespace EcommerceAPI.Services.Product
         {
             var product = await _productRepository.GetProductById(productId);
 
-            if (product == null || product.UserId != userId)
+            if (product == null)
+                throw new KeyNotFoundException("Product not found");
+
+            if (product.UserId != userId)
                 throw new UnauthorizedAccessException("You are not authorized to update this product.");
 
             var oldCategory = product.Category;
@@ -219,7 +236,10 @@ namespace EcommerceAPI.Services.Product
         {
             var product = await _productRepository.GetProductById(productId);
 
-            if (product == null || product.UserId != userId)
+            if (product == null)
+                throw new KeyNotFoundException("Product not found");
+
+            if (product.UserId != userId)
                 throw new UnauthorizedAccessException("You are not authorized to delete this product.");
 
             var result = await _productRepository.DeleteProduct(productId);
