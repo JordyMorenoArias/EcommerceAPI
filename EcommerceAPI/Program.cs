@@ -1,4 +1,5 @@
 using EcommerceAPI.Data;
+using EcommerceAPI.Middlewares;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Repositories;
 using EcommerceAPI.Repositories.Interfaces;
@@ -115,5 +116,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app.Run();

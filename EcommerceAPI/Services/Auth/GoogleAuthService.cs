@@ -5,7 +5,6 @@ using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Repositories.Interfaces;
 using EcommerceAPI.Services.Auth.Interfaces;
 using EcommerceAPI.Services.Security.Interfaces;
-using Microsoft.EntityFrameworkCore.Storage.Json;
 using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
 
@@ -82,7 +81,7 @@ namespace EcommerceAPI.Services.Auth
                 };
             }
 
-            var userCreated = await _userRepository.AddUser(new User
+            var userCreated = await _userRepository.AddUser(new UserEntity
             {
                 Email = email,
                 FirstName = firstName,

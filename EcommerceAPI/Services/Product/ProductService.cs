@@ -213,7 +213,7 @@ namespace EcommerceAPI.Services.Product
                 throw new KeyNotFoundException("Product not found");
 
             if (product.UserId != userId)
-                throw new UnauthorizedAccessException("You are not authorized to update this product.");
+                throw new InvalidOperationException("You are not authorized to update this product.");
 
             var oldCategory = product.Category;
             var wasActive = product.IsActive;
@@ -240,7 +240,7 @@ namespace EcommerceAPI.Services.Product
                 throw new KeyNotFoundException("Product not found");
 
             if (product.UserId != userId)
-                throw new UnauthorizedAccessException("You are not authorized to delete this product.");
+                throw new InvalidOperationException("You are not authorized to delete this product.");
 
             var result = await _productRepository.DeleteProduct(productId);
 
@@ -258,17 +258,6 @@ namespace EcommerceAPI.Services.Product
         {
             // Invalidates the individual product
             await _cacheService.Remove($"Product_{product.Id}");
-
-            // Invalidates general lists
-            await _cacheService.Remove("AllProducts");
-            await _cacheService.Remove("ActiveProducts");
-
-            // Invalidates lists related to the user
-            await _cacheService.Remove($"ActiveProductsByUserId_{product.UserId}");
-
-            // Invalidates lists by category
-            await _cacheService.Remove($"ProductsByCategory_{product.Category.ToString()}");
-            await _cacheService.Remove($"ActiveProductsByCategory_{product.Category.ToString()}");
         }
     }
 }

@@ -30,7 +30,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="id">The user's ID.</param>
         /// <returns>The user data.</returns>
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetUserById([FromQuery] int id)
+        public async Task<IActionResult> GetUserById([FromRoute] int id)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
 
@@ -48,6 +48,9 @@ namespace EcommerceAPI.Controllers
         public async Task<IActionResult> GetUserByEmail([FromQuery] string email)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
+
+            if (email == default)
+                return BadRequest("Email is required.");
 
             var user = await _userService.GetUserByEmail(email);
             return Ok(user);

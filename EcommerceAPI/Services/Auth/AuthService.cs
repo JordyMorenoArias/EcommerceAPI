@@ -23,8 +23,9 @@ namespace EcommerceAPI.Services.Auth
         private readonly IEmailService _emailService;
         private readonly PasswordHasher<UserEntity> _passwordHasher;
         private readonly IMapper _mapper;
+        private readonly ILogger<AuthService> _logger;
 
-        public AuthService(IUserRepository userRepository, IJwtService jwtService, ITokenGenerator tokenGenerator, IEmailService emailService, PasswordHasher<UserEntity> passwordHasher, IMapper mapper)
+        public AuthService(IUserRepository userRepository, IJwtService jwtService, ITokenGenerator tokenGenerator, IEmailService emailService, PasswordHasher<UserEntity> passwordHasher, IMapper mapper, ILogger<AuthService> logger)
         {
             _userRepository = userRepository;
             _jwtService = jwtService;
@@ -32,6 +33,7 @@ namespace EcommerceAPI.Services.Auth
             _emailService = emailService;
             _passwordHasher = passwordHasher;
             _mapper = mapper;
+            _logger = logger;
         }
 
         /// <summary>
@@ -47,11 +49,13 @@ namespace EcommerceAPI.Services.Auth
 
             if (user == null || _passwordHasher.VerifyHashedPassword(user, user.PasswordHash!, loginDto.Password) == PasswordVerificationResult.Failed)
             {
+                _logger.LogWarning("Invalid login attempt for email: {Email}", loginDto.Email);
                 throw new UnauthorizedAccessException("Invalid email or password");
             }
             
             var token = _jwtService.GenerateJwtToken(_mapper.Map<UserGenerateTokenDto>(user));
 
+            _logger.LogInformation("User {Email} logged in successfully", loginDto.Email);
             return new AuthResponseDto
             {
                 Token = token,
@@ -71,7 +75,10 @@ namespace EcommerceAPI.Services.Auth
             var user = await _userRepository.GetUserByEmail(userRegister.Email);
 
             if (user != null)
+            {
+                _logger.LogWarning("User with email {Email} already exists", userRegister.Email);
                 throw new InvalidOperationException("User with this email already exists");
+            }
 
             userRegister.Password = _passwordHasher.HashPassword(new UserEntity(), userRegister.Password);
 
@@ -85,8 +92,15 @@ namespace EcommerceAPI.Services.Auth
             if (userResult is null)
                 throw new InvalidOperationException("Failed to register user");
 
-
             var emailResult = _emailService.SendVerificationEmail(userRegister.Email, token);
+
+            if (!emailResult)
+            {
+                _logger.LogWarning("Failed to send verification email to {Email}", userRegister.Email);
+                throw new InvalidOperationException("Failed to send verification email");
+            }
+
+            _logger.LogInformation("User {Email} registered successfully", userRegister.Email);
             return emailResult;
         }
 
@@ -127,6 +141,7 @@ namespace EcommerceAPI.Services.Auth
 
             if (user == null || _passwordHasher.VerifyHashedPassword(user, user.PasswordHash!, changePassword.OldPassword) == PasswordVerificationResult.Failed)
             {
+                _logger.LogWarning("Invalid password change attempt for user ID: {UserId}", id);
                 throw new UnauthorizedAccessException("Invalid password");
             }
 
@@ -137,6 +152,7 @@ namespace EcommerceAPI.Services.Auth
             if (userResult is null)
                 throw new InvalidOperationException("Failed to change password");
 
+            _logger.LogInformation("Password changed successfully for user ID: {UserId}", id);
             return true;
         }
 
@@ -209,8 +225,10 @@ namespace EcommerceAPI.Services.Auth
         {
             var user = await _userRepository.GetUserByEmail(userResetPassword.Email);
 
+            _logger.LogInformation("Resetting password for user {Email}", userResetPassword.Email);
             if (user is null || user.ResetPasswordCode != userResetPassword.ResetCode || user.ResetTokenExpiresAt < DateTime.UtcNow)
             {
+                _logger.LogWarning("Invalid or expired reset token for user {Email}", userResetPassword.Email);
                 throw new InvalidOperationException("Invalid or expired token");
             }
 
