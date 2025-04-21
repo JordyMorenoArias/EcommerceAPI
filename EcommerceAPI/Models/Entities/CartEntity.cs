@@ -11,6 +11,7 @@ namespace EcommerceAPI.Models
         [Required, ForeignKey("User")]
         public int UserId { get; set; }
         public UserEntity User { get; set; } = null!;
+
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         public ICollection<CartItemEntity> CartItems { get; set; } = new List<CartItemEntity>();

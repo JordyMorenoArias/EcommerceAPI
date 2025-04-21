@@ -24,6 +24,30 @@ namespace EcommerceAPI.Repositories
         }
 
         /// <summary>
+        /// Carts the exists.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <returns></returns>
+        public async Task<bool> CartExists(int userId)
+        {
+            return await _context.Carts.AnyAsync(c => c.UserId == userId);
+        }
+
+        /// <summary>
+        /// Gets the cart by identifier.
+        /// </summary>
+        /// <param name="cartId">The cart identifier.</param>
+        /// <returns></returns>
+        public async Task<CartEntity?> GetCartById(int cartId)
+        {
+            return await _context.Carts
+                .Include(c => c.CartItems)
+                    .ThenInclude(ci => ci.Product)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == cartId);
+        }
+
+        /// <summary>
         /// Retrieves the cart associated with the specified user.
         /// </summary>
         /// <param name="userId">User ID to search for.</param>
@@ -31,6 +55,7 @@ namespace EcommerceAPI.Repositories
         public async Task<CartEntity?> GetCartByUserId(int userId)
         {
             return await _context.Carts
+                .Include(c => c.User)
                 .Include(c => c.CartItems)
                     .ThenInclude(ci => ci.Product)
                 .AsNoTracking()
@@ -44,10 +69,6 @@ namespace EcommerceAPI.Repositories
         /// <returns>The newly created cart.</returns>
         public async Task<CartEntity> CreateCart(int userId)
         {
-            var existingCart = await GetCartByUserId(userId);
-            if (existingCart is not null)
-                return existingCart;
-
             var cart = new CartEntity { UserId = userId };
             await _context.Carts.AddAsync(cart);
             await _context.SaveChangesAsync();
@@ -58,140 +79,25 @@ namespace EcommerceAPI.Repositories
         /// Clears all items from the user's cart.
         /// </summary>
         /// <param name="userId">User ID whose cart will be cleared.</param>
-        public async Task ClearCart(int userId)
+        /// <returns>True if the cart was successfully cleared; otherwise, false.</returns>
+        public async Task<bool> ClearCart(int userId)
         {
             var cart = await _context.Carts
                 .Include(c => c.CartItems)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
-            if (cart is not null)
-            {
-                _context.CartItems.RemoveRange(cart.CartItems);
-                await _context.SaveChangesAsync();
-            }
-        }
 
-        /// <summary>
-        /// Retrieves a specific item from a cart.
-        /// </summary>
-        /// <param name="cartId">Cart ID.</param>
-        /// <param name="productId">Product ID.</param>
-        /// <returns>The cart item or null if not found.</returns>
-        public async Task<CartItemEntity?> GetCartItem(int cartId, int productId)
-        {
-            return await _context.CartItems
-                .Include(ci => ci.Product)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(ci => ci.CartId == cartId && ci.ProductId == productId);
-        }
+            if (cart is null || !cart.CartItems.Any()) return false;
 
-        /// <summary>
-        /// Adds an item to the user's cart. If the cart does not exist, a new one is created.
-        /// If the item already exists in the cart, its quantity is updated instead of adding a duplicate.
-        /// </summary>
-        /// <param name="userId">User ID.</param>
-        /// <param name="item">Cart item to be added.</param>
-        public async Task<CartItemEntity?> AddItemToCart(int userId, CartItemEntity item)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-
-            try
-            {
-                var cart = await GetCartByUserId(userId) ?? await CreateCart(userId);
-                var existingItem = await GetCartItem(cart.Id, item.ProductId);
-
-                if (existingItem is not null)
-                {
-                    existingItem.Quantity += item.Quantity;
-                }
-                else
-                {
-                    item.CartId = cart.Id;
-                    await _context.CartItems.AddAsync(item);
-                }
-
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-                return item;
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Updates the quantity of an item in the cart.
-        /// </summary>
-        /// <param name="item">Cart item to update.</param>
-        /// <param name="quantity">New quantity value.</param>
-        public async Task<bool> UpdateCartItemQuantity(CartItemEntity item, int quantity)
-        {
-            if (item is null) 
-                return false;
-
-            if (quantity == 0)
-                _context.CartItems.Remove(item);
-            else
-                item.Quantity = quantity;
-
-            return await _context.SaveChangesAsync() > 0; ;
-        }
-
-        /// <summary>
-        /// Updates the price of an item in the cart.
-        /// </summary>
-        /// <param name="cartItemId">Cart item ID.</param>
-        /// <param name="newPrice">new price of the product</param>
-        public async Task<bool> UpdateCartItemPrice(int cartItemId, decimal newPrice)
-        {
-            if (newPrice < 0) 
-                return false;
-
-            var item = await _context.CartItems.FindAsync(cartItemId);
-
-            if (item is null) 
-                return false;
-
-            item.UnitPrice = newPrice;
-            return await _context.SaveChangesAsync() > 0; ;
-        }
-
-        /// <summary>
-        /// Removes an item from the cart.
-        /// </summary>
-        /// <param name="cartItemId">Cart item ID to be removed.</param>
-        public async Task<bool> RemoveItemFromCart(int cartItemId)
-        {
-            var item = await _context.CartItems.FindAsync(cartItemId);
-
-            if (item is null)
-                return false;
-
-            _context.CartItems.Remove(item);
+            _context.CartItems.RemoveRange(cart.CartItems);
             return await _context.SaveChangesAsync() > 0;
         }
 
         /// <summary>
-        /// Retrieves all items in the cart.
+        /// Gets the cart total.
         /// </summary>
-        /// <param name="cartId">Cart ID.</param>
-        /// <returns>List of cart items.</returns>
-        public async Task<IEnumerable<CartItemEntity>> GetCartItems(int cartId)
-        {
-            return await _context.CartItems
-                .Where(ci => ci.CartId == cartId)
-                .Include(ci => ci.Product)
-                .AsNoTracking()
-                .ToListAsync();
-        }
-
-        /// <summary>
-        /// Calculates the total price of items in the cart.
-        /// </summary>
-        /// <param name="cartId">Cart ID.</param>
-        /// <returns>The total price of the cart.</returns>
+        /// <param name="cartId">The cart identifier.</param>
+        /// <returns></returns>
         public async Task<decimal> GetCartTotal(int cartId)
         {
             return await _context.CartItems

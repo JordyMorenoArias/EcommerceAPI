@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿ using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EcommerceAPI.Models.Entities
 {
@@ -17,5 +18,7 @@ namespace EcommerceAPI.Models.Entities
         public int Quantity { get; set; }
         [Column(TypeName = "decimal(18, 2)")]
         public decimal UnitPrice { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

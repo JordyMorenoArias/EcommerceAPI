@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using EcommerceAPI.Models;
+using EcommerceAPI.Models.DTOs.Cart;
+using EcommerceAPI.Models.DTOs.CartItem;
 using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Models.DTOs.User;
 using EcommerceAPI.Models.Entities;
@@ -21,6 +23,13 @@ namespace EcommerceAPI.AutoMapper
             CreateMap<ProductEntity, ProductDto>().ReverseMap();
             CreateMap<ProductEntity, ProductAddDto>().ReverseMap();
             CreateMap<ProductEntity, ProductUpdateDto>().ReverseMap();
+
+            // Cart to DTO assignments and reverse
+            CreateMap<CartEntity, CartDto>().ReverseMap();
+
+            // CartItem to DTO assignments and reverse
+            CreateMap<CartItemEntity, CartItemDto>().ReverseMap();
+
         }
     }
 }

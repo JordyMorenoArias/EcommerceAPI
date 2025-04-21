@@ -2,6 +2,7 @@
 using EcommerceAPI.Models.Entities;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using EcommerceAPI.Models.DTOs.User;
 
 namespace EcommerceAPI.Models.DTOs.Product
 {
@@ -18,7 +19,6 @@ namespace EcommerceAPI.Models.DTOs.Product
         [Required]
         public CategoryProduct Category { get; set; }
 
-        [Required, Column(TypeName = "decimal(18, 2)")]
         public decimal Price { get; set; } = 0;
 
         [Required]
@@ -31,6 +31,6 @@ namespace EcommerceAPI.Models.DTOs.Product
 
         [Required]
         public int? UserId { get; set; }
-        public UserEntity User { get; set; } = null!;
+        public UserDto User { get; set; } = null!;
     }
 }
