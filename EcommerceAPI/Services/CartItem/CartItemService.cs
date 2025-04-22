@@ -6,6 +6,8 @@ using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Models.DTOs.Cart;
 using EcommerceAPI.Models;
 using Microsoft.EntityFrameworkCore;
+using EcommerceAPI.Services.Cart.Interfaces;
+using AutoMapper;
 
 namespace EcommerceAPI.Services.CartItem
 {
@@ -16,18 +18,20 @@ namespace EcommerceAPI.Services.CartItem
     public class CartItemService : ICartItemService
     {
         private readonly ICartRepository _cartRepository;
+        private readonly IMapper _mapper;
         private readonly ICartItemRepository _cartItemRepository;
         private readonly IProductRepository _productRepository;
         private readonly ICacheService _cacheService;
         private readonly ILogger<CartItemService> _logger;
 
-        public CartItemService(ICartRepository cartRepository, ICartItemRepository cartItemRepository, IProductRepository productRepository, ICacheService cacheService, ILogger<CartItemService> logger)
+        public CartItemService(ICartRepository cartRepository,  ICartItemRepository cartItemRepository, IProductRepository productRepository, ICacheService cacheService, ILogger<CartItemService> logger, IMapper mapper)
         {
             _cartRepository = cartRepository;
             _cartItemRepository = cartItemRepository;
             _productRepository = productRepository;
             _cacheService = cacheService;
             _logger = logger;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -88,16 +92,54 @@ namespace EcommerceAPI.Services.CartItem
                        ?? throw new KeyNotFoundException("Cart not found");
 
             var product = await GetProductOrThrow(cartItem.ProductId);
-            var existingItem = await _cartItemRepository.GetCartItem(cart.Id, cartItem.ProductId)
-                              ?? throw new KeyNotFoundException("Cart item not found");
+
+            var existingItem = await _cartItemRepository.GetCartItem(cart.Id, cartItem.ProductId);
+
+            if (existingItem is null)
+                throw new KeyNotFoundException("Cart item not found");
 
             ValidateStock(existingItem.Quantity, cartItem.Quantity, product.Stock);
 
-            var updatedItem = await UpdateCartItemQuantity(userId, cartItem);
+            existingItem.Quantity = cartItem.Quantity;
+            existingItem.UnitPrice = product.Price;
+            var updatedItem = await _cartItemRepository.UpdateCartItem(existingItem);
 
             await RefreshCartCacheWithLatestCart(userId);
 
             return updatedItem;
+        }
+
+        /// <summary>
+        /// Deletes the item from cart.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="productId">The product identifier.</param>
+        /// <returns></returns>
+        /// <exception cref="System.Collections.Generic.KeyNotFoundException">
+        /// Cart not found
+        /// or
+        /// Cart item not found
+        /// </exception>
+        public async Task<bool> DeleteItemFromCart(int userId, int productId)
+        {
+            var cart = await _cartRepository.GetCartByUserId(userId);
+
+            if (cart is null)
+                throw new KeyNotFoundException("Cart not found");
+
+            var existingItem = await _cartItemRepository.GetCartItem(cart.Id, productId);
+
+            if (existingItem is null)
+                throw new KeyNotFoundException("Cart item not found");
+
+            var result = await _cartItemRepository.DeleteCartItem(existingItem.Id);
+
+            if (result)
+            {
+                await RefreshCartCacheWithLatestCart(userId);
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -172,53 +214,18 @@ namespace EcommerceAPI.Services.CartItem
         }
 
         /// <summary>
-        /// Deletes the item from cart.
-        /// </summary>
-        /// <param name="userId">The user identifier.</param>
-        /// <param name="productId">The product identifier.</param>
-        /// <returns></returns>
-        /// <exception cref="System.Collections.Generic.KeyNotFoundException">
-        /// Cart not found
-        /// or
-        /// Cart item not found
-        /// </exception>
-        public async Task<bool> DeleteItemFromCart(int userId, int productId)
-        {
-            var cart = await _cartRepository.GetCartByUserId(userId);
-
-            if (cart is null)
-                throw new KeyNotFoundException("Cart not found");
-
-            var existingItem = await _cartItemRepository.GetCartItem(cart.Id, productId);
-
-            if (existingItem is null)
-                throw new KeyNotFoundException("Cart item not found");
-
-            var result = await _cartItemRepository.DeleteCartItem(existingItem.Id);
-
-            var cartUpdate = await _cartRepository.GetCartByUserId(userId);
-
-            if (result)
-            {
-                await RefreshCartCache(userId, cartUpdate!);
-            }
-
-            return result;
-        }
-
-        /// <summary>
         /// Refreshes the cart cache with latest cart.
         /// </summary>
         /// <param name="userId">The user identifier.</param>
         /// <exception cref="System.InvalidOperationException">Cart not found after update</exception>
         private async Task RefreshCartCacheWithLatestCart(int userId)
         {
-            var updatedCart = await _cartRepository.GetCartByUserId(userId);
+            var cart = await _cartRepository.GetCartByUserId(userId);
 
-            if (updatedCart is null)
+            if (cart is null)
                 throw new InvalidOperationException("Cart not found after update");
 
-            await RefreshCartCache(userId, updatedCart);
+            await RefreshCartCache(userId, cart);
         }
 
         /// <summary>
@@ -229,12 +236,16 @@ namespace EcommerceAPI.Services.CartItem
         private async Task RefreshCartCache(int userId, CartEntity cart)
         {
             var cacheKey = $"cart_{userId}";
-            await _cacheService.Remove(cacheKey);
-            await _cacheService.Set(cacheKey, cart, TimeSpan.FromMinutes(30));
-
             var cacheKeyTotal = $"cart_total_{userId}";
+
+            await _cacheService.Remove(cacheKey);
             await _cacheService.Remove(cacheKeyTotal);
+
+            var cartDto = _mapper.Map<CartDto>(cart);
             var total = await _cartRepository.GetCartTotal(cart.Id);
+            cartDto.Total = (decimal)total;
+
+            await _cacheService.Set(cacheKey, cartDto, TimeSpan.FromMinutes(30));
             await _cacheService.Set(cacheKeyTotal, total, TimeSpan.FromMinutes(30));
         }
     }
