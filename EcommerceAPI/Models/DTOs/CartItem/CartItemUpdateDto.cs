@@ -8,6 +8,7 @@ namespace EcommerceAPI.Models.DTOs.Cart
         [Required]
         public int ProductId { get; set; }
 
+        [Required]
         public int Quantity { get; set; } = 1;
     }
 }

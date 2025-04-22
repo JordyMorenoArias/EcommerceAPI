@@ -3,6 +3,7 @@ using EcommerceAPI.Constants;
 using EcommerceAPI.Models;
 using EcommerceAPI.Models.DTOs;
 using EcommerceAPI.Models.DTOs.Product;
+using EcommerceAPI.Models.DTOs.User;
 using EcommerceAPI.Repositories;
 using EcommerceAPI.Services.Infrastructure.Interfaces;
 using EcommerceAPI.Services.Product.Interfaces;
@@ -232,14 +233,14 @@ namespace EcommerceAPI.Services.Product
         /// <param name="userId">The user ID.</param>
         /// <param name="productId">The product ID.</param>
         /// <returns><c>true</c> if the product was deleted; otherwise, <c>false</c>.</returns>
-        public async Task<bool> DeleteProduct(int userId, int productId)
+        public async Task<bool> DeleteProduct(int userId, UserRole role, int productId)
         {
             var product = await _productRepository.GetProductById(productId);
 
             if (product == null)
                 throw new KeyNotFoundException("Product not found");
 
-            if (product.UserId != userId)
+            if (role != UserRole.Admin && product.UserId != userId)
                 throw new InvalidOperationException("You are not authorized to delete this product.");
 
             var result = await _productRepository.DeleteProduct(productId);

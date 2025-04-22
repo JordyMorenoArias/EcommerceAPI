@@ -7,6 +7,7 @@ namespace EcommerceAPI.Models.DTOs.User
     {
         [Required(ErrorMessage = "Id is required")]
         public int Id { get; set; }
+
         [Required]
         public UserRole Role { get; set; } = UserRole.Customer;
     }

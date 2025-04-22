@@ -147,12 +147,11 @@ namespace EcommerceAPI.Controllers
         /// </summary>
         /// <param name="productAdd">The product to add.</param>
         /// <returns>The created product.</returns>
-        [AuthorizeRole(UserRole.Admin, UserRole.Seller)]
+        [AuthorizeRole(UserRole.Seller)]
         [HttpPost]
         public async Task<IActionResult> AddProduct([FromBody] ProductAddDto productAdd)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
-
             var product = await _productService.AddProduct(userAuthenticated.Id, productAdd);
             return CreatedAtAction(nameof(GetProductById), new { id = product.Id }, product);
         }
@@ -163,7 +162,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="productId">The ID of the product to update.</param>
         /// <param name="productUpdate">The updated product information.</param>
         /// <returns>The updated product.</returns>
-        [AuthorizeRole(UserRole.Admin, UserRole.Seller)]
+        [AuthorizeRole(UserRole.Seller)]
         [HttpPut("{productId}")]
         public async Task<IActionResult> UpdateProduct(int productId, [FromBody] ProductUpdateDto productUpdate)
         {
@@ -183,7 +182,7 @@ namespace EcommerceAPI.Controllers
         public async Task<IActionResult> DeleteProduct(int productId)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
-            var result = await _productService.DeleteProduct(userAuthenticated.Id, productId);
+            var result = await _productService.DeleteProduct(userAuthenticated, productId);
 
             if (result)
                 return NoContent();

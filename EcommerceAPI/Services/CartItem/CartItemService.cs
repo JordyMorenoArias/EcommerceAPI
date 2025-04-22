@@ -22,15 +22,13 @@ namespace EcommerceAPI.Services.CartItem
         private readonly ICartItemRepository _cartItemRepository;
         private readonly IProductRepository _productRepository;
         private readonly ICacheService _cacheService;
-        private readonly ILogger<CartItemService> _logger;
 
-        public CartItemService(ICartRepository cartRepository,  ICartItemRepository cartItemRepository, IProductRepository productRepository, ICacheService cacheService, ILogger<CartItemService> logger, IMapper mapper)
+        public CartItemService(ICartRepository cartRepository,  ICartItemRepository cartItemRepository, IProductRepository productRepository, ICacheService cacheService, IMapper mapper)
         {
             _cartRepository = cartRepository;
             _cartItemRepository = cartItemRepository;
             _productRepository = productRepository;
             _cacheService = cacheService;
-            _logger = logger;
             _mapper = mapper;
         }
 

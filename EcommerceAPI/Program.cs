@@ -5,6 +5,10 @@ using EcommerceAPI.Repositories;
 using EcommerceAPI.Repositories.Interfaces;
 using EcommerceAPI.Services.Auth;
 using EcommerceAPI.Services.Auth.Interfaces;
+using EcommerceAPI.Services.Cart;
+using EcommerceAPI.Services.Cart.Interfaces;
+using EcommerceAPI.Services.CartItem;
+using EcommerceAPI.Services.CartItem.Interfaces;
 using EcommerceAPI.Services.Infrastructure;
 using EcommerceAPI.Services.Infrastructure.Interfaces;
 using EcommerceAPI.Services.Security;
@@ -45,6 +49,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
 
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
+builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
@@ -55,9 +60,13 @@ builder.Services.AddTransient<ITokenGenerator, TokenGenerator>();
 
 builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
+builder.Services.AddScoped<IOAuthProviderService, GoogleAuthService>();
+builder.Services.AddScoped<ICacheService, MemoryCacheService>();
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IOAuthProviderService, GoogleAuthService>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<ICartItemService, CartItemService>();
 
 var jwtKey = builder.Configuration["Jwt:Key"];
 
