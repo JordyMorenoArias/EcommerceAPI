@@ -10,7 +10,7 @@ namespace EcommerceAPI.Repositories
         Task<ProductEntity> AddProduct(ProductEntity product);
         Task<bool> DeleteProduct(int id);
         Task<ProductEntity?> GetProductById(int id);
-        Task<bool> UpdateProduct(ProductEntity product);
+        Task<ProductEntity> UpdateProduct(ProductEntity product);
         Task<PagedResult<ProductDto>> GetActiveProductsByCategory(CategoryProduct category, int page, int pageSize);
         Task<PagedResult<ProductDto>> GetProductsByCategory(CategoryProduct category, int page, int pageSize);
         Task<PagedResult<ProductDto>> GetActiveProductsByUserId(int userId, int page, int pageSize);

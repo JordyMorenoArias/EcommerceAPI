@@ -86,7 +86,7 @@ namespace EcommerceAPI.Services.Cart
             var cart = await _cartRepository.GetCartByUserId(userId);
 
             if (cart is null)
-                return null;
+                throw new KeyNotFoundException("Cart not found");
 
             var total = await _cartRepository.GetCartTotal(cart.Id);
             await _cacheService.Set(cacheKey, total, TimeSpan.FromMinutes(30));

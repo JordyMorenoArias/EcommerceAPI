@@ -255,14 +255,11 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="product">The product with updated information.</param>
         /// <returns>The updated product.</returns>
-        public async Task<bool> UpdateProduct(ProductEntity product)
+        public async Task<ProductEntity> UpdateProduct(ProductEntity product)
         {
-            var existingProduct = await GetProductById(product.Id);
-            if (existingProduct is null)
-                return false;
-
             _context.Products.Update(product);
-            return await _context.SaveChangesAsync() > 0;
+            await _context.SaveChangesAsync();
+            return product;
         }
 
         /// <summary>

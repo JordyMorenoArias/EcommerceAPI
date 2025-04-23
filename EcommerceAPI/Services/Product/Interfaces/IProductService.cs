@@ -9,7 +9,6 @@ namespace EcommerceAPI.Services.Product.Interfaces
     {
         Task<ProductDto> AddProduct(int userId, ProductAddDto productAdd);
         Task<ProductDto?> GetProductById(int productId);
-        Task<ProductDto?> UpdateProduct(int userId, int productId, ProductUpdateDto productUpdate);
         Task<PagedResult<ProductDto>> GetActiveProductsByUserId(int userId, int page, int pageSize);
         Task<PagedResult<ProductDto>> GetProductsByUserId(int userId, int page, int pageSize);
         Task<PagedResult<ProductDto>> GetActiveProductsByCategory(CategoryProduct category, int page, int pageSize);
@@ -18,5 +17,6 @@ namespace EcommerceAPI.Services.Product.Interfaces
         Task<PagedResult<ProductDto>> GetProducts(int page, int pageSize);
         Task<PagedResult<ProductDto>> SearchProducts(string query, int page, int pageSize);
         Task<bool> DeleteProduct(int userId, UserRole role, int productId);
+        Task<ProductDto?> UpdateProduct(int userId, ProductUpdateDto productUpdate);
     }
 }

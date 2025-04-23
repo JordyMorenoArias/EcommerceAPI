@@ -163,12 +163,11 @@ namespace EcommerceAPI.Controllers
         /// <param name="productUpdate">The updated product information.</param>
         /// <returns>The updated product.</returns>
         [AuthorizeRole(UserRole.Seller)]
-        [HttpPut("{productId}")]
-        public async Task<IActionResult> UpdateProduct(int productId, [FromBody] ProductUpdateDto productUpdate)
+        [HttpPut]
+        public async Task<IActionResult> UpdateProduct([FromBody] ProductUpdateDto productUpdate)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
-            var product = await _productService.UpdateProduct(userAuthenticated.Id, productId, productUpdate);
-
+            var product = await _productService.UpdateProduct(userAuthenticated.Id, productUpdate);
             return Ok(product);
         }
 
@@ -178,11 +177,11 @@ namespace EcommerceAPI.Controllers
         /// <param name="productId">The ID of the product to delete.</param>
         /// <returns>No content if deleted, or not found/error message.</returns>
         [AuthorizeRole(UserRole.Admin, UserRole.Seller)]
-        [HttpDelete("{productId}")]
+        [HttpDelete]
         public async Task<IActionResult> DeleteProduct(int productId)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
-            var result = await _productService.DeleteProduct(userAuthenticated, productId);
+            var result = await _productService.DeleteProduct(userAuthenticated.Id, userAuthenticated.Role, productId);
 
             if (result)
                 return NoContent();

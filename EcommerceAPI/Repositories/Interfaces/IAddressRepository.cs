@@ -4,13 +4,12 @@ namespace EcommerceAPI.Repositories.Interfaces
 {
     public interface IAddressRepository
     {
-        Task<bool> AddAddress(Address address);
+        Task<AddressEntity> AddAddress(AddressEntity address);
         Task<bool> DeleteAddress(int id);
-        Task<Address?> GetAddressById(int id);
-        Task<IEnumerable<Address>> GetAddressesByUserId(int userId);
-        Task<IEnumerable<Address>> GetAllAddresses();
-        Task<Address?> GetDefaultAddressForUserAsync(int userId);
-        Task<bool> SetDefaultAddress(int id);
-        Task<bool> UpdateAddress(Address address);
+        Task<AddressEntity?> GetAddressById(int id);
+        Task<IEnumerable<AddressEntity>> GetAddressesByUserId(int userId);
+        Task<AddressEntity?> GetDefaultAddressForUserAsync(int userId);
+        Task<AddressEntity?> SetDefaultAddress(int userId, int id);
+        Task<AddressEntity?> UpdateAddress(AddressEntity address);
     }
 }

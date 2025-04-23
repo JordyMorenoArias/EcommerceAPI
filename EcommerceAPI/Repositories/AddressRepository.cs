@@ -22,22 +22,11 @@ namespace EcommerceAPI.Repositories
         }
 
         /// <summary>
-        /// Retrieves all addresses from the database.
-        /// </summary>
-        /// <returns>A list of all addresses.</returns>
-        public async Task<IEnumerable<Address>> GetAllAddresses()
-        {
-            return await _context.Addresses
-                .AsNoTracking()
-                .ToListAsync();
-        }
-
-        /// <summary>
         /// Retrieves an address by its unique identifier.
         /// </summary>
         /// <param name="id">The address ID.</param>
         /// <returns>The matching address or null if not found.</returns>
-        public async Task<Address?> GetAddressById(int id)
+        public async Task<AddressEntity?> GetAddressById(int id)
         {
             return await _context.Addresses.FindAsync(id);
         }
@@ -47,7 +36,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="userId">The user's ID.</param>
         /// <returns>A list of addresses for the specified user.</returns>
-        public async Task<IEnumerable<Address>> GetAddressesByUserId(int userId)
+        public async Task<IEnumerable<AddressEntity>> GetAddressesByUserId(int userId)
         {
             return await _context.Addresses
                 .Where(a => a.UserId == userId)
@@ -60,10 +49,11 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="address">The address to add.</param>
         /// <returns>True if the operation was successful.</returns>
-        public async Task<bool> AddAddress(Address address)
+        public async Task<AddressEntity> AddAddress(AddressEntity address)
         {
             _context.Addresses.Add(address);
-            return await _context.SaveChangesAsync() > 0;
+            await _context.SaveChangesAsync();
+            return address;
         }
 
         /// <summary>
@@ -71,15 +61,16 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="address">The address with updated details.</param>
         /// <returns>True if the operation was successful, false if the address was not found.</returns>
-        public async Task<bool> UpdateAddress(Address address)
+        public async Task<AddressEntity?> UpdateAddress(AddressEntity address)
         {
             var existingAddress = await GetAddressById(address.Id);
 
             if (existingAddress is null)
-                return false;
+                return null;
 
-            _context.Addresses.Update(address);
-            return await _context.SaveChangesAsync() > 0;
+            _context.Entry(existingAddress).CurrentValues.SetValues(address);
+            await _context.SaveChangesAsync();
+            return existingAddress;
         }
 
         /// <summary>
@@ -103,7 +94,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="userId">The user's ID.</param>
         /// <returns>The default address or null if none is found.</returns>
-        public async Task<Address?> GetDefaultAddressForUserAsync(int userId)
+        public async Task<AddressEntity?> GetDefaultAddressForUserAsync(int userId)
         {
             return await _context.Addresses
                 .AsNoTracking()
@@ -115,18 +106,21 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="id">The address ID.</param>
         /// <returns>True if the operation was successful, false if the address was not found.</returns>
-        public async Task<bool> SetDefaultAddress(int id)
+        public async Task<AddressEntity?> SetDefaultAddress(int userId, int id)
         {
-            var address = await GetAddressById(id);
+            var address = await _context.Addresses
+                .FirstOrDefaultAsync(a => a.Id == id && a.UserId == userId);
 
-            if (address is null)
-                return false;
+            if (address == null)
+                return null;
 
             await _context.Addresses
-                .Where(a => a.UserId == address.UserId)
+                .Where(a => a.UserId == userId)
                 .ForEachAsync(a => a.IsDefault = a.Id == id);
 
-            return await _context.SaveChangesAsync() > 0;
+            await _context.SaveChangesAsync();
+
+            return address;
         }
     }
 }

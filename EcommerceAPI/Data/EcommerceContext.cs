@@ -10,7 +10,7 @@ namespace EcommerceAPI.Data
         {
         }
 
-        public DbSet<Address> Addresses { get; set; }
+        public DbSet<AddressEntity> Addresses { get; set; }
         public DbSet<CartEntity> Carts { get; set; }
         public DbSet<CartItemEntity> CartItems { get; set; }
         public DbSet<OrderEntity> Orders { get; set; }

@@ -206,9 +206,9 @@ namespace EcommerceAPI.Services.Product
         /// <param name="productId">The product ID.</param>
         /// <param name="productUpdate">The updated product data.</param>
         /// <returns>The updated product DTO or null if not found.</returns>
-        public async Task<ProductDto?> UpdateProduct(int userId, int productId, ProductUpdateDto productUpdate)
+        public async Task<ProductDto?> UpdateProduct(int userId, ProductUpdateDto productUpdate)
         {
-            var product = await _productRepository.GetProductById(productId);
+            var product = await _productRepository.GetProductById(productUpdate.Id);
 
             if (product == null)
                 throw new KeyNotFoundException("Product not found");
@@ -216,12 +216,9 @@ namespace EcommerceAPI.Services.Product
             if (product.UserId != userId)
                 throw new InvalidOperationException("You are not authorized to update this product.");
 
-            var oldCategory = product.Category;
-            var wasActive = product.IsActive;
-
             _mapper.Map(productUpdate, product);
-            await _productRepository.UpdateProduct(product);
-
+            product = await _productRepository.UpdateProduct(product);
+            
             await InvalidateProductCache(product);
 
             return _mapper.Map<ProductDto>(product);

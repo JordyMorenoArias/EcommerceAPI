@@ -15,7 +15,7 @@ namespace EcommerceAPI.Models.Entities
 
         [Required, ForeignKey("Address")]
         public int ShippingAddressId { get; set; }
-        public Address ShippingAddress { get; set; } = null!;
+        public AddressEntity ShippingAddress { get; set; } = null!;
 
         [Column(TypeName = "decimal(18, 2)")]
         public decimal TotalAmount { get; set; }

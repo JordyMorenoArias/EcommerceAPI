@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EcommerceAPI.Models.Entities
 {
-    public class Address
+    public class AddressEntity
     {
         [Key]
         public int Id { get; set; }
@@ -14,17 +14,24 @@ namespace EcommerceAPI.Models.Entities
 
         [Required, MaxLength(100)]
         public string StreetAddress { get; set; } = string.Empty;
+
         [MaxLength(100)]
         public string AddressLine2 { get; set; } = string.Empty;
+
         [Required, MaxLength(50)]
         public string City { get; set; } = string.Empty;
+
         [Required, MaxLength(50)]
         public string State { get; set; } = string.Empty;
+
         [Required, MaxLength(20)]
         public string PostalCode { get; set; } = string.Empty;
+
         [Required, MaxLength(50)]
         public string Country { get; set; } = string.Empty;
+
         public bool IsDefault { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
