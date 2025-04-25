@@ -1,4 +1,5 @@
-﻿using EcommerceAPI.Constants;
+﻿using AutoMapper;
+using EcommerceAPI.Constants;
 using EcommerceAPI.Data;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Repositories.Interfaces;
@@ -27,7 +28,7 @@ namespace EcommerceAPI.Repositories
         /// Retrieves all orders with user and shipping address details.
         /// </summary>
         /// <returns>A collection of all orders.</returns>
-        public async Task<IEnumerable<OrderEntity>> GetAllOrders()
+        public async Task<IEnumerable<OrderEntity>> GetOrders()
         {
             return await _context.Orders
                 .Include(o => o.User)
@@ -51,7 +52,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="userId">User ID.</param>
         /// <returns>A collection of orders for the specified user.</returns>
-        public async Task<IEnumerable<OrderEntity>> GetAllOrdersByUserId(int userId)
+        public async Task<IEnumerable<OrderEntity>> GetOrdersByUserId(int userId)
         {
             return await _context.Orders
                 .Where(o => o.UserId == userId)
@@ -95,41 +96,12 @@ namespace EcommerceAPI.Repositories
         /// Adds a new order and updates product stock in a transaction.
         /// </summary>
         /// <param name="order">The order to add.</param>
-        /// <returns>True if the order was added successfully; otherwise, false.</returns>
+        /// <returns>The order if found; otherwise, null.</returns>
         public async Task<OrderEntity?> AddOrder(OrderEntity order)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-
-            try
-            {
-                await _context.Orders.AddAsync(order);
-                await _context.SaveChangesAsync();
-
-                foreach (var orderDetail in order.OrderDetails)
-                {
-                    var product = await _context.Products
-                        .Where(p => p.Id == orderDetail.ProductId)
-                        .AsTracking()
-                        .FirstOrDefaultAsync();
-
-                    if (product is null)
-                    {
-                        await transaction.RollbackAsync();
-                        return null;
-                    }
-
-                    product.Stock -= orderDetail.Quantity;
-                }
-
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-                return order;
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                return null;
-            }
+            await _context.Orders.AddAsync(order);
+            await _context.SaveChangesAsync();
+            return order;
         }
 
         /// <summary>
@@ -137,15 +109,11 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="order">The updated order data.</param>
         /// <returns>True if the update was successful; otherwise, false.</returns>
-        public async Task<bool> UpdateOrder(OrderEntity order)
+        public async Task<OrderEntity> UpdateOrder(OrderEntity order)
         {
-            var existingOrder = await GetOrderById(order.Id);
-
-            if (existingOrder is null) 
-                return false;
-
             _context.Orders.Update(order);
-            return await _context.SaveChangesAsync() > 0;
+            await _context.SaveChangesAsync();
+            return order;
         }
 
         /// <summary>

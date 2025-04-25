@@ -19,7 +19,7 @@ namespace EcommerceAPI.Models.Entities
 
         [Column(TypeName = "decimal(18, 2)")]
         public decimal TotalAmount { get; set; }
-        public OrderStatus Status { get; set; } = OrderStatus.Pending;
+        public OrderStatus Status { get; set; } = OrderStatus.Draft;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public ICollection<OrderDetailEntity> OrderDetails { get; set; } = new List<OrderDetailEntity>();

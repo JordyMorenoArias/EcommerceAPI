@@ -12,11 +12,9 @@ namespace EcommerceAPI.Models.Entities
         public int OrderId { get; set; }
         public OrderEntity Order { get; set; } = null!;
 
-
         [Required, ForeignKey("Product")]
         public int ProductId { get; set; }
         public ProductEntity Product { get; set; } = null!;
-
 
         public int Quantity { get; set; }
         [Column(TypeName = "decimal(18, 2)")]
