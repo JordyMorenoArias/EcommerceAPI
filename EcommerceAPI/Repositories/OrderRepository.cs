@@ -25,12 +25,15 @@ namespace EcommerceAPI.Repositories
         }
 
         /// <summary>
-        /// Retrieves all orders with user and shipping address details.
+        /// Retrieves orders between two dates with user and shipping address details.
         /// </summary>
-        /// <returns>A collection of all orders.</returns>
-        public async Task<IEnumerable<OrderEntity>> GetOrders()
+        /// <param name="startDate">Start date (inclusive).</param>
+        /// <param name="endDate">End date (inclusive).</param>
+        /// <returns>A collection of orders between the given dates.</returns>
+        public async Task<IEnumerable<OrderEntity>> GetOrdersByDateRange(DateTime startDate, DateTime endDate)
         {
             return await _context.Orders
+                .Where(o => o.CreatedAt >= startDate && o.CreatedAt <= endDate && o.Status != OrderStatus.Draft)
                 .Include(o => o.User)
                 .Include(o => o.ShippingAddress)
                 .AsNoTracking()
@@ -55,7 +58,7 @@ namespace EcommerceAPI.Repositories
         public async Task<IEnumerable<OrderEntity>> GetOrdersByUserId(int userId)
         {
             return await _context.Orders
-                .Where(o => o.UserId == userId)
+                .Where(o => o.UserId == userId && o.Status != OrderStatus.Draft)
                 .Include(o => o.User)
                 .Include(o => o.ShippingAddress)
                 .AsNoTracking()
@@ -70,7 +73,7 @@ namespace EcommerceAPI.Repositories
         public async Task<IEnumerable<OrderEntity>> GetOrdersByStatus(OrderStatus status)
         {
             return await _context.Orders
-                .Where(o => o.Status == status)
+                .Where(o => o.Status == status && o.Status != OrderStatus.Draft)
                 .Include(o => o.ShippingAddress)
                 .AsNoTracking()
                 .ToListAsync();
@@ -84,6 +87,7 @@ namespace EcommerceAPI.Repositories
         public async Task<OrderEntity?> GetOrderWithDetails(int orderId)
         {
             return await _context.Orders
+                .Where(o => o.Id == orderId && o.Status != OrderStatus.Draft)
                 .Include(o => o.User)
                 .Include(o => o.ShippingAddress)
                 .Include(o => o.OrderDetails)
@@ -97,20 +101,59 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="order">The order to add.</param>
         /// <returns>The order if found; otherwise, null.</returns>
-        public async Task<OrderEntity?> AddOrder(OrderEntity order)
+        public async Task<OrderEntity> AddOrder(OrderEntity order)
         {
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
             return order;
         }
 
-        /// <summary>
-        /// Updates an existing order.
-        /// </summary>
-        /// <param name="order">The updated order data.</param>
-        /// <returns>True if the update was successful; otherwise, false.</returns>
-        public async Task<OrderEntity> UpdateOrder(OrderEntity order)
+        public async Task<OrderEntity?> UpdateAmountOrder(int orderId, decimal amount)
         {
+            var order = await _context.Orders.FindAsync(orderId);
+
+            if (order == null)
+                return null;
+
+            order.TotalAmount = amount;
+            _context.Orders.Update(order);
+            await _context.SaveChangesAsync();
+            return order;
+        }
+
+        /// <summary>
+        /// Updates the address order.
+        /// </summary>
+        /// <param name="order">The order.</param>
+        /// <param name="addressId">The address identifier.</param>
+        /// <returns></returns>
+        public async Task<OrderEntity?> UpdateAddressOrder(int orderId, int addressId)
+        {
+            var order = await _context.Orders.FindAsync(orderId);
+
+            if (order == null)
+                return null;
+
+            order.ShippingAddressId = addressId;
+            _context.Orders.Update(order);
+            await _context.SaveChangesAsync();
+            return order;
+        }
+
+        /// <summary>
+        /// Updates the status of an order.
+        /// </summary>
+        /// <param name="orderId">Order ID.</param>
+        /// <param name="newStatus">New order status.</param>
+        /// <returns>True if the status update was successful; otherwise, false.</returns>
+        public async Task<OrderEntity?> UpdateOrderStatus(int orderId, OrderStatus newStatus)
+        {
+            var order = await _context.Orders.FindAsync(orderId);
+
+            if (order == null)
+                return null;
+
+            order.Status = newStatus;
             _context.Orders.Update(order);
             await _context.SaveChangesAsync();
             return order;
@@ -133,34 +176,15 @@ namespace EcommerceAPI.Repositories
         }
 
         /// <summary>
-        /// Updates the status of an order.
-        /// </summary>
-        /// <param name="orderId">Order ID.</param>
-        /// <param name="newStatus">New order status.</param>
-        /// <returns>True if the status update was successful; otherwise, false.</returns>
-        public async Task<bool> UpdateOrderStatus(int orderId, OrderStatus newStatus)
-        {
-            var order = await GetOrderById(orderId);
-
-            if (order is null)
-                return false;
-
-            order!.Status = newStatus;
-            return await _context.SaveChangesAsync() > 0;
-        }
-
-        /// <summary>
         /// Calculates the total sales amount from paid orders.
         /// </summary>
         /// <returns>The total sales amount.</returns>
         public async Task<decimal> GetTotalSales()
         {
-            var totalSales = await _context.Orders
+            return await _context.Orders
                 .Where(o => o.Status == OrderStatus.Paid)
                 .AsNoTracking()
-                .SumAsync(o => o.TotalAmount);
-
-            return totalSales;
+                .SumAsync(o => (decimal?)o.TotalAmount) ?? 0m;
         }
     }
 }

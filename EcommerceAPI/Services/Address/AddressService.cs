@@ -56,8 +56,7 @@ namespace EcommerceAPI.Services.Address
         /// </summary>
         /// <param name="userId">The user identifier.</param>
         /// <returns></returns>
-        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Default address not found</exception>
-        public async Task<AddressDto> GetDefaultAddressForUser(int userId)
+        public async Task<AddressDto?> GetDefaultAddressForUser(int userId)
         {
             var cacheKey = $"DefaultAddress_User_{userId}";
             var cachedAddress = await _cacheService.Get<AddressDto>(cacheKey);
@@ -68,7 +67,7 @@ namespace EcommerceAPI.Services.Address
             var address = await _addressRepository.GetDefaultAddressForUserAsync(userId);
 
             if (address == null)
-                throw new KeyNotFoundException("Default address not found");
+                return null;
 
             var addressDto = _mapper.Map<AddressDto>(address);
             await _cacheService.Set(cacheKey, addressDto, TimeSpan.FromMinutes(30));
@@ -104,6 +103,11 @@ namespace EcommerceAPI.Services.Address
         public async Task<AddressDto> AddAddress(int userId, AddressAddDto addressAdd)
         {
             var addressEntity = _mapper.Map<AddressEntity>(addressAdd);
+
+            var addresses = await _addressRepository.GetAddressesByUserId(userId);
+
+            if (addresses.Count() == 0)
+                addressEntity.IsDefault = true;
 
             addressEntity.UserId = userId;
             var address = await _addressRepository.AddAddress(addressEntity);

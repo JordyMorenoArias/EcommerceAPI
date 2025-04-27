@@ -3,6 +3,8 @@ using EcommerceAPI.Middlewares;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Repositories;
 using EcommerceAPI.Repositories.Interfaces;
+using EcommerceAPI.Services.Address;
+using EcommerceAPI.Services.Address.Interfaces;
 using EcommerceAPI.Services.Auth;
 using EcommerceAPI.Services.Auth.Interfaces;
 using EcommerceAPI.Services.Cart;
@@ -11,6 +13,12 @@ using EcommerceAPI.Services.CartItem;
 using EcommerceAPI.Services.CartItem.Interfaces;
 using EcommerceAPI.Services.Infrastructure;
 using EcommerceAPI.Services.Infrastructure.Interfaces;
+using EcommerceAPI.Services.Order;
+using EcommerceAPI.Services.Order.Interfaces;
+using EcommerceAPI.Services.OrderItem;
+using EcommerceAPI.Services.OrderItem.Interfaces;
+using EcommerceAPI.Services.Product;
+using EcommerceAPI.Services.Product.Interfaces;
 using EcommerceAPI.Services.Security;
 using EcommerceAPI.Services.Security.Interfaces;
 using EcommerceAPI.Services.User;
@@ -47,13 +55,14 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.Configuration = builder.Configuration.GetConnectionString("RedisConnection");
 });
 
-builder.Services.AddScoped<IAddressRepository, AddressRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
+builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddScoped<PasswordHasher<UserEntity>>();
 builder.Services.AddTransient<ITokenGenerator, TokenGenerator>();
@@ -65,8 +74,12 @@ builder.Services.AddScoped<ICacheService, MemoryCacheService>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<ICartItemService, CartItemService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
+builder.Services.AddScoped<IAddressService, AddressService>();
 
 var jwtKey = builder.Configuration["Jwt:Key"];
 

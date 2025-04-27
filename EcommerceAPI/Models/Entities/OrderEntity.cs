@@ -18,10 +18,18 @@ namespace EcommerceAPI.Models.Entities
         public AddressEntity ShippingAddress { get; set; } = null!;
 
         [Column(TypeName = "decimal(18, 2)")]
-        public decimal TotalAmount { get; set; }
+        public decimal TotalAmount { get; set; } = 0.0m;
         public OrderStatus Status { get; set; } = OrderStatus.Draft;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public ICollection<OrderDetailEntity> OrderDetails { get; set; } = new List<OrderDetailEntity>();
+
+        /// <summary>
+        /// Recalculates the total amount.
+        /// </summary>
+        public void RecalculateTotalAmount()
+        {
+            TotalAmount = OrderDetails.Sum(od => od.Quantity * od.UnitPrice);
+        }
     }
 }

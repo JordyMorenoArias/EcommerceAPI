@@ -1,11 +1,11 @@
 ﻿using EcommerceAPI.Models.DTOs.OrderDetail;
 using EcommerceAPI.Models.Entities;
 
-namespace EcommerceAPI.Repositories.Interfaces
+namespace EcommerceAPI.Services.OrderItem.Interfaces
 {
-    public interface IOrderDetailRepository
+    public interface IOrderDetailService
     {
         Task<AddOrderDetailResultDto> AddOrderDetails(int orderId, IEnumerable<OrderDetailEntity> orderDetails);
-        Task<OrderDetailEntity?> GetOrderDetailById(int id);
+        Task<OrderDetailDto> GetOrderDetailByI(int id);
     }
 }

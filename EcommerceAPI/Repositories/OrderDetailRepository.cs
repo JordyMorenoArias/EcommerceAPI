@@ -40,7 +40,7 @@ namespace EcommerceAPI.Repositories
         /// <param name="orderId">The order identifier.</param>
         /// <param name="orderDetails">The order details.</param>
         /// <returns></returns>
-        public async Task<AddOrderDetailResultDto?> AddOrderDetails(int orderId, IEnumerable<OrderDetailEntity> orderDetails)
+        public async Task<AddOrderDetailResultDto> AddOrderDetails(int orderId, IEnumerable<OrderDetailEntity> orderDetails)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             var result = new AddOrderDetailResultDto();
@@ -84,6 +84,7 @@ namespace EcommerceAPI.Repositories
                     }
 
                     product.Stock -= detail.Quantity;
+                    detail.UnitPrice = product.Price;
                     trackedDetails.Add(detail);
                 }
 
@@ -97,27 +98,67 @@ namespace EcommerceAPI.Repositories
 
                 await _context.OrderDetails.AddRangeAsync(trackedDetails);
                 await _context.SaveChangesAsync();
+
+                // Luego recalcular el TotalAmount
+                var order = await _context.Orders
+                    .Include(o => o.OrderDetails)
+                    .FirstOrDefaultAsync(o => o.Id == orderId);
+
+                if (order is not null)
+                {
+                    order.RecalculateTotalAmount();
+                    _context.Orders.Update(order);
+                    await _context.SaveChangesAsync();
+                }
+
                 await transaction.CommitAsync();
 
+                result.Success = true;
                 return result;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while processing order details for Order ID {OrderId}", orderId);
-                await transaction.RollbackAsync();
+
+                try
+                {
+                    await transaction.RollbackAsync();
+                }
+                catch (Exception rollbackEx)
+                {
+                    _logger.LogError(rollbackEx, "Rollback failed for Order ID {OrderId}", orderId);
+                }
+
+                try
+                {
+                    // Intentar eliminar la orden
+                    var order = await _context.Orders.FindAsync(orderId);
+                    if (order != null)
+                    {
+                        _context.Orders.Remove(order);
+                        await _context.SaveChangesAsync();
+                        _logger.LogWarning("Order {OrderId} was deleted due to processing failure.", orderId);
+                    }
+                }
+                catch (Exception deleteEx)
+                {
+                    _logger.LogError(deleteEx, "Failed to delete Order ID {OrderId} after error.", orderId);
+                }
+
                 result.Success = false;
                 result.StockErrors = new List<StockErrorDto>
-                {
-                    new StockErrorDto
-                    {
-                        ProductId = 0,
-                        ProductName = "N/A",
-                        AvailableStock = 0,
-                        RequestedQuantity = 0,
-                    }
-                };
+        {
+            new StockErrorDto
+            {
+                ProductId = 0,
+                ProductName = "N/A",
+                AvailableStock = 0,
+                RequestedQuantity = 0,
+            }
+        };
                 return result;
             }
         }
+
     }
 }

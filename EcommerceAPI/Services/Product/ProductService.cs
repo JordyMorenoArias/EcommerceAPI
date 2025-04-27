@@ -108,7 +108,7 @@ namespace EcommerceAPI.Services.Product
         /// <returns>A collection of product DTOs in the specified category.</returns>
         public async Task<PagedResult<ProductDto>> GetProductsByCategory(CategoryProduct category, int page, int pageSize)
         {
-            var cacheKey = $"Products_{category.ToString()}_Page_{page}_Size_{pageSize}";
+            var cacheKey = $"Products_{nameof(category)}_Page_{page}_Size_{pageSize}";
             var cachedpagedResult = await _cacheService.Get<PagedResult<ProductDto>>(cacheKey);
 
             if (cachedpagedResult != null)
@@ -128,7 +128,7 @@ namespace EcommerceAPI.Services.Product
         /// <returns>A collection of active product DTOs in the specified category.</returns>
         public async Task<PagedResult<ProductDto>> GetActiveProductsByCategory(CategoryProduct category, int page, int pageSize)
         {
-            var cacheKey = $"Active_Products_{category.ToString()}_Page_{page}_Size_{pageSize}";
+            var cacheKey = $"Active_Products_{nameof(category)}_Page_{page}_Size_{pageSize}";
             var cachedpagedResult = await _cacheService.Get<PagedResult<ProductDto>>(cacheKey);
 
             if (cachedpagedResult != null)
