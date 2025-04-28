@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using EcommerceAPI.Constants;
+using EcommerceAPI.Models.DTOs;
 using EcommerceAPI.Models.DTOs.Order;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Repositories.Interfaces;
@@ -30,31 +31,6 @@ namespace EcommerceAPI.Services.Order
         }
 
         /// <summary>
-        /// Gets the orders by date range.
-        /// </summary>
-        /// <param name="startDate">The start date.</param>
-        /// <param name="endDate">The end date.</param>
-        /// <returns></returns>
-        /// <exception cref="System.ArgumentException">Start date must be less than or equal to end date</exception>
-        public async Task<IEnumerable<OrderDto>> GetOrdersByDateRange(DateTime startDate, DateTime endDate)
-        {
-            if (startDate > endDate)
-                throw new ArgumentException("Start date must be less than or equal to end date");
-
-            var cacheKey = $"orders_{startDate:yyyyMMdd}_{endDate:yyyyMMdd}";
-            var cachedOrders = await _cacheService.Get<IEnumerable<OrderDto>>(cacheKey);
-
-            if (cachedOrders is not null)
-                return cachedOrders;
-
-            var orders = _orderRepository.GetOrdersByDateRange(startDate, endDate);
-            var orderDtos = _mapper.Map<IEnumerable<OrderDto>>(orders);
-
-            await _cacheService.Set(cacheKey, orderDtos, TimeSpan.FromMinutes(10));
-            return orderDtos;
-        }
-
-        /// <summary>
         /// Gets the order by identifier.
         /// </summary>
         /// <param name="id">The identifier.</param>
@@ -79,23 +55,61 @@ namespace EcommerceAPI.Services.Order
         }
 
         /// <summary>
-        /// Gets the orders by user identifier.
+        /// Gets the orders by date range.
         /// </summary>
-        /// <param name="userId">The user identifier.</param>
+        /// <param name="startDate">The start date.</param>
+        /// <param name="endDate">The end date.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<OrderDto>> GetOrdersByUserId(int userId)
+        /// <exception cref="System.ArgumentException">Start date must be less than or equal to end date</exception>
+        public async Task<PagedResult<OrderDto>> GetOrdersByDateRange(int page, int pageSize, DateTime? startDate = null, DateTime? endDate = null)
         {
-            var cacheKey = $"user_orders_{nameof(userId)}";
-            var cachedOrders = await _cacheService.Get<IEnumerable<OrderDto>>(cacheKey);
+            if (startDate > endDate)
+                throw new ArgumentException("Start date must be less than to end date");
+
+            var dateRangePart = startDate.HasValue && endDate.HasValue ? $"{startDate:yyyyMMdd}_{endDate:yyyyMMdd}" : "all_dates";
+            var cacheKey = $"orders_{dateRangePart}_Page_{page}_Size_{pageSize}";
+            var cachedOrders = await _cacheService.Get<PagedResult<OrderDto>>(cacheKey);
 
             if (cachedOrders is not null)
                 return cachedOrders;
 
-            var orders = await _orderRepository.GetOrdersByUserId(userId);
-            var orderDtos = _mapper.Map<IEnumerable<OrderDto>>(orders);
+            var orders = _orderRepository.GetOrdersByDateRange(page, pageSize, startDate, endDate);
+            var orderDtos = _mapper.Map<PagedResult<OrderDto>>(orders);
 
             await _cacheService.Set(cacheKey, orderDtos, TimeSpan.FromMinutes(5));
             return orderDtos;
+        }
+
+        /// <summary>
+        /// Gets the orders by user identifier.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <returns></returns>
+        public async Task<PagedResult<OrderDto>> GetOrdersByUserId(int userId, int page, int pageSize, DateTime? startDate = null, DateTime? endDate = null, bool isOwner = false)
+        {
+            if (startDate > endDate)
+                throw new ArgumentException("Start date must be less than to end date");
+
+            if (isOwner)
+            {
+                var orders = await _orderRepository.GetOrdersByUserId(userId, page, pageSize, startDate, endDate);
+                var orderDtos = _mapper.Map<PagedResult<OrderDto>>(orders);
+
+                return orderDtos;
+            }
+
+            var dateRangePart = startDate.HasValue && endDate.HasValue ? $"{startDate:yyyyMMdd}_{endDate:yyyyMMdd}" : "all_dates";
+            var cacheKey = $"user_orders_{userId}_{dateRangePart}_Page_{page}_Size_{pageSize}";
+            var cachedOrders = await _cacheService.Get<PagedResult<OrderDto>>(cacheKey);
+
+            if (cachedOrders is not null)
+                return cachedOrders;
+
+            var ordersFromDb = await _orderRepository.GetOrdersByUserId(userId, page, pageSize, startDate, endDate);
+            var orderDtosFromDb = _mapper.Map<PagedResult<OrderDto>>(ordersFromDb);
+
+            await _cacheService.Set(cacheKey, orderDtosFromDb, TimeSpan.FromMinutes(5));
+            return orderDtosFromDb;
         }
 
         /// <summary>
@@ -103,18 +117,44 @@ namespace EcommerceAPI.Services.Order
         /// </summary>
         /// <param name="status">The status.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<OrderDto>> GetOrdersByStatus(OrderStatus status)
+        public async Task<PagedResult<OrderDto>> GetOrdersByStatus(OrderStatus status, int page, int pageSize, DateTime? startDate = null, DateTime? endDate = null)
         {
-            var cacheKey = $"orders_status_{nameof(status)}";
-            var cachedOrders = await _cacheService.Get<IEnumerable<OrderDto>>(cacheKey);
+            var dateRangePart = startDate.HasValue && endDate.HasValue ? $"{startDate:yyyyMMdd}_{endDate:yyyyMMdd}" : "all_dates";
+            var cacheKey = $"orders_status_{status}_{dateRangePart}_Page_{page}_Size_{pageSize}";
+            var cachedOrders = await _cacheService.Get<PagedResult<OrderDto>>(cacheKey);
 
             if (cachedOrders is not null)
                 return cachedOrders;
 
-            var orders = await _orderRepository.GetOrdersByStatus(status);
-            var orderDtos = _mapper.Map<IEnumerable<OrderDto>>(orders);
+            var orders = await _orderRepository.GetOrdersByStatus(status, page, pageSize, startDate, endDate);
+            var orderDtos = _mapper.Map<PagedResult<OrderDto>>(orders);
 
-            await _cacheService.Set(cacheKey, orderDtos, TimeSpan.FromMinutes(3));
+            await _cacheService.Set(cacheKey, orderDtos, TimeSpan.FromMinutes(5));
+            return orderDtos;
+        }
+
+        /// <summary>
+        /// Gets the orders by seller.
+        /// </summary>
+        /// <param name="sellerId">The seller identifier.</param>
+        /// <param name="page">The page.</param>
+        /// <param name="pageSize">Size of the page.</param>
+        /// <param name="startDate">The start date.</param>
+        /// <param name="endDate">The end date.</param>
+        /// <returns></returns>
+        public async Task<PagedResult<OrderDto>> GetOrdersBySeller(int sellerId, int page, int pageSize, DateTime? startDate = null, DateTime? endDate = null)
+        {
+            var dateRangePart = startDate.HasValue && endDate.HasValue ? $"{startDate:yyyyMMdd}_{endDate:yyyyMMdd}" : "all_dates";
+            var cacheKey = $"orders_seller_{sellerId}_{dateRangePart}_Page_{page}_Size_{pageSize}";
+            var cachedOrders = await _cacheService.Get<PagedResult<OrderDto>>(cacheKey);
+
+            if (cachedOrders is not null)
+                return cachedOrders;
+
+            var orders = await _orderRepository.GetOrdersBySeller(sellerId, page, pageSize, startDate, endDate);
+            var orderDtos = _mapper.Map<PagedResult<OrderDto>>(orders);
+
+            await _cacheService.Set(cacheKey, orderDtos, TimeSpan.FromMinutes(5));
             return orderDtos;
         }
 
@@ -169,7 +209,7 @@ namespace EcommerceAPI.Services.Order
             var cacheKey = $"order_{createdOrder.Id}";
             var orderDto = _mapper.Map<OrderDto>(createdOrder);
             await _cacheService.Set(cacheKey, orderDto, TimeSpan.FromMinutes(5));
-            return orderDto; ;
+            return orderDto;
         }
 
         /// <summary>
@@ -256,23 +296,6 @@ namespace EcommerceAPI.Services.Order
         }
 
         /// <summary>
-        /// Gets the total sales.
-        /// </summary>
-        /// <returns></returns>
-        public async Task<decimal> GetTotalSales()
-        {
-            var cacheKey = "total_sales";
-            decimal? cachedTotalSales = await _cacheService.Get<decimal?>(cacheKey);
-
-            if (cachedTotalSales.HasValue)
-                return cachedTotalSales.Value;
-
-            var totalSales = await _orderRepository.GetTotalSales();
-            await _cacheService.Set(cacheKey, totalSales, TimeSpan.FromMinutes(2));
-            return totalSales;
-        }
-
-        /// <summary>
         /// Invalidates the order cache.
         /// </summary>
         /// <param name="orderId">The order identifier.</param>
@@ -283,14 +306,6 @@ namespace EcommerceAPI.Services.Order
             // Eliminar la cache específica de la orden
             await _cacheService.Remove($"order_{orderId}");
             await _cacheService.Remove($"order_details_{orderId}");
-
-            // Opcionalmente eliminar la cache de las órdenes del usuario
-            if (userId.HasValue)
-                await _cacheService.Remove($"user_orders_{userId.Value}");
-
-            // Opcionalmente eliminar la cache de las órdenes por estado
-            if (status.HasValue)
-                await _cacheService.Remove($"orders_status_{nameof(status.Value)}");
 
             // Invalida total de ventas, porque una actualización puede afectarlo
             await _cacheService.Remove("total_sales");

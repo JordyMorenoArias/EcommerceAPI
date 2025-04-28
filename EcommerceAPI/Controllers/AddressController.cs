@@ -13,7 +13,6 @@ namespace EcommerceAPI.Controllers
     /// <seealso cref="Microsoft.AspNetCore.Mvc.Controller" />
     [ApiController]
     [Route("api/[controller]")]
-    [AuthorizeRole(UserRole.Customer)]
     public class AddressController : Controller
     {
         private readonly IUserService _userService;
@@ -31,10 +30,11 @@ namespace EcommerceAPI.Controllers
         /// <param name="id">The identifier.</param>
         /// <returns></returns>
         [HttpGet]
+        [AuthorizeRole(UserRole.Customer, UserRole.Admin, UserRole.Seller)]
         public async Task<IActionResult> GetAddressById([FromQuery] int id)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
-            var address = await _addressService.GetAddressById(userAuthenticated.Id, id);
+            var address = await _addressService.GetAddressById(userAuthenticated.Id, userAuthenticated.Role, id);
 
             return Ok(address);
         }
@@ -44,6 +44,7 @@ namespace EcommerceAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("user")]
+        [AuthorizeRole(UserRole.Customer)]
         public async Task<IActionResult> GetAddressesByUserId()
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
@@ -56,6 +57,7 @@ namespace EcommerceAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("default")]
+        [AuthorizeRole(UserRole.Customer)]
         public async Task<IActionResult> GetDefaultAddressByUserId()
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
@@ -69,6 +71,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="addressAdd">The address add.</param>
         /// <returns></returns>
         [HttpPost]
+        [AuthorizeRole(UserRole.Customer)]
         public async Task<IActionResult> AddAddress([FromBody] AddressAddDto addressAdd)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
@@ -82,6 +85,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="addressUpdate">The address update.</param>
         /// <returns></returns>
         [HttpPut]
+        [AuthorizeRole(UserRole.Customer)]
         public async Task<IActionResult> UpdateAddress([FromBody] AddressUpdateDto addressUpdate)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
@@ -95,6 +99,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="id">The identifier.</param>
         /// <returns></returns>
         [HttpDelete]
+        [AuthorizeRole(UserRole.Customer)]
         public async Task<IActionResult> DeleteAddress([FromQuery] int id)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
@@ -112,6 +117,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="id">The identifier.</param>
         /// <returns></returns>
         [HttpPut("default/{id}")]
+        [AuthorizeRole(UserRole.Customer)]
         public async Task<IActionResult> SetDefaultAddress([FromRoute] int id)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);

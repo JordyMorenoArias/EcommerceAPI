@@ -60,16 +60,17 @@ namespace EcommerceAPI.Services.Product
         public async Task<PagedResult<ProductDto>> GetProducts(int page, int pageSize)
         {
             var cacheKey = $"Products_Page_{page}_Size_{pageSize}";
-            var cachedpagedResult = await _cacheService.Get<PagedResult<ProductDto>>(cacheKey);
+            var cachedPagedResult = await _cacheService.Get<PagedResult<ProductDto>>(cacheKey);
 
-            if (cachedpagedResult != null)
-                return cachedpagedResult;
+            if (cachedPagedResult != null)
+                return cachedPagedResult;
 
             var pagedResult = await _productRepository.GetProducts(page, pageSize);
+            var pagedProductDtos = _mapper.Map<PagedResult<ProductDto>>(pagedResult);
 
-            await _cacheService.Set(cacheKey, pagedResult, TimeSpan.FromMinutes(5));
+            await _cacheService.Set(cacheKey, pagedProductDtos, TimeSpan.FromMinutes(5));
 
-            return pagedResult;
+            return pagedProductDtos;
         }
 
         /// <summary>
@@ -79,16 +80,17 @@ namespace EcommerceAPI.Services.Product
         public async Task<PagedResult<ProductDto>> GetActiveProducts(int page, int pageSize)
         {
             var cacheKey = $"ActiveProducts_Page_{page}_Size_{pageSize}";
-            var cachedpagedResult = await _cacheService.Get<PagedResult<ProductDto>>(cacheKey);
+            var cachedPagedResult = await _cacheService.Get<PagedResult<ProductDto>>(cacheKey);
 
-            if (cachedpagedResult != null)
-                return cachedpagedResult;
+            if (cachedPagedResult != null)
+                return cachedPagedResult;
 
             var pagedResult = await _productRepository.GetActiveProducts(page, pageSize);
+            var pagedProductDtos = _mapper.Map<PagedResult<ProductDto>>(pagedResult);
 
-            await _cacheService.Set(cacheKey, pagedResult, TimeSpan.FromMinutes(5));
+            await _cacheService.Set(cacheKey, pagedProductDtos, TimeSpan.FromMinutes(5));
 
-            return pagedResult;
+            return pagedProductDtos;
         }
 
         /// <summary>
@@ -98,7 +100,9 @@ namespace EcommerceAPI.Services.Product
         /// <returns>A collection of matching product DTOs.</returns>
         public async Task<PagedResult<ProductDto>> SearchProducts(string query, int page, int pageSize)
         {
-            return await _productRepository.SearchProducts(query, page, pageSize);
+            var pagedResult = await _productRepository.SearchProducts(query, page, pageSize);
+            var pagedProductDtos = _mapper.Map<PagedResult<ProductDto>>(pagedResult);
+            return pagedProductDtos;
         }
 
         /// <summary>
@@ -108,17 +112,18 @@ namespace EcommerceAPI.Services.Product
         /// <returns>A collection of product DTOs in the specified category.</returns>
         public async Task<PagedResult<ProductDto>> GetProductsByCategory(CategoryProduct category, int page, int pageSize)
         {
-            var cacheKey = $"Products_{nameof(category)}_Page_{page}_Size_{pageSize}";
+            var cacheKey = $"Products_{category}_Page_{page}_Size_{pageSize}";
             var cachedpagedResult = await _cacheService.Get<PagedResult<ProductDto>>(cacheKey);
 
             if (cachedpagedResult != null)
                 return cachedpagedResult;
 
             var pagedResult = await _productRepository.GetProductsByCategory(category, page, pageSize);
+            var pagedProductDtos = _mapper.Map<PagedResult<ProductDto>>(pagedResult);
 
-            await _cacheService.Set(cacheKey, pagedResult, TimeSpan.FromMinutes(5));
+            await _cacheService.Set(cacheKey, pagedProductDtos, TimeSpan.FromMinutes(5));
 
-            return pagedResult;
+            return pagedProductDtos;
         }
 
         /// <summary>
@@ -128,17 +133,18 @@ namespace EcommerceAPI.Services.Product
         /// <returns>A collection of active product DTOs in the specified category.</returns>
         public async Task<PagedResult<ProductDto>> GetActiveProductsByCategory(CategoryProduct category, int page, int pageSize)
         {
-            var cacheKey = $"Active_Products_{nameof(category)}_Page_{page}_Size_{pageSize}";
+            var cacheKey = $"Active_Products_{category}_Page_{page}_Size_{pageSize}";
             var cachedpagedResult = await _cacheService.Get<PagedResult<ProductDto>>(cacheKey);
 
             if (cachedpagedResult != null)
                 return cachedpagedResult;
 
             var pagedResult = await _productRepository.GetActiveProductsByCategory(category, page, pageSize);
+            var pagedProductDtos = _mapper.Map<PagedResult<ProductDto>>(pagedResult);
 
-            await _cacheService.Set(cacheKey, pagedResult, TimeSpan.FromMinutes(5));
+            await _cacheService.Set(cacheKey, pagedProductDtos, TimeSpan.FromMinutes(5));
 
-            return pagedResult;
+            return pagedProductDtos;
         }
 
         /// <summary>
@@ -155,10 +161,11 @@ namespace EcommerceAPI.Services.Product
                 return cachedpagedResult;
 
             var pagedResult = await _productRepository.GetProductsByUserId(userId, page, pageSize);
+            var pagedProductDtos = _mapper.Map<PagedResult<ProductDto>>(pagedResult);
 
-            await _cacheService.Set(cacheKey, pagedResult, TimeSpan.FromMinutes(5));
+            await _cacheService.Set(cacheKey, pagedProductDtos, TimeSpan.FromMinutes(5));
 
-            return pagedResult;
+            return pagedProductDtos;
         }
 
         /// <summary>
@@ -175,10 +182,11 @@ namespace EcommerceAPI.Services.Product
                 return cachedpagedResult;
 
             var pagedResult = await _productRepository.GetActiveProductsByUserId(userId, page, pageSize);
+            var pagedProductDtos = _mapper.Map<PagedResult<ProductDto>>(pagedResult);
 
-            await _cacheService.Set(cacheKey, pagedResult, TimeSpan.FromMinutes(5));
+            await _cacheService.Set(cacheKey, pagedProductDtos, TimeSpan.FromMinutes(5));
 
-            return pagedResult;
+            return pagedProductDtos;
         }
 
         /// <summary>

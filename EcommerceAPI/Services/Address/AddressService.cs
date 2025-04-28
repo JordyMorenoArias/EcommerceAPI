@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using EcommerceAPI.Constants;
 using EcommerceAPI.Models.DTOs.Address;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Repositories.Interfaces;
@@ -30,18 +31,27 @@ namespace EcommerceAPI.Services.Address
         /// <param name="id">The identifier.</param>
         /// <returns></returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Address not found</exception>
-        public async Task<AddressDto> GetAddressById(int userId, int id)
-        {
+        public async Task<AddressDto> GetAddressById(int userId, UserRole userRole, int id)
+        {   
             var cacheKey = $"Address_{id}";
             var cachedAddress = await _cacheService.Get<AddressDto>(cacheKey);
 
             if (cachedAddress != null)
+            {
+                if (cachedAddress.UserId != userId && userRole != UserRole.Admin && userRole != UserRole.Seller)
+                    throw new InvalidOperationException("You are not authorized to access this address");
+
                 return cachedAddress;
+            }
+                
 
             var address = await _addressRepository.GetAddressById(id);
 
             if (address == null)
                 throw new KeyNotFoundException("Address not found");
+
+            if (address.UserId != userId && userRole != UserRole.Admin && userRole != UserRole.Seller)
+                throw new InvalidOperationException("You are not authorized to access this address");
 
             if (userId != address.UserId)
                 throw new InvalidOperationException("You are not authorized to access this address");

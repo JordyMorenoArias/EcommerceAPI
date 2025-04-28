@@ -39,9 +39,9 @@ namespace EcommerceAPI.Repositories
         /// Retrieves all products from the database regardless of their active state.
         /// </summary>
         /// <returns>A paged result of all products.</returns>
-        public async Task<PagedResult<ProductDto>> GetProducts(int page, int pageSize)
+        public async Task<PagedResult<ProductEntity>> GetProducts(int page, int pageSize)
         {
-            var query = _context.Products.AsQueryable();
+            var query = _context.Products;
 
             var totalItems = await query.CountAsync();
             var products = await query
@@ -49,9 +49,9 @@ namespace EcommerceAPI.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            return new PagedResult<ProductDto>
+            return new PagedResult<ProductEntity>
             {
-                Items = products.Select(p => _mapper.Map<ProductDto>(p)),
+                Items = products,
                 TotalItems = totalItems,
                 Page = page,
                 PageSize = pageSize
@@ -62,9 +62,9 @@ namespace EcommerceAPI.Repositories
         /// Retrieves only the active products from the database.
         /// </summary>
         /// <returns>A list of active products.</returns>
-        public async Task<PagedResult<ProductDto>> GetActiveProducts(int page, int pageSize)
+        public async Task<PagedResult<ProductEntity>> GetActiveProducts(int page, int pageSize)
         {
-            var query = _context.Products.AsQueryable();
+            var query = _context.Products;
 
             var totalItems = await query.Where(p => p.IsActive).CountAsync();
             var products = await query
@@ -73,9 +73,9 @@ namespace EcommerceAPI.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            return new PagedResult<ProductDto>
+            return new PagedResult<ProductEntity>
             {
-                Items = products.Select(p => _mapper.Map<ProductDto>(p)),
+                Items = products,
                 TotalItems = totalItems,
                 Page = page,
                 PageSize = pageSize
@@ -87,9 +87,9 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="userId">The user's identifier.</param>
         /// <returns>A list of products for the given user.</returns>
-        public async Task<PagedResult<ProductDto>> GetProductsByUserId(int userId, int page, int pageSize)
+        public async Task<PagedResult<ProductEntity>> GetProductsByUserId(int userId, int page, int pageSize)
         {
-            var query = _context.Products.AsQueryable();
+            var query = _context.Products;
 
             var totalItems = await query.Where(p => p.UserId == userId).CountAsync();
             var products = await query
@@ -98,9 +98,9 @@ namespace EcommerceAPI.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            return new PagedResult<ProductDto>
+            return new PagedResult<ProductEntity>
             {
-                Items = products.Select(p => _mapper.Map<ProductDto>(p)),
+                Items = products,
                 TotalItems = totalItems,
                 Page = page,
                 PageSize = pageSize
@@ -112,9 +112,9 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="userId">The user's identifier.</param>
         /// <returns>A list of active products for the given user.</returns>
-        public async Task<PagedResult<ProductDto>> GetActiveProductsByUserId(int userId, int page, int pageSize)
+        public async Task<PagedResult<ProductEntity>> GetActiveProductsByUserId(int userId, int page, int pageSize)
         {
-            var query = _context.Products.AsQueryable();
+            var query = _context.Products;
 
             var totalItems = await query.Where(p => p.UserId == userId && p.IsActive).CountAsync();
             var products = await query
@@ -123,9 +123,9 @@ namespace EcommerceAPI.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            return new PagedResult<ProductDto>
+            return new PagedResult<ProductEntity>
             {
-                Items = products.Select(p => _mapper.Map<ProductDto>(p)),
+                Items = products,
                 TotalItems = totalItems,
                 Page = page,
                 PageSize = pageSize
@@ -137,9 +137,9 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="category">The category of the products.</param>
         /// <returns>A list of products in the given category.</returns>
-        public async Task<PagedResult<ProductDto>> GetProductsByCategory(CategoryProduct category, int page, int pageSize)
+        public async Task<PagedResult<ProductEntity>> GetProductsByCategory(CategoryProduct category, int page, int pageSize)
         {
-            var query = _context.Products.AsQueryable();
+            var query = _context.Products;
 
             var totalItems = await query.Where(p => p.Category == category).CountAsync();
             var products = await query
@@ -148,9 +148,9 @@ namespace EcommerceAPI.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            return new PagedResult<ProductDto>
+            return new PagedResult<ProductEntity>
             {
-                Items = products.Select(p => _mapper.Map<ProductDto>(p)),
+                Items = products,
                 TotalItems = totalItems,
                 Page = page,
                 PageSize = pageSize
@@ -162,9 +162,9 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="category">The category of the products.</param>
         /// <returns>A list of active products in the given category.</returns>
-        public async Task<PagedResult<ProductDto>> GetActiveProductsByCategory(CategoryProduct category, int page, int pageSize)
+        public async Task<PagedResult<ProductEntity>> GetActiveProductsByCategory(CategoryProduct category, int page, int pageSize)
         {
-            var query = _context.Products.AsQueryable();
+            var query = _context.Products;
 
             var totalItems = await query.Where(p => p.Category == category && p.IsActive).CountAsync();
             var products = await query
@@ -173,9 +173,9 @@ namespace EcommerceAPI.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            return new PagedResult<ProductDto>
+            return new PagedResult<ProductEntity>
             {
-                Items = products.Select(p => _mapper.Map<ProductDto>(p)),
+                Items = products,
                 TotalItems = totalItems,
                 Page = page,
                 PageSize = pageSize
@@ -186,7 +186,7 @@ namespace EcommerceAPI.Repositories
         /// Retrieves products based on a search query.
         /// </summary>
         /// <returns>A list of products matching the search query.</returns>
-        public async Task<PagedResult<ProductDto>> SearchProducts(string query, int page, int pageSize)
+        public async Task<PagedResult<ProductEntity>> SearchProducts(string query, int page, int pageSize)
         {
             var normalizedQuery = query.ToLower();
 
@@ -226,10 +226,9 @@ namespace EcommerceAPI.Repositories
 
             var pagedProducts = combinedResults
                 .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(p => _mapper.Map<ProductDto>(p));
+                .Take(pageSize);
 
-            return new PagedResult<ProductDto>
+            return new PagedResult<ProductEntity>
             {
                 Items = pagedProducts,
                 TotalItems = totalItems,
