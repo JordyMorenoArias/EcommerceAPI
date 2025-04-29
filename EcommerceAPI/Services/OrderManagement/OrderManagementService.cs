@@ -46,53 +46,46 @@ namespace EcommerceAPI.Services.Order
             return order;
         }
 
-        /// <summary>
-        /// Gets the orders by date range.
-        /// </summary>
-        /// <param name="startDate">The start date.</param>
-        /// <param name="endDate">The end date.</param>
-        /// <returns></returns>
-        public async Task<PagedResult<OrderDto>> GetOrdersByDateRange(int page, int pageSize, DateTime? startDate = null, DateTime? endDate = null)
+        public async Task<PagedResult<OrderDto>> GetOrders(int userId, UserRole userRole, OrderQueryParameters parameters)
         {
-            return await _orderService.GetOrdersByDateRange(page, pageSize, startDate, endDate);
+            if (parameters.Page <= 0 || parameters.PageSize <= 0)
+                throw new ArgumentException("Page and PageSize must be greater than 0.");
+
+            if (parameters.StartDate.HasValue && parameters.EndDate.HasValue && parameters.StartDate > parameters.EndDate)
+                throw new ArgumentException("StartDate must be less than or equal to EndDate.");
+
+            if (userRole == UserRole.Customer && userId != parameters.UserId)
+            {
+                throw new InvalidOperationException("You do not have permission to view orders for this user.");
+            }
+            else if (userRole == UserRole.Seller && parameters.UserId != userId)
+            {
+                throw new InvalidOperationException("You do not have permission to view orders for this user.");
+            }
+
+            var orders = await _orderService.GetOrders(parameters);
+            return orders;
         }
 
-        /// <summary>
-        /// Gets the orders by user identifier.
-        /// </summary>
-        /// <param name="userId">The user identifier.</param>
-        /// <param name="startDate">The start date.</param>
-        /// <param name="endDate">The end date.</param>
-        /// <returns></returns>
-        public async Task<PagedResult<OrderDto>> GetOrdersByUserId(int userId, int page, int pageSize, DateTime? startDate = null, DateTime? endDate = null)
+        public async Task<PagedResult<OrderDto>> GetSellerOrders(int userId, UserRole userRole, OrderSellerQueryParameters parameters)
         {
-            return await _orderService.GetOrdersByUserId(userId, page, pageSize, startDate, endDate);
-        }
+            if (parameters.Page <= 0 || parameters.PageSize <= 0)
+                throw new ArgumentException("Page and PageSize must be greater than 0.");
 
-        /// <summary>
-        /// Gets the orders by status.
-        /// </summary>
-        /// <param name="status">The status.</param>
-        /// <param name="startDate">The start date.</param>
-        /// <param name="endDate">The end date.</param>
-        /// <returns></returns>
-        public async Task<PagedResult<OrderDto>> GetOrdersByStatus(OrderStatus status, int page, int pageSize, DateTime? startDate = null, DateTime? endDate = null)
-        {
-            return await _orderService.GetOrdersByStatus(status, page, pageSize, startDate, endDate);
-        }
+            if (parameters.StartDate.HasValue && parameters.EndDate.HasValue && parameters.StartDate > parameters.EndDate)
+                throw new ArgumentException("StartDate must be less than or equal to EndDate.");
 
-        /// <summary>
-        /// Gets the orders by seller.
-        /// </summary>
-        /// <param name="sellerId">The seller identifier.</param>
-        /// <param name="page">The page.</param>
-        /// <param name="pageSize">Size of the page.</param>
-        /// <param name="startDate">The start date.</param>
-        /// <param name="endDate">The end date.</param>
-        /// <returns></returns>
-        public async Task<PagedResult<OrderDto>> GetOrdersBySeller(int sellerId, int page, int pageSize, DateTime? startDate = null, DateTime? endDate = null)
-        {
-            return await _orderService.GetOrdersBySeller(sellerId, page, pageSize, startDate, endDate);
+            if (userRole == UserRole.Customer)
+            {
+                throw new UnauthorizedAccessException("Customers are not allowed to view seller orders.");
+            }
+            else if (userRole == UserRole.Seller && parameters.SellerId != userId)
+            {
+                throw new InvalidOperationException("You do not have permission to view orders for this seller.");
+            }
+
+            var orders = await _orderService.GetSellerOrders(parameters);
+            return orders;
         }
 
         /// <summary>Creates the order with details.</summary>
@@ -218,12 +211,15 @@ namespace EcommerceAPI.Services.Order
         /// <returns></returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order with ID {orderId} not found.</exception>
         /// <exception cref="System.InvalidOperationException">Only draft orders can be deleted.</exception>
-        public async Task<bool> DeleteOrder(int orderId)
+        public async Task<bool> DeleteOrder(int userId, int orderId)
         {
             var order = await _orderService.GetOrderById(orderId);
 
             if (order == null)
                 throw new KeyNotFoundException($"Order with ID {orderId} not found.");
+
+            if (order.UserId != userId)
+                throw new InvalidOperationException("You do not have permission to delete this order.");
 
             if (order.Status != OrderStatus.Draft)
                 throw new InvalidOperationException("Only draft orders can be deleted.");

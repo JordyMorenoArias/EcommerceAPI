@@ -3,7 +3,6 @@ using EcommerceAPI.Constants;
 using EcommerceAPI.Models;
 using EcommerceAPI.Models.DTOs;
 using EcommerceAPI.Models.DTOs.Product;
-using EcommerceAPI.Models.DTOs.User;
 using EcommerceAPI.Repositories;
 using EcommerceAPI.Services.Infrastructure.Interfaces;
 using EcommerceAPI.Services.Product.Interfaces;
@@ -54,139 +53,67 @@ namespace EcommerceAPI.Services.Product
         }
 
         /// <summary>
-        /// Retrieves all products, using cache if available.
-        /// </summary>
-        /// <returns>A collection of all product DTOs.</returns>
-        public async Task<PagedResult<ProductDto>> GetProducts(int page, int pageSize)
-        {
-            var cacheKey = $"Products_Page_{page}_Size_{pageSize}";
-            var cachedPagedResult = await _cacheService.Get<PagedResult<ProductDto>>(cacheKey);
-
-            if (cachedPagedResult != null)
-                return cachedPagedResult;
-
-            var pagedResult = await _productRepository.GetProducts(page, pageSize);
-            var pagedProductDtos = _mapper.Map<PagedResult<ProductDto>>(pagedResult);
-
-            await _cacheService.Set(cacheKey, pagedProductDtos, TimeSpan.FromMinutes(5));
-
-            return pagedProductDtos;
-        }
-
-        /// <summary>
-        /// Retrieves all active products, using cache if available.
-        /// </summary>
-        /// <returns>A collection of active product DTOs.</returns>
-        public async Task<PagedResult<ProductDto>> GetActiveProducts(int page, int pageSize)
-        {
-            var cacheKey = $"ActiveProducts_Page_{page}_Size_{pageSize}";
-            var cachedPagedResult = await _cacheService.Get<PagedResult<ProductDto>>(cacheKey);
-
-            if (cachedPagedResult != null)
-                return cachedPagedResult;
-
-            var pagedResult = await _productRepository.GetActiveProducts(page, pageSize);
-            var pagedProductDtos = _mapper.Map<PagedResult<ProductDto>>(pagedResult);
-
-            await _cacheService.Set(cacheKey, pagedProductDtos, TimeSpan.FromMinutes(5));
-
-            return pagedProductDtos;
-        }
-
-        /// <summary>
-        /// Searches for products that match the given query string.
-        /// </summary>
-        /// <param name="query">The search query.</param>
-        /// <returns>A collection of matching product DTOs.</returns>
-        public async Task<PagedResult<ProductDto>> SearchProducts(string query, int page, int pageSize)
-        {
-            var pagedResult = await _productRepository.SearchProducts(query, page, pageSize);
-            var pagedProductDtos = _mapper.Map<PagedResult<ProductDto>>(pagedResult);
-            return pagedProductDtos;
-        }
-
-        /// <summary>
-        /// Retrieves products by category, using cache if available.
-        /// </summary>
-        /// <param name="category">The category to filter products by.</param>
-        /// <returns>A collection of product DTOs in the specified category.</returns>
-        public async Task<PagedResult<ProductDto>> GetProductsByCategory(CategoryProduct category, int page, int pageSize)
-        {
-            var cacheKey = $"Products_{category}_Page_{page}_Size_{pageSize}";
-            var cachedpagedResult = await _cacheService.Get<PagedResult<ProductDto>>(cacheKey);
-
-            if (cachedpagedResult != null)
-                return cachedpagedResult;
-
-            var pagedResult = await _productRepository.GetProductsByCategory(category, page, pageSize);
-            var pagedProductDtos = _mapper.Map<PagedResult<ProductDto>>(pagedResult);
-
-            await _cacheService.Set(cacheKey, pagedProductDtos, TimeSpan.FromMinutes(5));
-
-            return pagedProductDtos;
-        }
-
-        /// <summary>
-        /// Retrieves active products by category, using cache if available.
-        /// </summary>
-        /// <param name="category">The category to filter products by.</param>
-        /// <returns>A collection of active product DTOs in the specified category.</returns>
-        public async Task<PagedResult<ProductDto>> GetActiveProductsByCategory(CategoryProduct category, int page, int pageSize)
-        {
-            var cacheKey = $"Active_Products_{category}_Page_{page}_Size_{pageSize}";
-            var cachedpagedResult = await _cacheService.Get<PagedResult<ProductDto>>(cacheKey);
-
-            if (cachedpagedResult != null)
-                return cachedpagedResult;
-
-            var pagedResult = await _productRepository.GetActiveProductsByCategory(category, page, pageSize);
-            var pagedProductDtos = _mapper.Map<PagedResult<ProductDto>>(pagedResult);
-
-            await _cacheService.Set(cacheKey, pagedProductDtos, TimeSpan.FromMinutes(5));
-
-            return pagedProductDtos;
-        }
-
-        /// <summary>
-        /// Gets the products by user identifier.
+        /// Gets the products.
         /// </summary>
         /// <param name="userId">The user identifier.</param>
-        /// <returns>A collection of the user's product DTOs.</returns>
-        public async Task<PagedResult<ProductDto>> GetProductsByUserId(int userId, int page, int pageSize)
+        /// <param name="role">The role.</param>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns>
+        /// A <see cref="PagedResult{ProductDto}"/> containing the list of products that match the specified criteria.
+        /// The result may come from cache if previously requested.
+        /// </returns>
+        /// <exception cref="System.ArgumentException">Page and PageSize must be greater than 0.</exception>
+        /// <exception cref="System.ArgumentOutOfRangeException">role - null</exception>
+        public async Task<PagedResult<ProductDto>> GetProducts(int userId, UserRole role, ProductQueryParameters parameters)
         {
-            var cacheKey = $"Products_{userId}_Page_{page}_Size_{pageSize}";
-            var cachedpagedResult = await _cacheService.Get<PagedResult<ProductDto>>(cacheKey);
+            if (parameters.Page <= 0 || parameters.PageSize <= 0)
+                throw new ArgumentException("Page and PageSize must be greater than 0.");
 
-            if (cachedpagedResult != null)
-                return cachedpagedResult;
+            switch (role)
+            {
+                case UserRole.Customer:
+                    parameters.IsActive = true;
+                    break;
 
-            var pagedResult = await _productRepository.GetProductsByUserId(userId, page, pageSize);
-            var pagedProductDtos = _mapper.Map<PagedResult<ProductDto>>(pagedResult);
+                case UserRole.Seller:
+                    if (!parameters.UserId.HasValue || parameters.UserId != userId)
+                    {
+                        parameters.IsActive = true;
+                    }
+                    break;
 
-            await _cacheService.Set(cacheKey, pagedProductDtos, TimeSpan.FromMinutes(5));
+                case UserRole.Admin:
+                    break;
 
-            return pagedProductDtos;
-        }
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(role), role, null);
+            }
 
-        /// <summary>
-        /// Retrieves active products for a specific user, using cache if available.
-        /// </summary>
-        /// <param name="userId">The user ID.</param>
-        /// <returns>A collection of the user's active product DTOs.</returns>
-        public async Task<PagedResult<ProductDto>> GetActiveProductsByUserId(int userId, int page, int pageSize)
-        {
-            var cacheKey = $"Active_Products_{userId}_Page_{page}_Size_{pageSize}";
-            var cachedpagedResult = await _cacheService.Get<PagedResult<ProductDto>>(cacheKey);
+            var userIdPart = parameters.UserId.HasValue
+                ? parameters.UserId.Value.ToString()
+                : "all_users";
 
-            if (cachedpagedResult != null)
-                return cachedpagedResult;
+            var isActivePart = parameters.IsActive.HasValue 
+                ? parameters.IsActive.Value.ToString() 
+                : "all";
 
-            var pagedResult = await _productRepository.GetActiveProductsByUserId(userId, page, pageSize);
-            var pagedProductDtos = _mapper.Map<PagedResult<ProductDto>>(pagedResult);
+            var categoryPart = parameters.Category.HasValue
+                ? parameters.Category.Value.ToString()
+                : "all_categories";
 
-            await _cacheService.Set(cacheKey, pagedProductDtos, TimeSpan.FromMinutes(5));
+            var cacheKey = $"Products_{categoryPart}_{userIdPart}_Page_{parameters.Page}_PageSize_{parameters.PageSize}_IsActive_{isActivePart}";
 
-            return pagedProductDtos;
+            var cachedProducts = await _cacheService.Get<PagedResult<ProductDto>>(cacheKey);
+
+            if (cachedProducts != null)
+                return cachedProducts;
+
+            var products = await _productRepository.GetProducts(parameters);
+
+            var productDtos = _mapper.Map<PagedResult<ProductDto>>(products);
+
+            await _cacheService.Set(cacheKey, productDtos, TimeSpan.FromMinutes(5));
+            return productDtos;
         }
 
         /// <summary>

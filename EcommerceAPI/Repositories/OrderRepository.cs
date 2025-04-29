@@ -3,6 +3,7 @@ using EcommerceAPI.Constants;
 using EcommerceAPI.Data;
 using EcommerceAPI.Models;
 using EcommerceAPI.Models.DTOs;
+using EcommerceAPI.Models.DTOs.Order;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -54,82 +55,32 @@ namespace EcommerceAPI.Repositories
         }
 
         /// <summary>
-        /// Retrieves orders between two dates with user and shipping address details.
+        /// Gets the orders.
         /// </summary>
-        /// <param name="startDate">Start date (inclusive).</param>
-        /// <param name="endDate">End date (inclusive).</param>
-        /// <returns>A collection of orders between the given dates.</returns>
-        public async Task<PagedResult<OrderEntity>> GetOrdersByDateRange(int page, int pageSize, DateTime? startDate = null, DateTime? endDate = null)
+        /// <param name="parameters">The parameters.</param>
+        /// <returns></returns>
+        public async Task<PagedResult<OrderEntity>> GetOrders(OrderQueryParameters parameters)
         {
             var query = _context.Orders
-                .Where(o => o.Status != OrderStatus.Draft
-                 && (startDate == null || o.CreatedAt >= startDate)
-                 && (endDate == null || o.CreatedAt <= endDate));
+                .Where(o => o.Status != OrderStatus.Draft);
+
+            if (parameters.UserId.HasValue)
+                query = query.Where(o => o.UserId == parameters.UserId.Value);
+
+            if (parameters.Status.HasValue)
+                query = query.Where(o => o.Status == parameters.Status.Value);
+
+            if (parameters.StartDate.HasValue)
+                query = query.Where(o => o.CreatedAt >= parameters.StartDate.Value);
+
+            if (parameters.EndDate.HasValue)
+                query = query.Where(o => o.CreatedAt <= parameters.EndDate.Value);
 
             var totalItems = await query.CountAsync();
+
             var orders = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Include(o => o.User)
-                .Include(o => o.ShippingAddress)
-                .AsNoTracking()
-                .ToListAsync();
-
-            return new PagedResult<OrderEntity>
-            {
-                Items = orders,
-                TotalItems = totalItems,
-                Page = page,
-                PageSize = pageSize
-            };
-        }
-
-        /// <summary>
-        /// Retrieves all orders associated with a specific user.
-        /// </summary>
-        /// <param name="userId">User ID.</param>
-        /// <returns>A collection of orders for the specified user.</returns>
-        public async Task<PagedResult<OrderEntity>> GetOrdersByUserId(int userId, int page, int pageSize, DateTime? startDate = null, DateTime? endDate = null)
-        {
-            var query = _context.Orders
-                .Where(o => o.UserId == userId && o.Status != OrderStatus.Draft
-                 && (startDate == null || o.CreatedAt >= startDate)
-                 && (endDate == null || o.CreatedAt <= endDate));
-
-            var orders = await _context.Orders
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Include(o => o.ShippingAddress)
-                .Include(o => o.OrderDetails)
-                    .ThenInclude(od => od.Product)
-                .AsNoTracking()
-                .ToListAsync();
-
-            return new PagedResult<OrderEntity>
-            {
-                Items = orders,
-                TotalItems = await query.CountAsync(),
-                Page = page,
-                PageSize = pageSize
-            };
-        }
-
-        /// <summary>
-        /// Retrieves all orders with a specific status.
-        /// </summary>
-        /// <param name="status">Order status.</param>
-        /// <returns>A collection of orders matching the status.</returns>
-        public async Task<PagedResult<OrderEntity>> GetOrdersByStatus(OrderStatus status, int page, int pageSize, DateTime? startDate = null, DateTime? endDate = null)
-        {
-            var query = _context.Orders
-                .Where(o => o.Status == status && o.Status != OrderStatus.Draft
-                    && (startDate == null || o.CreatedAt >= startDate)
-                    && (endDate == null || o.CreatedAt <= endDate));
-
-            var totalItems = await query.CountAsync();
-            var orders = await _context.Orders
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
+                .Skip((parameters.Page - 1) * parameters.PageSize)
+                .Take(parameters.PageSize)
                 .Include(o => o.User)
                 .Include(o => o.ShippingAddress)
                 .Include(o => o.OrderDetails)
@@ -141,22 +92,36 @@ namespace EcommerceAPI.Repositories
             {
                 Items = orders,
                 TotalItems = totalItems,
-                Page = page,
-                PageSize = pageSize
+                Page = parameters.Page,
+                PageSize = parameters.PageSize
             };
         }
 
-        public async Task<PagedResult<OrderEntity>> GetOrdersBySeller(int sellerId, int page, int pageSize, DateTime? startDate = null, DateTime? endDate = null)
+        /// <summary>
+        /// Gets the seller orders.
+        /// </summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns></returns>
+        public async Task<PagedResult<OrderEntity>> GetSellerOrders(OrderSellerQueryParameters parameters)
         {
             var query = _context.Orders
-                .Where(o => o.OrderDetails.Any(od => od.Product.UserId == sellerId) && o.Status != OrderStatus.Draft
-                    && (startDate == null || o.CreatedAt >= startDate)
-                    && (endDate == null || o.CreatedAt <= endDate));
+                .Where(o => o.OrderDetails.Any(od => od.Product.UserId == parameters.SellerId)
+                    && o.Status != OrderStatus.Draft);
+
+            if (parameters.Status.HasValue)
+                query = query.Where(o => o.Status == parameters.Status.Value);
+
+            if (parameters.StartDate.HasValue)
+                query = query.Where(o => o.CreatedAt >= parameters.StartDate.Value);
+
+            if (parameters.EndDate.HasValue)
+                query = query.Where(o => o.CreatedAt <= parameters.EndDate.Value);
 
             var totalItems = await query.CountAsync();
-            var orders = await _context.Orders
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
+
+            var orders = await query
+                .Skip((parameters.Page - 1) * parameters.PageSize)
+                .Take(parameters.PageSize)
                 .Select(o => new OrderEntity
                 {
                     Id = o.Id,
@@ -168,7 +133,7 @@ namespace EcommerceAPI.Repositories
                     Status = o.Status,
                     CreatedAt = o.CreatedAt,
                     OrderDetails = o.OrderDetails
-                        .Where(od => od.Product.UserId == sellerId)
+                        .Where(od => od.Product.UserId == parameters.SellerId)
                         .Select(od => new OrderDetailEntity
                         {
                             Id = od.Id,
@@ -177,7 +142,6 @@ namespace EcommerceAPI.Repositories
                             Quantity = od.Quantity,
                             UnitPrice = od.UnitPrice
                         }).ToList()
-
                 })
                 .AsNoTracking()
                 .ToListAsync();
@@ -186,8 +150,8 @@ namespace EcommerceAPI.Repositories
             {
                 Items = orders,
                 TotalItems = totalItems,
-                Page = page,
-                PageSize = pageSize
+                Page = parameters.Page,
+                PageSize = parameters.PageSize
             };
         }
 

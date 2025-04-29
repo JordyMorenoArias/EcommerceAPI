@@ -38,107 +38,17 @@ namespace EcommerceAPI.Controllers
         }
 
         /// <summary>
-        /// Retrieves all products (Admin only).
+        /// Retrieves a paginated list of products based on the provided query parameters.
+        /// Filters results depending on the authenticated user's role and permissions.
         /// </summary>
-        /// <returns>List of all products.</returns>
-        [AuthorizeRole(UserRole.Admin)]
+        /// <param name="parameters">The parameters.</param>
+        /// <returns>Returns an HTTP 200 OK response containing a paged result of <see cref="ProductDto"/> items.</returns>
         [HttpGet]
-        public async Task<IActionResult> GetProducts([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
-        {
-            var products = await _productService.GetProducts(page, pageSize);
-            return Ok(products);
-        }
-
-        /// <summary>
-        /// Retrieves all active (available) products.
-        /// </summary>
-        /// <returns>List of active products.</returns>
-        [HttpGet("active")]
-        public async Task<IActionResult> GetActiveProducts([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
-        {
-            var products = await _productService.GetActiveProducts(page, pageSize);
-            return Ok(products);
-        }
-
-        /// <summary>
-        /// Searches products by a query string.
-        /// </summary>
-        /// <param name="query">The search query.</param>
-        /// <returns>List of matching products.</returns>
-        [HttpGet("search")]
-        public async Task<IActionResult> SearchProducts([FromQuery] string query, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
-        {
-            var products = await _productService.SearchProducts(query, page, pageSize);
-            return Ok(products);
-        }
-
-        /// <summary>
-        /// Retrieves all products in a specific category (Admin only).
-        /// </summary>
-        /// <param name="category">The category name.</param>
-        /// <returns>List of products in the category.</returns>
-        [AuthorizeRole(UserRole.Admin)]
-        [HttpGet("{category}")]
-        public async Task<IActionResult> GetProductsByCategory(string category, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
-        {
-            if (!Enum.TryParse(typeof(CategoryProduct), category, true, out var categoryEnum))
-            {
-                return BadRequest("Invalid category.");
-            }
-
-            var products = await _productService.GetProductsByCategory((CategoryProduct)categoryEnum, page, pageSize);
-            return Ok(products);
-        }
-
-        /// <summary>
-        /// Retrieves all active products in a specific category.
-        /// </summary>
-        /// <param name="category">The category name.</param>
-        /// <returns>List of active products in the category.</returns>
-        [HttpGet("{category}/active")]
-        public async Task<IActionResult> GetActiveProductsByCategory(string category, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
-        {
-            if (!Enum.TryParse(typeof(CategoryProduct), category, true, out var categoryEnum))
-            {
-                return BadRequest("Invalid category.");
-            }
-
-            var products = await _productService.GetActiveProductsByCategory((CategoryProduct)categoryEnum, page, pageSize);
-            return Ok(products);
-        }
-
-        /// <summary>
-        /// Retrieves all products created by a specific user (Admin and Seller only).
-        /// </summary>
-        /// <param name="userId">The ID of the user.</param>
-        /// <returns>List of the user's products.</returns>
-        [AuthorizeRole(UserRole.Admin, UserRole.Seller)]
-        [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetProductsByUserId([FromRoute] int userId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        [AuthorizeRole(UserRole.Admin, UserRole.Seller, UserRole.Customer)]
+        public async Task<IActionResult> GetProducts([FromQuery] ProductQueryParameters parameters)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
-
-            if (userAuthenticated.Role != UserRole.Admin && userAuthenticated.Id != userId)
-                return Unauthorized("You are not authorized to access this resource.");
-
-            var products = await _productService.GetProductsByUserId(userId, page, pageSize);
-            return Ok(products);
-        }
-
-        /// <summary>
-        /// Retrieves all active products created by a specific user.
-        /// </summary>
-        /// <param name="userId">The ID of the user.</param>
-        /// <returns>List of the user's active products.</returns>
-        [HttpGet("user/{userId}/active")]
-        public async Task<IActionResult> GetActiveProductsByUserId([FromRoute] int userId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
-        {
-            var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
-
-            if (userAuthenticated.Id != userId)
-                return Unauthorized("You are not authorized to access this resource.");
-
-            var products = await _productService.GetActiveProductsByUserId(userId, page, pageSize);
+            var products = await _productService.GetProducts(userAuthenticated.Id, userAuthenticated.Role, parameters);
             return Ok(products);
         }
 
@@ -147,8 +57,8 @@ namespace EcommerceAPI.Controllers
         /// </summary>
         /// <param name="productAdd">The product to add.</param>
         /// <returns>The created product.</returns>
-        [AuthorizeRole(UserRole.Seller)]
         [HttpPost]
+        [AuthorizeRole(UserRole.Seller)]
         public async Task<IActionResult> AddProduct([FromBody] ProductAddDto productAdd)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
@@ -162,8 +72,8 @@ namespace EcommerceAPI.Controllers
         /// <param name="productId">The ID of the product to update.</param>
         /// <param name="productUpdate">The updated product information.</param>
         /// <returns>The updated product.</returns>
-        [AuthorizeRole(UserRole.Seller)]
         [HttpPut]
+        [AuthorizeRole(UserRole.Seller)]
         public async Task<IActionResult> UpdateProduct([FromBody] ProductUpdateDto productUpdate)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
@@ -176,8 +86,8 @@ namespace EcommerceAPI.Controllers
         /// </summary>
         /// <param name="productId">The ID of the product to delete.</param>
         /// <returns>No content if deleted, or not found/error message.</returns>
-        [AuthorizeRole(UserRole.Admin, UserRole.Seller)]
         [HttpDelete]
+        [AuthorizeRole(UserRole.Admin, UserRole.Seller)]
         public async Task<IActionResult> DeleteProduct(int productId)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
