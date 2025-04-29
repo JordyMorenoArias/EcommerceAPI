@@ -27,16 +27,16 @@ namespace EcommerceAPI.Repositories
         /// Retrieves a user by their unique identifier.
         /// </summary>
         /// <param name="id">The user ID.</param>
-        /// <returns>The user if found; otherwise, null.</returns>
+        /// <returns>A task representing the asynchronous operation. The task result contains the user if found; otherwise, <c>null</c>.</returns>
         public async Task<UserEntity?> GetUserById(int id)
         {
             return await _context.Users.FindAsync(id);
         }
 
         /// <summary>
-        /// Gets all users.
+        /// Retrieves all users from the database.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A task representing the asynchronous operation. The task result contains a list of all users.</returns>
         public async Task<IEnumerable<UserEntity>> GetAllUsers()
         {
             return await _context.Users.AsNoTracking().ToListAsync();
@@ -45,8 +45,8 @@ namespace EcommerceAPI.Repositories
         /// <summary>
         /// Retrieves a user by their email address.
         /// </summary>
-        /// <param name="email">The user's email.</param>
-        /// <returns>The user if found; otherwise, null.</returns>
+        /// <param name="email">The user's email address.</param>
+        /// <returns>A task representing the asynchronous operation. The task result contains the user if found; otherwise, <c>null</c>.</returns>
         public async Task<UserEntity?> GetUserByEmail(string email)
         {
             return await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email);
@@ -56,7 +56,7 @@ namespace EcommerceAPI.Repositories
         /// Adds a new user to the database.
         /// </summary>
         /// <param name="user">The user entity to add.</param>
-        /// <returns>The added user.</returns>
+        /// <returns>A task representing the asynchronous operation. The task result contains the added user.</returns>
         public async Task<UserEntity> AddUser(UserEntity user)
         {
             await _context.Users.AddAsync(user);
@@ -67,8 +67,8 @@ namespace EcommerceAPI.Repositories
         /// <summary>
         /// Updates an existing user in the database.
         /// </summary>
-        /// <param name="user">The user entity with updated information.</param>
-        /// <returns>The updated user if successful; otherwise, null.</returns>
+        /// <param name="user">The user entity with updated data.</param>
+        /// <returns>A task representing the asynchronous operation. The task result contains the updated user if found; otherwise, <c>null</c>.</returns>
         public async Task<UserEntity?> UpdateUser(UserEntity user)
         {
             var existingUser = await GetUserById(user.Id);
@@ -81,10 +81,10 @@ namespace EcommerceAPI.Repositories
         }
 
         /// <summary>
-        /// Deletes a user by their ID.
+        /// Deletes a user from the database.
         /// </summary>
-        /// <param name="id">The ID of the user to delete.</param>
-        /// <returns>The deleted user if found; otherwise, null.</returns>
+        /// <param name="user">The user entity to delete.</param>
+        /// <returns>A task representing the asynchronous operation. The task result indicates whether the deletion was successful.</returns>
         public async Task<bool> DeleteUser(UserEntity user)
         {
             _context.Users.Remove(user);
@@ -95,7 +95,7 @@ namespace EcommerceAPI.Repositories
         /// Confirms a user's email using a confirmation token.
         /// </summary>
         /// <param name="token">The email confirmation token.</param>
-        /// <returns>The confirmed user if successful; otherwise, null.</returns>
+        /// <returns>A task representing the asynchronous operation. The task result indicates whether the confirmation was successful.</returns>
         public async Task<bool> ConfirmUser(string token)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.EmailConfirmedToken == token);
@@ -112,10 +112,10 @@ namespace EcommerceAPI.Repositories
         }
 
         /// <summary>
-        /// Gets the users by role.
+        /// Retrieves users with a specific role.
         /// </summary>
-        /// <param name="role">The role.</param>
-        /// <returns></returns>
+        /// <param name="role">The role to filter users by.</param>
+        /// <returns>A task representing the asynchronous operation. The task result contains a list of users with the specified role.</returns>
         public async Task<IEnumerable<UserEntity>> GetUsersByRole(UserRole role)
         {
             return await _context.Users

@@ -10,6 +10,10 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace EcommerceAPI.Services.Auth
 {
+    /// <summary>
+    /// Service class for handling Google OAuth authentication in the e-commerce system.
+    /// </summary>
+    /// <seealso cref="EcommerceAPI.Services.Auth.Interfaces.IOAuthProviderService" />
     public class GoogleAuthService : IOAuthProviderService
     {
         private readonly IConfiguration _configuration;
@@ -17,6 +21,13 @@ namespace EcommerceAPI.Services.Auth
         private readonly IJwtService _jwtService;
         private readonly IMapper _mapper;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GoogleAuthService"/> class.
+        /// </summary>
+        /// <param name="configuration">The configuration.</param>
+        /// <param name="userRepository">The user repository.</param>
+        /// <param name="jwtService">The JWT service.</param>
+        /// <param name="mapper">The mapper.</param>
         public GoogleAuthService(IConfiguration configuration, IUserRepository userRepository, IJwtService jwtService, IMapper mapper)
         {
             _configuration = configuration;
@@ -25,6 +36,20 @@ namespace EcommerceAPI.Services.Auth
             _mapper = mapper;
         }
 
+        /// <summary>
+        /// Gets the user information asynchronous.
+        /// </summary>
+        /// <param name="code">The authorization code received from Google after user login.</param>
+        /// <returns>
+        /// An <see cref="AuthResponseDto"/> containing the JWT token, its expiration time, and the authenticated user's information.
+        /// </returns>
+        /// <exception cref="System.Exception">
+        /// Thrown when:
+        /// - Failed to retrieve token from Google.
+        /// - Failed to deserialize Google token response.
+        /// - Failed to retrieve user information from Google.
+        /// - Failed to create user in the database.
+        /// </exception>
         public async Task<AuthResponseDto> GetUserInfoAsync(string code)
         {
             var clientId = _configuration["google_oauth:client_id"];

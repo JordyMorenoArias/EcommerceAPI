@@ -20,6 +20,12 @@ namespace EcommerceAPI.Services.Cart
         private readonly ICacheService _cacheService;
         private readonly IMapper _mapper;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CartService"/> class.
+        /// </summary>
+        /// <param name="cartRepository">The cart repository.</param>
+        /// <param name="cacheService">The cache service.</param>
+        /// <param name="mapper">The mapper.</param>
         public CartService(ICartRepository cartRepository, ICacheService cacheService, IMapper mapper)
         {
             _cartRepository = cartRepository;
@@ -31,7 +37,9 @@ namespace EcommerceAPI.Services.Cart
         /// Gets the cart by user identifier.
         /// </summary>
         /// <param name="userId">The user identifier.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// A <see cref="CartDto"/> representing the user's cart, including items and total cost.
+        /// </returns>
         public async Task<CartDto> GetCartByUserId(int userId)
         {
             var cacheKey = $"cart_{userId}";
@@ -74,7 +82,11 @@ namespace EcommerceAPI.Services.Cart
         /// Gets the cart total.
         /// </summary>
         /// <param name="userId">The user identifier.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// A <see cref="decimal"/> value representing the total cost of items in the user's cart,
+        /// or <c>null</c> if no total is found in cache and the cart does not exist.
+        /// </returns>
+        /// <exception cref="KeyNotFoundException">Thrown if the cart does not exist for the specified user.</exception>
         public async Task<decimal?> GetCartTotal(int userId)
         {
             var cacheKey = $"cart_total_{userId}";

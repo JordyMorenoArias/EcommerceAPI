@@ -44,7 +44,6 @@ namespace EcommerceAPI.Controllers
         /// <param name="parameters">The parameters.</param>
         /// <returns>Returns an HTTP 200 OK response containing a paged result of <see cref="ProductDto"/> items.</returns>
         [HttpGet]
-        [AuthorizeRole(UserRole.Admin, UserRole.Seller, UserRole.Customer)]
         public async Task<IActionResult> GetProducts([FromQuery] ProductQueryParameters parameters)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);

@@ -13,17 +13,23 @@ namespace EcommerceAPI.Repositories
     {
         private readonly EcommerceContext _context;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CartItemRepository"/> class.
+        /// </summary>
+        /// <param name="context">Database context for accessing the e-commerce data.</param>
         public CartItemRepository(EcommerceContext context)
         {
             _context = context;
         }
 
         /// <summary>
-        /// Items the exists.
+        /// Determines whether a specific product exists in the cart.
         /// </summary>
         /// <param name="cartId">The cart identifier.</param>
         /// <param name="productId">The product identifier.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result is <c>true</c> if the item exists in the cart; otherwise, <c>false</c>.
+        /// </returns>
         public async Task<bool> ItemExists(int cartId, int productId)
         {
             return await _context.CartItems
@@ -31,11 +37,13 @@ namespace EcommerceAPI.Repositories
         }
 
         /// <summary>
-        /// Gets the cart item.
+        /// Retrieves a specific cart item by cart and product identifiers.
         /// </summary>
         /// <param name="cartId">The cart identifier.</param>
         /// <param name="productId">The product identifier.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains the <see cref="CartItemEntity"/> if found; otherwise, <c>null</c>.
+        /// </returns>
         public async Task<CartItemEntity?> GetCartItem(int cartId, int productId)
         {
             return await _context.CartItems
@@ -45,10 +53,12 @@ namespace EcommerceAPI.Repositories
         }
 
         /// <summary>
-        /// Gets the cart item by identifier.
+        /// Retrieves a cart item by its unique identifier.
         /// </summary>
         /// <param name="cartItemId">The cart item identifier.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains the <see cref="CartItemEntity"/> if found; otherwise, <c>null</c>.
+        /// </returns>
         public async Task<CartItemEntity?> GetCartItemById(int cartItemId)
         {
             return await _context.CartItems
@@ -58,10 +68,12 @@ namespace EcommerceAPI.Repositories
         }
 
         /// <summary>
-        /// Gets the cart items.
+        /// Retrieves all items in a specific cart.
         /// </summary>
         /// <param name="cartId">The cart identifier.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains a collection of <see cref="CartItemEntity"/> items in the cart.
+        /// </returns>
         public async Task<IEnumerable<CartItemEntity>> GetCartItems(int cartId)
         {
             return await _context.CartItems
@@ -72,10 +84,12 @@ namespace EcommerceAPI.Repositories
         }
 
         /// <summary>
-        /// Creates the cart item.
+        /// Adds a new item to the cart.
         /// </summary>
-        /// <param name="item">The item.</param>
-        /// <returns></returns>
+        /// <param name="item">The cart item to add.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains the newly created <see cref="CartItemEntity"/>.
+        /// </returns>
         public async Task<CartItemEntity?> CreateCartItem(CartItemEntity item)
         {
             await _context.CartItems.AddAsync(item);
@@ -84,10 +98,12 @@ namespace EcommerceAPI.Repositories
         }
 
         /// <summary>
-        /// Updates the cart item.
+        /// Updates an existing cart item.
         /// </summary>
-        /// <param name="item">The item.</param>
-        /// <returns></returns>
+        /// <param name="item">The cart item with updated data.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains the updated <see cref="CartItemEntity"/>.
+        /// </returns>
         public async Task<CartItemEntity?> UpdateCartItem(CartItemEntity item)
         {
             _context.CartItems.Update(item);
@@ -96,10 +112,12 @@ namespace EcommerceAPI.Repositories
         }
 
         /// <summary>
-        /// Deletes the cart item.
+        /// Deletes a cart item by its identifier.
         /// </summary>
         /// <param name="cartItemId">The cart item identifier.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result is <c>true</c> if the item was successfully deleted; otherwise, <c>false</c>.
+        /// </returns>
         public async Task<bool> DeleteCartItem(int cartItemId)
         {
             var item = await _context.CartItems.FindAsync(cartItemId);

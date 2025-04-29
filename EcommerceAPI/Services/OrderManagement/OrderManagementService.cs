@@ -20,6 +20,12 @@ namespace EcommerceAPI.Services.Order
         private readonly IOrderService _orderService;
         private readonly IMapper _mapper;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OrderManagementService"/> class.
+        /// </summary>
+        /// <param name="orderDetailService">The order detail service.</param>
+        /// <param name="orderService">The order service.</param>
+        /// <param name="mapper">The mapper.</param>
         public OrderManagementService(IOrderDetailService orderDetailService, IOrderService orderService, IMapper mapper)
         {
             _orderItemService = orderDetailService;
@@ -28,11 +34,14 @@ namespace EcommerceAPI.Services.Order
         }
 
         /// <summary>
-        /// Gets the order with details and products.
+        /// Gets the order with details.
         /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
         /// <param name="orderId">The order identifier.</param>
-        /// <returns></returns>
+        /// <returns>The order with its details.</returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order with ID {orderId} not found.</exception>
+        /// <exception cref="System.InvalidOperationException">You do not have permission to access this order.</exception>
         public async Task<OrderDto> GetOrderWithDetails(int userId, UserRole role, int orderId)
         {
             var order = await _orderService.GetOrderWithDetails(orderId);
@@ -46,6 +55,19 @@ namespace EcommerceAPI.Services.Order
             return order;
         }
 
+        /// <summary>
+        /// Gets the orders.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="userRole">The user role.</param>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns>Paged result of orders.</returns>
+        /// <exception cref="System.ArgumentException">
+        /// Page and PageSize must be greater than 0.
+        /// or
+        /// StartDate must be less than or equal to EndDate.
+        /// </exception>
+        /// <exception cref="System.InvalidOperationException">You do not have permission to view orders for this user.</exception>
         public async Task<PagedResult<OrderDto>> GetOrders(int userId, UserRole userRole, OrderQueryParameters parameters)
         {
             if (parameters.Page <= 0 || parameters.PageSize <= 0)
@@ -67,6 +89,20 @@ namespace EcommerceAPI.Services.Order
             return orders;
         }
 
+        /// <summary>
+        /// Gets the seller orders.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="userRole">The user role.</param>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns>Paged result of seller orders.</returns>
+        /// <exception cref="System.ArgumentException">
+        /// Page and PageSize must be greater than 0.
+        /// or
+        /// StartDate must be less than or equal to EndDate.
+        /// </exception>
+        /// <exception cref="System.UnauthorizedAccessException">Customers are not allowed to view seller orders.</exception>
+        /// <exception cref="System.InvalidOperationException">You do not have permission to view orders for this seller.</exception>
         public async Task<PagedResult<OrderDto>> GetSellerOrders(int userId, UserRole userRole, OrderSellerQueryParameters parameters)
         {
             if (parameters.Page <= 0 || parameters.PageSize <= 0)
@@ -88,18 +124,20 @@ namespace EcommerceAPI.Services.Order
             return orders;
         }
 
-        /// <summary>Creates the order with details.</summary>
+        /// <summary>
+        /// Creates the order with details.
+        /// </summary>
         /// <param name="userId">The user identifier.</param>
         /// <param name="orderDetails">The order details.</param>
-        /// <returns>
-        ///   <br />
-        /// </returns>
+        /// <returns>The newly created order with details.</returns>
         /// <exception cref="System.ArgumentException">Order details cannot be null or empty. - orderDetails</exception>
-        /// <exception cref="System.InvalidOperationException">Failed to create order.
+        /// <exception cref="System.InvalidOperationException">
+        /// Failed to create order.
         /// or
         /// Failed to add order details.
         /// or
-        /// Failed to retrieve the newly created order.</exception>
+        /// Failed to retrieve the newly created order.
+        /// </exception>
         public async Task<OrderDto> CreateOrderWithDetails(int userId, IEnumerable<OrderDetailAddDto> orderDetails)
         {
             if (orderDetails == null || !orderDetails.Any())
@@ -125,14 +163,17 @@ namespace EcommerceAPI.Services.Order
         }
 
         /// <summary>
-        /// Adds the items to order.
+        /// Adds the order detail to order.
         /// </summary>
+        /// <param name="userId">The user identifier.</param>
         /// <param name="orderId">The order identifier.</param>
         /// <param name="orderDetails">The order details.</param>
-        /// <returns></returns>
+        /// <returns>The updated order with the added details.</returns>
         /// <exception cref="System.ArgumentException">Order details cannot be null or empty. - orderDetails</exception>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order with ID {orderId} not found.</exception>
         /// <exception cref="System.InvalidOperationException">
+        /// You do not have permission to modify this order.
+        /// or
         /// Failed to add order details.
         /// or
         /// Failed to retrieve the updated order.
@@ -169,7 +210,7 @@ namespace EcommerceAPI.Services.Order
         /// </summary>
         /// <param name="orderId">The order identifier.</param>
         /// <param name="newStatus">The new status.</param>
-        /// <returns></returns>
+        /// <returns>The updated order with the new status.</returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order with ID {orderId} not found.</exception>
         public async Task<OrderDto> UpdateOrderStatus(int orderId, OrderStatus newStatus)
         {
@@ -186,7 +227,7 @@ namespace EcommerceAPI.Services.Order
         /// </summary>
         /// <param name="orderId">The order identifier.</param>
         /// <param name="addressId">The address identifier.</param>
-        /// <returns></returns>
+        /// <returns>The updated order with the new address.</returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order with ID {orderId} not found.</exception>
         public async Task<OrderDto> UpdateOrderAddress(int userId, int orderId, int addressId)
         {
@@ -208,7 +249,7 @@ namespace EcommerceAPI.Services.Order
         /// Deletes the order.
         /// </summary>
         /// <param name="orderId">The order identifier.</param>
-        /// <returns></returns>
+        /// <returns>True if the deletion was successful; otherwise, false.</returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order with ID {orderId} not found.</exception>
         /// <exception cref="System.InvalidOperationException">Only draft orders can be deleted.</exception>
         public async Task<bool> DeleteOrder(int userId, int orderId)

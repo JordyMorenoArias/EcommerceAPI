@@ -23,6 +23,14 @@ namespace EcommerceAPI.Services.CartItem
         private readonly IProductRepository _productRepository;
         private readonly ICacheService _cacheService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CartItemService"/> class.
+        /// </summary>
+        /// <param name="cartRepository">The cart repository.</param>
+        /// <param name="cartItemRepository">The cart item repository.</param>
+        /// <param name="productRepository">The product repository.</param>
+        /// <param name="cacheService">The cache service.</param>
+        /// <param name="mapper">The mapper.</param>
         public CartItemService(ICartRepository cartRepository,  ICartItemRepository cartItemRepository, IProductRepository productRepository, ICacheService cacheService, IMapper mapper)
         {
             _cartRepository = cartRepository;
@@ -37,7 +45,10 @@ namespace EcommerceAPI.Services.CartItem
         /// </summary>
         /// <param name="userId">The user identifier.</param>
         /// <param name="cartItem">The cart item.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains the added or updated <see cref="CartItemEntity"/> 
+        /// if successful; otherwise, <c>null</c>.
+        /// </returns>
         /// <exception cref="System.ArgumentException">Quantity must be greater than zero - Quantity</exception>
         public async Task<CartItemEntity?> AddItemToCart(int userId, CartItemAddDto cartItem)
         {
@@ -74,7 +85,10 @@ namespace EcommerceAPI.Services.CartItem
         /// </summary>
         /// <param name="userId">The user identifier.</param>
         /// <param name="cartItem">The cart item.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains the updated <see cref="CartItemEntity"/> 
+        /// if successful; otherwise, <c>null</c>.
+        /// </returns>
         /// <exception cref="System.ArgumentException">Quantity must be greater than zero - Quantity</exception>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">
         /// Cart not found
@@ -112,7 +126,10 @@ namespace EcommerceAPI.Services.CartItem
         /// </summary>
         /// <param name="userId">The user identifier.</param>
         /// <param name="productId">The product identifier.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result is <c>true</c> if the item was successfully deleted; 
+        /// otherwise, <c>false</c>.
+        /// </returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">
         /// Cart not found
         /// or
@@ -144,7 +161,9 @@ namespace EcommerceAPI.Services.CartItem
         /// Gets the or create cart by user identifier.
         /// </summary>
         /// <param name="userId">The user identifier.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains the existing or newly created <see cref="CartEntity"/>.
+        /// </returns>
         private async Task<CartEntity> GetOrCreateCartByUserId(int userId)
         {
             return await _cartRepository.GetCartByUserId(userId)
@@ -155,7 +174,10 @@ namespace EcommerceAPI.Services.CartItem
         /// Gets the product or throw.
         /// </summary>
         /// <param name="productId">The product identifier.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains the <see cref="ProductEntity"/> 
+        /// if found and valid.
+        /// </returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Product not found</exception>
         /// <exception cref="System.InvalidOperationException">
         /// Product is not active
@@ -197,7 +219,10 @@ namespace EcommerceAPI.Services.CartItem
         /// <param name="cartId">The cart identifier.</param>
         /// <param name="cartItem">The cart item.</param>
         /// <param name="unitPrice">The unit price.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains the newly created <see cref="CartItemEntity"/> 
+        /// if successful; otherwise, <c>null</c>.
+        /// </returns>
         private async Task<CartItemEntity?> CreateNewCartItem(int cartId, CartItemAddDto cartItem, decimal unitPrice)
         {
             var newItem = new CartItemEntity

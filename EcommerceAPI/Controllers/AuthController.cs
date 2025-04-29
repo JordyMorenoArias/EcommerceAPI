@@ -15,6 +15,11 @@ namespace EcommerceAPI.Controllers
         private readonly IAuthService _authService;
         private readonly IUserService _userService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AuthController"/> class.
+        /// </summary>
+        /// <param name="authService">The authentication service.</param>
+        /// <param name="userService">The user service.</param>
         public AuthController(IAuthService authService, IUserService userService)
         {
             _authService = authService;

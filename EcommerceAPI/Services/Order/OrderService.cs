@@ -22,6 +22,14 @@ namespace EcommerceAPI.Services.Order
         private readonly IMapper _mapper;
         private readonly ICacheService _cacheService;
 
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OrderService"/> class.
+        /// </summary>
+        /// <param name="orderRepository">The order repository.</param>
+        /// <param name="addressService">The address service.</param>
+        /// <param name="mapper">The mapper.</param>
+        /// <param name="cacheService">The cache service.</param>
         public OrderService(IOrderRepository orderRepository, IAddressService addressService, IMapper mapper, ICacheService cacheService)
         {
             _orderRepository = orderRepository;
@@ -34,7 +42,7 @@ namespace EcommerceAPI.Services.Order
         /// Gets the order by identifier.
         /// </summary>
         /// <param name="id">The identifier.</param>
-        /// <returns></returns>
+        /// <returns>The order matching the given identifier as an <see cref="OrderDto"/>, or null if not found in cache before DB lookup.</returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
         public async Task<OrderDto?> GetOrderById(int id)
         {
@@ -58,7 +66,7 @@ namespace EcommerceAPI.Services.Order
         /// Gets the orders.
         /// </summary>
         /// <param name="parameters">The parameters.</param>
-        /// <returns></returns>
+        /// <returns>A paginated list of orders matching the provided filters as <see cref="PagedResult{OrderDto}"/>.</returns>
         /// <exception cref="System.ArgumentException">Start date must be less than or equal to end date</exception>
         public async Task<PagedResult<OrderDto>> GetOrders(OrderQueryParameters parameters)
         {
@@ -98,7 +106,7 @@ namespace EcommerceAPI.Services.Order
         /// Gets the seller orders.
         /// </summary>
         /// <param name="parameters">The parameters.</param>
-        /// <returns></returns>
+        /// <returns>A paginated list of orders for a specific seller as <see cref="PagedResult{OrderDto}"/>.</returns>
         /// <exception cref="System.ArgumentException">Start date must be less than or equal to end date</exception>
         public async Task<PagedResult<OrderDto>> GetSellerOrders(OrderSellerQueryParameters parameters)
         {
@@ -135,7 +143,7 @@ namespace EcommerceAPI.Services.Order
         /// Gets the order with details.
         /// </summary>
         /// <param name="orderId">The order identifier.</param>
-        /// <returns></returns>
+        /// <returns>The order with additional details as <see cref="OrderDto"/>, or null if not found in cache before DB lookup.</returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
         public async Task<OrderDto?> GetOrderWithDetails(int orderId)
         {
@@ -159,7 +167,7 @@ namespace EcommerceAPI.Services.Order
         /// Adds the order.
         /// </summary>
         /// <param name="userId">The user identifier.</param>
-        /// <returns></returns>
+        /// <returns>The newly created draft order as <see cref="OrderDto"/>.</returns>
         /// <exception cref="System.InvalidOperationException">User does not have a default address</exception>
         public async Task<OrderDto> AddOrder(int userId)
         {
@@ -190,7 +198,7 @@ namespace EcommerceAPI.Services.Order
         /// </summary>
         /// <param name="orderId">The order identifier.</param>
         /// <param name="amount">The amount.</param>
-        /// <returns></returns>
+        /// <returns>The updated order with the new amount as <see cref="OrderDto"/>.</returns>
         /// <exception cref="System.ArgumentException">Amount cannot be negative</exception>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
         public async Task<OrderDto> UpdateAmountOrder(int orderId, decimal amount)
@@ -216,7 +224,7 @@ namespace EcommerceAPI.Services.Order
         /// </summary>
         /// <param name="orderId">The order identifier.</param>
         /// <param name="addressId">The address identifier.</param>
-        /// <returns></returns>
+        /// <returns>The updated order with the new shipping address as <see cref="OrderDto"/>.</returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
         public async Task<OrderDto> UpdateAddressOrder(int orderId, int addressId)
         {
@@ -239,7 +247,7 @@ namespace EcommerceAPI.Services.Order
         /// </summary>
         /// <param name="orderId">The order identifier.</param>
         /// <param name="newStatus">The new status.</param>
-        /// <returns></returns>
+        /// <returns>The updated order with the new status as <see cref="OrderDto"/>.</returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
         public async Task<OrderDto> UpdateOrderStatus(int orderId, OrderStatus newStatus)
         {
@@ -261,7 +269,7 @@ namespace EcommerceAPI.Services.Order
         /// Deletes the order.
         /// </summary>
         /// <param name="orderId">The order identifier.</param>
-        /// <returns></returns>
+        /// <returns><c>true</c> if the order was successfully deleted; otherwise, <c>false</c>.</returns>
         public async Task<bool> DeleteOrder(int orderId)
         {
             await InvalidateOrderCache(orderId);

@@ -15,6 +15,11 @@ namespace EcommerceAPI.Repositories
         private readonly EcommerceContext _context;
         private readonly ILogger<OrderDetailRepository> _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OrderDetailRepository"/> class.
+        /// </summary>
+        /// <param name="context">The database context.</param>
+        /// <param name="logger">The logger instance.</param>
         public OrderDetailRepository(EcommerceContext context, ILogger<OrderDetailRepository> logger)
         {
             _context = context;
@@ -22,10 +27,13 @@ namespace EcommerceAPI.Repositories
         }
 
         /// <summary>
-        /// Gets the order detail by identifier.
+        /// Gets the order detail by its identifier.
         /// </summary>
-        /// <param name="id">The identifier.</param>
-        /// <returns></returns>
+        /// <param name="id">The order detail identifier.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains the
+        /// <see cref="OrderDetailEntity"/> if found; otherwise, <c>null</c>.
+        /// </returns>
         public async Task<OrderDetailEntity?> GetOrderDetailById(int id)
         {
             return await _context.OrderDetails
@@ -35,11 +43,15 @@ namespace EcommerceAPI.Repositories
         }
 
         /// <summary>
-        /// Adds the order details.
+        /// Adds the order details to the specified order and updates the product stock and order total.
         /// </summary>
-        /// <param name="orderId">The order identifier.</param>
-        /// <param name="orderDetails">The order details.</param>
-        /// <returns></returns>
+        /// <param name="orderId">The identifier of the order to which details will be added.</param>
+        /// <param name="orderDetails">The collection of order details to add.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains an
+        /// <see cref="AddOrderDetailResultDto"/> object indicating the result of the operation,
+        /// including success status and any stock errors encountered.
+        /// </returns>
         public async Task<AddOrderDetailResultDto> AddOrderDetails(int orderId, IEnumerable<OrderDetailEntity> orderDetails)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -99,7 +111,7 @@ namespace EcommerceAPI.Repositories
                 await _context.OrderDetails.AddRangeAsync(trackedDetails);
                 await _context.SaveChangesAsync();
 
-                // Luego recalcular el TotalAmount
+                // Recalcular el TotalAmount
                 var order = await _context.Orders
                     .Include(o => o.OrderDetails)
                     .FirstOrDefaultAsync(o => o.Id == orderId);
@@ -131,8 +143,8 @@ namespace EcommerceAPI.Repositories
 
                 try
                 {
-                    // Intentar eliminar la orden
                     var order = await _context.Orders.FindAsync(orderId);
+
                     if (order != null)
                     {
                         _context.Orders.Remove(order);
@@ -147,15 +159,16 @@ namespace EcommerceAPI.Repositories
 
                 result.Success = false;
                 result.StockErrors = new List<StockErrorDto>
-        {
-            new StockErrorDto
-            {
-                ProductId = 0,
-                ProductName = "N/A",
-                AvailableStock = 0,
-                RequestedQuantity = 0,
-            }
-        };
+                {
+                    new StockErrorDto
+                    {
+                        ProductId = 0,
+                        ProductName = "N/A",
+                        AvailableStock = 0,
+                        RequestedQuantity = 0,
+                    }
+                };
+
                 return result;
             }
         }

@@ -15,6 +15,11 @@ namespace EcommerceAPI.Services.OrderItem
         private readonly IOrderDetailRepository _orderDetailRepository;
         private readonly IMapper _mapper;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OrderDetailService"/> class.
+        /// </summary>
+        /// <param name="orderDetailRepository">The order detail repository.</param>
+        /// <param name="mapper">The object mapper.</param>
         public OrderDetailService(IOrderDetailRepository orderDetailRepository, IMapper mapper)
         {
             _orderDetailRepository = orderDetailRepository;
@@ -22,12 +27,12 @@ namespace EcommerceAPI.Services.OrderItem
         }
 
         /// <summary>
-        /// Gets the order detail by i.
+        /// Gets the order detail by ID.
         /// </summary>
-        /// <param name="id">The identifier.</param>
-        /// <returns></returns>
-        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order detail with ID {id} not found.</exception>
-        public async Task<OrderDetailDto> GetOrderDetailByI(int id)
+        /// <param name="id">The identifier of the order detail.</param>
+        /// <returns>The order detail DTO.</returns>
+        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Thrown when no order detail with the specified ID is found.</exception>
+        public async Task<OrderDetailDto> GetOrderDetailById(int id)
         {
             var orderDto = await _orderDetailRepository.GetOrderDetailById(id);
 
@@ -38,12 +43,12 @@ namespace EcommerceAPI.Services.OrderItem
         }
 
         /// <summary>
-        /// Adds the order details.
+        /// Adds a collection of order details to an order.
         /// </summary>
-        /// <param name="orderId">The order identifier.</param>
-        /// <param name="orderDetails">The order details.</param>
-        /// <returns></returns>
-        /// <exception cref="System.ArgumentException">Order details cannot be null or empty. - orderDetails</exception>
+        /// <param name="orderId">The identifier of the order to which the details will be added.</param>
+        /// <param name="orderDetails">The collection of order detail entities.</param>
+        /// <returns>A result DTO indicating the result of the operation.</returns>
+        /// <exception cref="System.ArgumentException">Thrown when the order details collection is null or empty.</exception>
         public async Task<AddOrderDetailResultDto> AddOrderDetails(int orderId, IEnumerable<OrderDetailEntity> orderDetails)
         {
             if (orderDetails == null || !orderDetails.Any())

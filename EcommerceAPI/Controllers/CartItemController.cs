@@ -19,6 +19,11 @@ namespace EcommerceAPI.Controllers
         private readonly ICartItemService _cartItemService;
         private readonly IUserService _userService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CartItemController"/> class.
+        /// </summary>
+        /// <param name="cartItemService">The service responsible for cart item operations.</param>
+        /// <param name="userService">The service responsible for user-related operations.</param>
         public CartItemController(ICartItemService cartItemService, IUserService userService)
         {
             _cartItemService = cartItemService;
@@ -26,10 +31,13 @@ namespace EcommerceAPI.Controllers
         }
 
         /// <summary>
-        /// Adds the item to cart.
+        /// Adds an item to the authenticated user's shopping cart.
         /// </summary>
-        /// <param name="cartItem">The cart item.</param>
-        /// <returns></returns>
+        /// <param name="cartItem">The cart item to be added.</param>
+        /// <returns>
+        /// An <see cref="IActionResult"/> containing the updated cart item,
+        /// or a Bad Request response if the operation fails.
+        /// </returns>
         [HttpPost]
         public async Task<IActionResult> AddItemToCart([FromBody] CartItemAddDto cartItem)
         {
@@ -43,10 +51,13 @@ namespace EcommerceAPI.Controllers
         }
 
         /// <summary>
-        /// Updates the cart item.
+        /// Updates the quantity of a specific item in the authenticated user's cart.
         /// </summary>
-        /// <param name="cartItem">The cart item.</param>
-        /// <returns></returns>
+        /// <param name="cartItem">The cart item with updated quantity information.</param>
+        /// <returns>
+        /// An <see cref="IActionResult"/> containing the updated cart item,
+        /// or a Bad Request response if the update fails.
+        /// </returns>
         [HttpPut("{productId}")]
         public async Task<IActionResult> UpdateCartItem([FromBody] CartItemUpdateDto cartItem)
         {
@@ -60,10 +71,12 @@ namespace EcommerceAPI.Controllers
         }
 
         /// <summary>
-        /// Removes the item from cart.
+        /// Removes a specific item from the authenticated user's cart.
         /// </summary>
-        /// <param name="productId">The product identifier.</param>
-        /// <returns></returns>
+        /// <param name="productId">The identifier of the product to remove from the cart.</param>
+        /// <returns>
+        /// An <see cref="IActionResult"/> indicating the result of the deletion. Returns No Content on success.
+        /// </returns>
         [HttpDelete("{productId}")]
         public async Task<IActionResult> RemoveItemFromCart(int productId)
         {

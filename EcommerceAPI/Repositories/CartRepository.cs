@@ -24,20 +24,26 @@ namespace EcommerceAPI.Repositories
         }
 
         /// <summary>
-        /// Carts the exists.
+        /// Determines whether a cart exists for the specified user.
         /// </summary>
         /// <param name="userId">The user identifier.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains
+        /// <c>true</c> if a cart exists for the user; otherwise, <c>false</c>.
+        /// </returns>
         public async Task<bool> CartExists(int userId)
         {
             return await _context.Carts.AnyAsync(c => c.UserId == userId);
         }
 
         /// <summary>
-        /// Gets the cart by identifier.
+        /// Retrieves a cart by its identifier.
         /// </summary>
         /// <param name="cartId">The cart identifier.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains the
+        /// <see cref="CartEntity"/> if found; otherwise, <c>null</c>.
+        /// </returns>
         public async Task<CartEntity?> GetCartById(int cartId)
         {
             return await _context.Carts
@@ -51,7 +57,10 @@ namespace EcommerceAPI.Repositories
         /// Retrieves the cart associated with the specified user.
         /// </summary>
         /// <param name="userId">User ID to search for.</param>
-        /// <returns>The user's cart or null if not found.</returns>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains the
+        /// user's <see cref="CartEntity"/> if found; otherwise, <c>null</c>.
+        /// </returns>
         public async Task<CartEntity?> GetCartByUserId(int userId)
         {
             return await _context.Carts
@@ -66,7 +75,9 @@ namespace EcommerceAPI.Repositories
         /// Creates a new cart for a specified user.
         /// </summary>
         /// <param name="userId">User ID for whom the cart is created.</param>
-        /// <returns>The newly created cart.</returns>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains the newly created <see cref="CartEntity"/>.
+        /// </returns>
         public async Task<CartEntity> CreateCart(int userId)
         {
             var cart = new CartEntity { UserId = userId };
@@ -79,13 +90,14 @@ namespace EcommerceAPI.Repositories
         /// Clears all items from the user's cart.
         /// </summary>
         /// <param name="userId">User ID whose cart will be cleared.</param>
-        /// <returns>True if the cart was successfully cleared; otherwise, false.</returns>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result is <c>true</c> if the cart was successfully cleared; otherwise, <c>false</c>.
+        /// </returns>
         public async Task<bool> ClearCart(int userId)
         {
             var cart = await _context.Carts
                 .Include(c => c.CartItems)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
-
 
             if (cart is null || !cart.CartItems.Any()) return false;
 
@@ -94,10 +106,12 @@ namespace EcommerceAPI.Repositories
         }
 
         /// <summary>
-        /// Gets the cart total.
+        /// Calculates the total cost of all items in the specified cart.
         /// </summary>
         /// <param name="cartId">The cart identifier.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains the total price of the items in the cart.
+        /// </returns>
         public async Task<decimal> GetCartTotal(int cartId)
         {
             return await _context.CartItems

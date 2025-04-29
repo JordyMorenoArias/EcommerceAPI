@@ -18,6 +18,11 @@ namespace EcommerceAPI.Controllers
         private readonly IUserService _userService;
         private readonly IAddressService _addressService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AddressController"/> class.
+        /// </summary>
+        /// <param name="userService">Service for retrieving authenticated user information.</param>
+        /// <param name="addressService">Service for managing address data.</param>
         public AddressController(IUserService userService, IAddressService addressService)
         {
             _userService = userService;
@@ -25,24 +30,27 @@ namespace EcommerceAPI.Controllers
         }
 
         /// <summary>
-        /// Gets the address by identifier.
+        /// Retrieves an address by its unique identifier, based on the role of the authenticated user.
         /// </summary>
-        /// <param name="id">The identifier.</param>
-        /// <returns></returns>
+        /// <param name="id">The unique identifier of the address.</param>
+        /// <returns>
+        /// An <see cref="IActionResult"/> containing the address if found, otherwise a not found result.
+        /// </returns>
         [HttpGet]
         [AuthorizeRole(UserRole.Customer, UserRole.Admin, UserRole.Seller)]
         public async Task<IActionResult> GetAddressById([FromQuery] int id)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
             var address = await _addressService.GetAddressById(userAuthenticated.Id, userAuthenticated.Role, id);
-
             return Ok(address);
         }
 
         /// <summary>
-        /// Gets the addresses by user identifier.
+        /// Retrieves all addresses associated with the authenticated user.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>
+        /// An <see cref="IActionResult"/> containing a list of the user's addresses.
+        /// </returns>
         [HttpGet("user")]
         [AuthorizeRole(UserRole.Customer)]
         public async Task<IActionResult> GetAddressesByUserId()
@@ -53,9 +61,11 @@ namespace EcommerceAPI.Controllers
         }
 
         /// <summary>
-        /// Gets the default address by user identifier.
+        /// Retrieves the default address for the authenticated user.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>
+        /// An <see cref="IActionResult"/> containing the default address.
+        /// </returns>
         [HttpGet("default")]
         [AuthorizeRole(UserRole.Customer)]
         public async Task<IActionResult> GetDefaultAddressByUserId()
@@ -66,10 +76,12 @@ namespace EcommerceAPI.Controllers
         }
 
         /// <summary>
-        /// Adds the address.
+        /// Adds a new address for the authenticated user.
         /// </summary>
-        /// <param name="addressAdd">The address add.</param>
-        /// <returns></returns>
+        /// <param name="addressAdd">The address data to be added.</param>
+        /// <returns>
+        /// An <see cref="IActionResult"/> with the created address and location header.
+        /// </returns>
         [HttpPost]
         [AuthorizeRole(UserRole.Customer)]
         public async Task<IActionResult> AddAddress([FromBody] AddressAddDto addressAdd)
@@ -80,10 +92,12 @@ namespace EcommerceAPI.Controllers
         }
 
         /// <summary>
-        /// Updates the address.
+        /// Updates an existing address for the authenticated user.
         /// </summary>
-        /// <param name="addressUpdate">The address update.</param>
-        /// <returns></returns>
+        /// <param name="addressUpdate">The updated address data.</param>
+        /// <returns>
+        /// An <see cref="IActionResult"/> containing the updated address.
+        /// </returns>
         [HttpPut]
         [AuthorizeRole(UserRole.Customer)]
         public async Task<IActionResult> UpdateAddress([FromBody] AddressUpdateDto addressUpdate)
@@ -94,10 +108,13 @@ namespace EcommerceAPI.Controllers
         }
 
         /// <summary>
-        /// Deletes the address.
+        /// Deletes an address by its identifier for the authenticated user.
         /// </summary>
-        /// <param name="id">The identifier.</param>
-        /// <returns></returns>
+        /// <param name="id">The unique identifier of the address to delete.</param>
+        /// <returns>
+        /// An <see cref="IActionResult"/> indicating the result of the operation.
+        /// Returns <see cref="NoContentResult"/> on success or <see cref="NotFoundResult"/> if not found.
+        /// </returns>
         [HttpDelete]
         [AuthorizeRole(UserRole.Customer)]
         public async Task<IActionResult> DeleteAddress([FromQuery] int id)
@@ -112,10 +129,12 @@ namespace EcommerceAPI.Controllers
         }
 
         /// <summary>
-        /// Sets the default address.
+        /// Sets a specific address as the default for the authenticated user.
         /// </summary>
-        /// <param name="id">The identifier.</param>
-        /// <returns></returns>
+        /// <param name="id">The unique identifier of the address to set as default.</param>
+        /// <returns>
+        /// An <see cref="IActionResult"/> containing the updated default address.
+        /// </returns>
         [HttpPut("default/{id}")]
         [AuthorizeRole(UserRole.Customer)]
         public async Task<IActionResult> SetDefaultAddress([FromRoute] int id)

@@ -18,6 +18,11 @@ namespace EcommerceAPI.Controllers
         private readonly ICartService _cartService;
         private readonly IUserService _userService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CartController"/> class.
+        /// </summary>
+        /// <param name="cartService">Service responsible for cart-related operations.</param>
+        /// <param name="userService">Service responsible for user authentication and management.</param>
         public CartController(ICartService cartService, IUserService userService)
         {
             _cartService = cartService;
@@ -25,9 +30,12 @@ namespace EcommerceAPI.Controllers
         }
 
         /// <summary>
-        /// Gets the cart.
+        /// Retrieves the shopping cart of the authenticated user.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>
+        /// An <see cref="IActionResult"/> containing the current shopping cart,
+        /// or an empty cart if none exists.
+        /// </returns>
         [HttpGet]
         public async Task<IActionResult> GetCart()
         {
@@ -37,9 +45,12 @@ namespace EcommerceAPI.Controllers
         }
 
         /// <summary>
-        /// Clears the cart.
+        /// Clears all items from the authenticated user's shopping cart.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>
+        /// An <see cref="IActionResult"/> indicating the result of the operation.
+        /// Returns <see cref="NoContentResult"/> on success.
+        /// </returns>
         [HttpDelete]
         public async Task<IActionResult> ClearCart()
         {
@@ -49,9 +60,11 @@ namespace EcommerceAPI.Controllers
         }
 
         /// <summary>
-        /// Gets the total.
+        /// Retrieves the total cost of the authenticated user's shopping cart.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>
+        /// An <see cref="IActionResult"/> containing the total amount of the cart.
+        /// </returns>
         [HttpGet("total")]
         public async Task<IActionResult> GetTotal()
         {

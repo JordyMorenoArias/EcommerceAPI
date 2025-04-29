@@ -18,7 +18,8 @@ namespace EcommerceAPI.Repositories
         /// <summary>
         /// Initializes a new instance of the <see cref="ProductRepository"/> class.
         /// </summary>
-        /// <param name="context">The database context for ecommerce.</param>
+        /// <param name="context">The database context for e-commerce.</param>
+        /// <param name="mapper">The AutoMapper instance.</param>
         public ProductRepository(EcommerceContext context, IMapper mapper)
         {
             _context = context;
@@ -28,17 +29,18 @@ namespace EcommerceAPI.Repositories
         /// <summary>
         /// Retrieves a product by its unique identifier.
         /// </summary>
-        /// <param name="id">The product's identifier.</param>
+        /// <param name="id">The product ID.</param>
+        /// <returns>A task representing the asynchronous operation. The task result contains the product if found; otherwise, <c>null</c>.</returns>
         public async Task<ProductEntity?> GetProductById(int id)
         {
             return await _context.Products.FindAsync(id);
         }
 
         /// <summary>
-        /// Gets the products.
+        /// Retrieves a paginated list of products based on the given query parameters.
         /// </summary>
-        /// <param name="parameters">The parameters.</param>
-        /// <returns></returns>
+        /// <param name="parameters">The filtering and pagination parameters.</param>
+        /// <returns>A task representing the asynchronous operation. The task result contains a paged result of products.</returns>
         public async Task<PagedResult<ProductEntity>> GetProducts(ProductQueryParameters parameters)
         {
             var query = _context.Products.AsQueryable();
@@ -55,14 +57,15 @@ namespace EcommerceAPI.Repositories
             if (!string.IsNullOrEmpty(parameters.SearchQuery))
             {
                 var normalizedQuery = parameters.SearchQuery.ToLower();
-                query = query.Where(p => (p.Name != null && p.Name.ToLower().Contains(normalizedQuery)) ||
-                                         (p.Description != null && p.Description.ToLower().Contains(normalizedQuery)));
+                query = query.Where(p =>
+                    (p.Name != null && p.Name.ToLower().Contains(normalizedQuery)) ||
+                    (p.Description != null && p.Description.ToLower().Contains(normalizedQuery)));
             }
 
             var totalItems = await query.CountAsync();
 
-            var products = await query.
-                Skip((parameters.Page - 1) * parameters.PageSize)
+            var products = await query
+                .Skip((parameters.Page - 1) * parameters.PageSize)
                 .Take(parameters.PageSize)
                 .ToListAsync();
 
@@ -78,8 +81,8 @@ namespace EcommerceAPI.Repositories
         /// <summary>
         /// Adds a new product to the database.
         /// </summary>
-        /// <param name="product">The product to add.</param>
-        /// <returns>The product after being added to the database.</returns>
+        /// <param name="product">The product entity to add.</param>
+        /// <returns>A task representing the asynchronous operation. The task result contains the added product.</returns>
         public async Task<ProductEntity> AddProduct(ProductEntity product)
         {
             await _context.Products.AddAsync(product);
@@ -90,8 +93,8 @@ namespace EcommerceAPI.Repositories
         /// <summary>
         /// Updates an existing product in the database.
         /// </summary>
-        /// <param name="product">The product with updated information.</param>
-        /// <returns>The updated product.</returns>
+        /// <param name="product">The product entity with updated data.</param>
+        /// <returns>A task representing the asynchronous operation. The task result contains the updated product.</returns>
         public async Task<ProductEntity> UpdateProduct(ProductEntity product)
         {
             _context.Products.Update(product);
@@ -100,18 +103,17 @@ namespace EcommerceAPI.Repositories
         }
 
         /// <summary>
-        /// Deletes a product from the database by its identifier.
+        /// Deletes a product by its unique identifier.
         /// </summary>
-        /// <param name="id">The product's identifier.</param>
-        /// <returns>The deleted product, or null if not found.</returns>
+        /// <param name="id">The ID of the product to delete.</param>
+        /// <returns>A task representing the asynchronous operation. The task result indicates whether the deletion was successful.</returns>
         public async Task<bool> DeleteProduct(int id)
         {
             var product = await GetProductById(id);
-
             if (product is null)
                 return false;
 
-            _context.Products.Remove(product!);
+            _context.Products.Remove(product);
             return await _context.SaveChangesAsync() > 0;
         }
     }

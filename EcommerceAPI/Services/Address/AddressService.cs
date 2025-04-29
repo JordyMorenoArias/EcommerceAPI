@@ -26,11 +26,14 @@ namespace EcommerceAPI.Services.Address
         }
 
         /// <summary>
-        /// Gets the address by identifier.
+        /// Gets the address by its identifier, validating access permissions based on the user's role.
         /// </summary>
-        /// <param name="id">The identifier.</param>
-        /// <returns></returns>
-        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Address not found</exception>
+        /// <param name="userId">The ID of the user requesting the address.</param>
+        /// <param name="userRole">The role of the user (e.g., Admin, Seller, Client).</param>
+        /// <param name="id">The address ID.</param>
+        /// <returns>An <see cref="AddressDto"/> representing the address.</returns>
+        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Thrown when the address is not found.</exception>
+        /// <exception cref="System.InvalidOperationException">Thrown when the user is not authorized to access the address.</exception>
         public async Task<AddressDto> GetAddressById(int userId, UserRole userRole, int id)
         {   
             var cacheKey = $"Address_{id}";
@@ -62,10 +65,10 @@ namespace EcommerceAPI.Services.Address
         }
 
         /// <summary>
-        /// Gets the default address for user.
+        /// Gets the default address for the specified user.
         /// </summary>
-        /// <param name="userId">The user identifier.</param>
-        /// <returns></returns>
+        /// <param name="userId">The ID of the user.</param>
+        /// <returns>An <see cref="AddressDto"/> representing the default address, or <c>null</c> if not found.</returns>
         public async Task<AddressDto?> GetDefaultAddressForUser(int userId)
         {
             var cacheKey = $"DefaultAddress_User_{userId}";
@@ -85,10 +88,10 @@ namespace EcommerceAPI.Services.Address
         }
 
         /// <summary>
-        /// Gets the addresses by user identifier.
+        /// Gets all addresses associated with a specific user.
         /// </summary>
-        /// <param name="userId">The user identifier.</param>
-        /// <returns></returns>
+        /// <param name="userId">The user ID.</param>
+        /// <returns>A collection of <see cref="AddressDto"/> representing the user's addresses.</returns>
         public async Task<IEnumerable<AddressDto>> GetAddressesByUserId(int userId)
         {
             var cacheKey = $"Addresses_User_{userId}";
@@ -105,11 +108,12 @@ namespace EcommerceAPI.Services.Address
         }
 
         /// <summary>
-        /// Adds the address.
+        /// Adds a new address for a user. Sets it as default if it's the user's first address.
         /// </summary>
-        /// <param name="addressAdd">The address add.</param>
-        /// <returns></returns>
-        /// <exception cref="System.Exception">Failed to add address</exception>
+        /// <param name="userId">The ID of the user.</param>
+        /// <param name="addressAdd">The address details to add.</param>
+        /// <returns>An <see cref="AddressDto"/> representing the added address.</returns>
+        /// <exception cref="System.Exception">Thrown when the address could not be added.</exception>
         public async Task<AddressDto> AddAddress(int userId, AddressAddDto addressAdd)
         {
             var addressEntity = _mapper.Map<AddressEntity>(addressAdd);
@@ -133,14 +137,14 @@ namespace EcommerceAPI.Services.Address
         }
 
         /// <summary>
-        /// Updates the address.
+        /// Updates an existing address. Only the owner of the address can perform this operation.
         /// </summary>
-        /// <param name="userId">The user identifier.</param>
-        /// <param name="addressUpdate">The address update.</param>
-        /// <returns></returns>
-        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Address not found</exception>
-        /// <exception cref="System.InvalidOperationException">You are not authorized to update this address</exception>
-        /// <exception cref="System.Exception">Failed to update address</exception>
+        /// <param name="userId">The ID of the user attempting the update.</param>
+        /// <param name="addressUpdate">The updated address data.</param>
+        /// <returns>An <see cref="AddressDto"/> representing the updated address.</returns>
+        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Thrown when the address is not found.</exception>
+        /// <exception cref="System.InvalidOperationException">Thrown when the user is not authorized to update the address.</exception>
+        /// <exception cref="System.Exception">Thrown when the update operation fails.</exception>
         public async Task<AddressDto> UpdateAddress(int userId, AddressUpdateDto addressUpdate)
         {
             var address = await _addressRepository.GetAddressById(addressUpdate.Id);
@@ -165,14 +169,14 @@ namespace EcommerceAPI.Services.Address
         }
 
         /// <summary>
-        /// Deletes the address.
+        /// Deletes an address. Only the owner of the address can perform this operation.
         /// </summary>
-        /// <param name="userId">The user identifier.</param>
-        /// <param name="id">The identifier.</param>
-        /// <returns></returns>
-        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Address not found</exception>
-        /// <exception cref="System.InvalidOperationException">You are not authorized to delete this address</exception>
-        /// <exception cref="System.Exception">Failed to delete address</exception>
+        /// <param name="userId">The ID of the user attempting to delete the address.</param>
+        /// <param name="id">The ID of the address to delete.</param>
+        /// <returns><c>true</c> if the address was successfully deleted; otherwise, <c>false</c>.</returns>
+        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Thrown when the address is not found.</exception>
+        /// <exception cref="System.InvalidOperationException">Thrown when the user is not authorized to delete the address.</exception>
+        /// <exception cref="System.Exception">Thrown when the delete operation fails.</exception>
         public async Task<bool> DeleteAddress(int userId, int id)
         {
             var address = await _addressRepository.GetAddressById(id);
@@ -194,16 +198,14 @@ namespace EcommerceAPI.Services.Address
         }
 
         /// <summary>
-        /// Sets the default address.
+        /// Sets an address as the default for a user. Only the owner can set their default address.
         /// </summary>
-        /// <param name="userId">The user identifier.</param>
-        /// <param name="id">The identifier.</param>
-        /// <returns></returns>
-        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Address not found</exception>
+        /// <param name="userId">The ID of the user.</param>
+        /// <param name="id">The ID of the address to set as default.</param>
+        /// <returns>An <see cref="AddressDto"/> representing the updated default address.</returns>
+        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Thrown when the address is not found.</exception>
         /// <exception cref="System.InvalidOperationException">
-        /// You are not authorized to set this address as default
-        /// or
-        /// Failed to set default address
+        /// Thrown when the user is not authorized to set the address as default or if the operation fails.
         /// </exception>
         public async Task<AddressDto> SetDefaultAddress(int userId, int id)
         {

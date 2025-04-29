@@ -13,6 +13,10 @@ namespace EcommerceAPI.Repositories
     {
         private readonly EcommerceContext _context;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PaymentRepository"/> class.
+        /// </summary>
+        /// <param name="context">The context.</param>
         public PaymentRepository(EcommerceContext context)
         {
             _context = context;
