@@ -31,10 +31,12 @@ namespace EcommerceAPI.Controllers
         }
 
         /// <summary>
-        /// Gets the payment by identifier.
+        /// Gets the payment by its identifier for the authenticated user.
         /// </summary>
-        /// <param name="id">The identifier.</param>
-        /// <returns></returns>
+        /// <param name="id">The identifier of the payment.</param>
+        /// <returns>
+        /// An <see cref="IActionResult"/> containing the payment data if authorized and found.
+        /// </returns>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPaymentById(int id)
         {
@@ -44,10 +46,12 @@ namespace EcommerceAPI.Controllers
         }
 
         /// <summary>
-        /// Gets the payments.
+        /// Gets a paginated list of payments based on query parameters for the authenticated user.
         /// </summary>
-        /// <param name="parameters">The parameters.</param>
-        /// <returns></returns>
+        /// <param name="parameters">The parameters used for filtering and pagination.</param>
+        /// <returns>
+        /// An <see cref="IActionResult"/> containing the paginated list of payments.
+        /// </returns>
         [HttpGet]
         public async Task<IActionResult> GetPayments([FromQuery] PaymentQueryParameters parameters)
         {
@@ -57,10 +61,12 @@ namespace EcommerceAPI.Controllers
         }
 
         /// <summary>
-        /// Processes the payment.
+        /// Processes a payment for the authenticated customer.
         /// </summary>
-        /// <param name="request">The request.</param>
-        /// <returns></returns>
+        /// <param name="request">The payment request, including order ID and payment details.</param>
+        /// <returns>
+        /// An <see cref="IActionResult"/> containing the result of the payment transaction.
+        /// </returns>
         [HttpPost]
         [AuthorizeRole(UserRole.Customer)]
         public async Task<IActionResult> ProcessPayment([FromBody] PaymentRequestDto request)
