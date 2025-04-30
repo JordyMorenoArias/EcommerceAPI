@@ -63,7 +63,6 @@ namespace EcommerceAPI.Repositories
             }
 
             var totalItems = await query.CountAsync();
-
             var products = await query
                 .Skip((parameters.Page - 1) * parameters.PageSize)
                 .Take(parameters.PageSize)
@@ -110,6 +109,7 @@ namespace EcommerceAPI.Repositories
         public async Task<bool> DeleteProduct(int id)
         {
             var product = await GetProductById(id);
+
             if (product is null)
                 return false;
 

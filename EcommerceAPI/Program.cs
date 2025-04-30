@@ -17,6 +17,8 @@ using EcommerceAPI.Services.Order;
 using EcommerceAPI.Services.Order.Interfaces;
 using EcommerceAPI.Services.OrderItem;
 using EcommerceAPI.Services.OrderItem.Interfaces;
+using EcommerceAPI.Services.Payment;
+using EcommerceAPI.Services.Payment.Interfaces;
 using EcommerceAPI.Services.Product;
 using EcommerceAPI.Services.Product.Interfaces;
 using EcommerceAPI.Services.Security;
@@ -80,6 +82,7 @@ builder.Services.AddScoped<ICartItemService, CartItemService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
 builder.Services.AddScoped<IAddressService, AddressService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 var jwtKey = builder.Configuration["Jwt:Key"];
 

@@ -39,8 +39,8 @@ namespace EcommerceAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetCart()
         {
-            var user = _userService.GetAuthenticatedUser(HttpContext);
-            var cart = await _cartService.GetCartByUserId(user.Id);
+            var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
+            var cart = await _cartService.GetCartByUserId(userAuthenticated.Id);
             return Ok(cart);
         }
 
@@ -54,8 +54,8 @@ namespace EcommerceAPI.Controllers
         [HttpDelete]
         public async Task<IActionResult> ClearCart()
         {
-            var user = _userService.GetAuthenticatedUser(HttpContext);
-            await _cartService.ClearCart(user.Id);
+            var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
+            await _cartService.ClearCart(userAuthenticated.Id);
             return NoContent();
         }
 
@@ -68,8 +68,8 @@ namespace EcommerceAPI.Controllers
         [HttpGet("total")]
         public async Task<IActionResult> GetTotal()
         {
-            var user = _userService.GetAuthenticatedUser(HttpContext);
-            var total = await _cartService.GetCartTotal(user.Id);
+            var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
+            var total = await _cartService.GetCartTotal(userAuthenticated.Id);
             return Ok(total);
         }
     }

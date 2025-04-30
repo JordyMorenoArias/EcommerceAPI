@@ -1,26 +1,26 @@
 ﻿using EcommerceAPI.Constants;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+using EcommerceAPI.Models.DTOs.Order;
 
-namespace EcommerceAPI.Models.Entities
+namespace EcommerceAPI.Models.DTOs.Payment
 {
-    public class PaymentEntity
+    public class PaymentDto
     {
-        [Key]
         public int Id { get; set; }
 
         [Required, ForeignKey("Order")]
         public int OrderId { get; set; }
-        public OrderEntity Order { get; set; } = null!;
+        public OrderDto Order { get; set; } = null!;
 
         [Column(TypeName = "decimal(18, 2)")]
         public decimal Amount { get; set; }
 
         public PaymentMethod Method { get; set; }
 
-        public CardProvider CardProvider { get; set; } = CardProvider.Unknown;
+        public CardProvider CardProvider { get; set; }
 
-        public PaymentStatus Status { get; set; } = PaymentStatus.Processing;
+        public PaymentStatus Status { get; set; }
 
         [MaxLength(4)]
         public string LastFourDigits { get; set; } = "";
@@ -28,6 +28,6 @@ namespace EcommerceAPI.Models.Entities
         [MaxLength(100)]
         public string TransactionId { get; set; } = "";
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; }
     }
 }

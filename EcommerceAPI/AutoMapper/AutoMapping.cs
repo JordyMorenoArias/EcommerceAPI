@@ -5,6 +5,7 @@ using EcommerceAPI.Models.DTOs.Cart;
 using EcommerceAPI.Models.DTOs.CartItem;
 using EcommerceAPI.Models.DTOs.Order;
 using EcommerceAPI.Models.DTOs.OrderDetail;
+using EcommerceAPI.Models.DTOs.Payment;
 using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Models.DTOs.User;
 using EcommerceAPI.Models.Entities;
@@ -44,6 +45,9 @@ namespace EcommerceAPI.AutoMapper
             // OrderDetail to DTO assignments and reverse
             CreateMap<OrderDetailEntity, OrderDetailDto>().ReverseMap();
             CreateMap<OrderDetailEntity, OrderDetailAddDto>().ReverseMap();
+
+            // Payment to DTO assignments and reverse
+            CreateMap<PaymentEntity, PaymentDto>().ReverseMap();
         }
     }
 }

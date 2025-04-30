@@ -59,7 +59,7 @@ namespace EcommerceAPI.Services.Order
         /// Gets the orders.
         /// </summary>
         /// <param name="userId">The user identifier.</param>
-        /// <param name="userRole">The user role.</param>
+        /// <param name="role">The user role.</param>
         /// <param name="parameters">The parameters.</param>
         /// <returns>Paged result of orders.</returns>
         /// <exception cref="System.ArgumentException">
@@ -68,7 +68,7 @@ namespace EcommerceAPI.Services.Order
         /// StartDate must be less than or equal to EndDate.
         /// </exception>
         /// <exception cref="System.InvalidOperationException">You do not have permission to view orders for this user.</exception>
-        public async Task<PagedResult<OrderDto>> GetOrders(int userId, UserRole userRole, OrderQueryParameters parameters)
+        public async Task<PagedResult<OrderDto>> GetOrders(int userId, UserRole role, OrderQueryParameters parameters)
         {
             if (parameters.Page <= 0 || parameters.PageSize <= 0)
                 throw new ArgumentException("Page and PageSize must be greater than 0.");
@@ -76,11 +76,11 @@ namespace EcommerceAPI.Services.Order
             if (parameters.StartDate.HasValue && parameters.EndDate.HasValue && parameters.StartDate > parameters.EndDate)
                 throw new ArgumentException("StartDate must be less than or equal to EndDate.");
 
-            if (userRole == UserRole.Customer && userId != parameters.UserId)
+            if (role == UserRole.Customer && userId != parameters.UserId)
             {
                 throw new InvalidOperationException("You do not have permission to view orders for this user.");
             }
-            else if (userRole == UserRole.Seller && parameters.UserId != userId)
+            else if (role == UserRole.Seller && parameters.UserId != userId)
             {
                 throw new InvalidOperationException("You do not have permission to view orders for this user.");
             }
@@ -93,7 +93,7 @@ namespace EcommerceAPI.Services.Order
         /// Gets the seller orders.
         /// </summary>
         /// <param name="userId">The user identifier.</param>
-        /// <param name="userRole">The user role.</param>
+        /// <param name="role">The user role.</param>
         /// <param name="parameters">The parameters.</param>
         /// <returns>Paged result of seller orders.</returns>
         /// <exception cref="System.ArgumentException">
@@ -103,7 +103,7 @@ namespace EcommerceAPI.Services.Order
         /// </exception>
         /// <exception cref="System.UnauthorizedAccessException">Customers are not allowed to view seller orders.</exception>
         /// <exception cref="System.InvalidOperationException">You do not have permission to view orders for this seller.</exception>
-        public async Task<PagedResult<OrderDto>> GetSellerOrders(int userId, UserRole userRole, OrderSellerQueryParameters parameters)
+        public async Task<PagedResult<OrderDto>> GetSellerOrders(int userId, UserRole role, OrderSellerQueryParameters parameters)
         {
             if (parameters.Page <= 0 || parameters.PageSize <= 0)
                 throw new ArgumentException("Page and PageSize must be greater than 0.");
@@ -111,11 +111,11 @@ namespace EcommerceAPI.Services.Order
             if (parameters.StartDate.HasValue && parameters.EndDate.HasValue && parameters.StartDate > parameters.EndDate)
                 throw new ArgumentException("StartDate must be less than or equal to EndDate.");
 
-            if (userRole == UserRole.Customer)
+            if (role == UserRole.Customer)
             {
                 throw new UnauthorizedAccessException("Customers are not allowed to view seller orders.");
             }
-            else if (userRole == UserRole.Seller && parameters.SellerId != userId)
+            else if (role == UserRole.Seller && parameters.SellerId != userId)
             {
                 throw new InvalidOperationException("You do not have permission to view orders for this seller.");
             }

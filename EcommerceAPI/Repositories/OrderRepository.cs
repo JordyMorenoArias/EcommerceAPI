@@ -175,6 +175,7 @@ namespace EcommerceAPI.Repositories
         public async Task<OrderEntity?> UpdateAmountOrder(int orderId, decimal amount)
         {
             var order = await _context.Orders.FindAsync(orderId);
+
             if (order == null)
                 return null;
 
@@ -193,6 +194,7 @@ namespace EcommerceAPI.Repositories
         public async Task<OrderEntity?> UpdateAddressOrder(int orderId, int addressId)
         {
             var order = await _context.Orders.FindAsync(orderId);
+
             if (order == null)
                 return null;
 
@@ -211,6 +213,7 @@ namespace EcommerceAPI.Repositories
         public async Task<OrderEntity?> UpdateOrderStatus(int orderId, OrderStatus newStatus)
         {
             var order = await _context.Orders.FindAsync(orderId);
+
             if (order == null)
                 return null;
 

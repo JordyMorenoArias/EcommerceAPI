@@ -70,6 +70,12 @@ namespace EcommerceAPI.Services.Order
         /// <exception cref="System.ArgumentException">Start date must be less than or equal to end date</exception>
         public async Task<PagedResult<OrderDto>> GetOrders(OrderQueryParameters parameters)
         {
+            if (parameters.Page <= 0 || parameters.PageSize <= 0)
+                throw new ArgumentException("Page and PageSize must be greater than 0.");
+
+            if (parameters.StartDate.HasValue && parameters.EndDate.HasValue && parameters.StartDate > parameters.EndDate)
+                throw new ArgumentException("Start date must be less than or equal to end date");
+
             var dateRangePart = parameters.StartDate.HasValue && parameters.EndDate.HasValue
                     ? $"{parameters.StartDate:yyyyMMdd}_{parameters.EndDate:yyyyMMdd}"
                     : "all_dates";
@@ -83,19 +89,12 @@ namespace EcommerceAPI.Services.Order
                 : "all_statuses";
 
             var cacheKey = $"orders_{dateRangePart}_{userIdPart}_{statusPart}_Page_{parameters.Page}_PageSize_{parameters.PageSize}";
-
             var cachedOrders = await _cacheService.Get<PagedResult<OrderDto>>(cacheKey);
 
             if (cachedOrders is not null)
                 return cachedOrders;
 
-            if (parameters.StartDate.HasValue && parameters.EndDate.HasValue && parameters.StartDate > parameters.EndDate)
-                throw new ArgumentException("Start date must be less than or equal to end date");
-
             var orders = await _orderRepository.GetOrders(parameters);
-
-            if (orders is null)
-                throw new ArgumentException("Start date must be less than or equal to end date");
 
             var orderDtos = _mapper.Map<PagedResult<OrderDto>>(orders);
             await _cacheService.Set(cacheKey, orderDtos, TimeSpan.FromMinutes(5));
@@ -129,9 +128,6 @@ namespace EcommerceAPI.Services.Order
                 throw new ArgumentException("Start date must be less than or equal to end date");
 
             var orders = await _orderRepository.GetSellerOrders(parameters);
-
-            if (orders is null)
-                throw new ArgumentException("Start date must be less than or equal to end date");
 
             var orderDtos = _mapper.Map<PagedResult<OrderDto>>(orders);
 
