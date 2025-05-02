@@ -7,6 +7,8 @@ using EcommerceAPI.Repositories.Interfaces;
 using EcommerceAPI.Services.Infrastructure.Interfaces;
 using EcommerceAPI.Services.Order.Interfaces;
 using EcommerceAPI.Services.Payment.Interfaces;
+using EcommerceAPI.Services.PaymentGateway.Interfaces;
+using EcommerceAPI.Utilities;
 
 namespace EcommerceAPI.Services.Payment
 {
@@ -18,6 +20,7 @@ namespace EcommerceAPI.Services.Payment
     {
         private readonly IPaymentRepository _paymentRepository;
         private readonly IOrderService _orderService;
+        private readonly IPaymentGatewayService _paymentGatewayService;
         private readonly ICacheService _cacheService;
         private readonly IMapper _mapper;
 
@@ -28,10 +31,11 @@ namespace EcommerceAPI.Services.Payment
         /// <param name="orderService">The order service.</param>
         /// <param name="cacheService">The cache service.</param>
         /// <param name="mapper">The mapper.</param>
-        public PaymentService(IPaymentRepository paymentRepository, IOrderService orderService, ICacheService cacheService, IMapper mapper)
+        public PaymentService(IPaymentRepository paymentRepository, IOrderService orderService, IPaymentGatewayService paymentGatewayService ,ICacheService cacheService, IMapper mapper)
         {
             _paymentRepository = paymentRepository;
             _orderService = orderService;
+            _paymentGatewayService = paymentGatewayService;
             _cacheService = cacheService;
             _mapper = mapper;
         }
@@ -135,6 +139,16 @@ namespace EcommerceAPI.Services.Payment
         /// </exception>
         public async Task<PaymentResultDto> ProcessPayment(int userId, int orderId, PaymentProcessDto paymentDto)
         {
+            var expMonth = int.Parse(paymentDto.ExpirationMonth);
+            var expYear = int.Parse(paymentDto.ExpirationYear);
+            var now = DateTime.UtcNow;
+
+            if (!CardValidator.IsValidCardNumber(paymentDto.CardNumber))
+                throw new ArgumentException("Invalid card number.");
+
+            if (expYear < now.Year || (expYear == now.Year && expMonth < now.Month))
+                throw new ArgumentException("Card is expired.");
+
             var order = await _orderService.GetOrderById(orderId);
 
             if (order is null)
@@ -149,17 +163,18 @@ namespace EcommerceAPI.Services.Payment
             if (order.UserId != userId)
                 throw new Exception("User not authorized to pay for this order");
 
-            // Simulación de pago exitoso
-            var transaction = SimulatePayment(order.TotalAmount, paymentDto);
+            var transaction = await _paymentGatewayService.ProcessPayment(paymentDto, order.TotalAmount);
 
-            // var transaction = await _paymentGatewayService.ProcessPaymentAsync(paymentDto, order.TotalAmount);
+            if (transaction.Status != PaymentStatus.Paid)
+                throw new Exception($"Payment failed: {transaction.Message}");
 
             var payment = new PaymentEntity
             {
                 OrderId = orderId,
                 Amount = transaction.Amount,
-                Method = paymentDto.Method,
                 Status = transaction.Status,
+                Currency = transaction.Currency,
+                Method = paymentDto.Method,
                 LastFourDigits = transaction.LastFourDigits,
                 TransactionId = transaction.TransactionId
             };
@@ -168,23 +183,6 @@ namespace EcommerceAPI.Services.Payment
             await _orderService.UpdateOrderStatus(order.Id, OrderStatus.Paid);
 
             return transaction;
-        }
-
-        private PaymentResultDto SimulatePayment(decimal amount, PaymentProcessDto dto)
-        {
-            return new PaymentResultDto
-            {
-                PaymentId = 0,
-                TransactionId = Guid.NewGuid().ToString(),
-                Status = PaymentStatus.Paid,
-                Message = "Simulated payment successful",
-                Amount = amount,
-                Currency = "USD",
-                PaymentMethod = dto.Method,
-                CardProvider = CardProvider.Visa,
-                LastFourDigits = dto.CardNumber[^4..],
-                CreatedAt = DateTime.UtcNow
-            };
         }
     }
 }

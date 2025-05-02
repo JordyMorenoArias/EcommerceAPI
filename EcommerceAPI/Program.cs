@@ -19,7 +19,9 @@ using EcommerceAPI.Services.OrderItem;
 using EcommerceAPI.Services.OrderItem.Interfaces;
 using EcommerceAPI.Services.Payment;
 using EcommerceAPI.Services.Payment.Interfaces;
-using EcommerceAPI.Services.Product;
+using EcommerceAPI.Services.PaymentGateway;
+using EcommerceAPI.Services.PaymentGateway.Interfaces;
+using ProductService = EcommerceAPI.Services.Product.ProductService;
 using EcommerceAPI.Services.Product.Interfaces;
 using EcommerceAPI.Services.Security;
 using EcommerceAPI.Services.Security.Interfaces;
@@ -29,6 +31,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Stripe;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,6 +39,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen( options =>
@@ -83,6 +89,7 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
 builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IPaymentGatewayService, MockPaymentGatewayService>();
 
 var jwtKey = builder.Configuration["Jwt:Key"];
 

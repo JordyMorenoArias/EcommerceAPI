@@ -16,7 +16,10 @@ namespace EcommerceAPI.Models.Entities
         [Column(TypeName = "decimal(18, 2)")]
         public decimal Amount { get; set; }
 
-        public PaymentMethod Method { get; set; }
+        [Required, MaxLength(3)]
+        public string Currency { get; set; } = "USD";
+
+        public PaymentMethod Method { get; set; } = PaymentMethod.Card;
 
         public CardProvider CardProvider { get; set; } = CardProvider.Unknown;
 

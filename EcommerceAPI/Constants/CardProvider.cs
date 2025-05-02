@@ -6,6 +6,12 @@
         Visa,
         MasterCard,
         AmericanExpress,
-        Discover
+        Discover,
+        JCB,
+        DinersClub,
+        UnionPay,
+        CarteBancaire,
+        Interac,
+        RuPay
     }
 }

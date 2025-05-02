@@ -23,6 +23,9 @@ namespace EcommerceAPI.Models
         [Required, Column(TypeName = "decimal(18, 2)")]
         public decimal Price { get; set; } = 0;
 
+        [Required, MaxLength(3)]
+        public string Currency { get; set; } = "USD";
+
         [Required]
         public int Stock { get; set; }
 
