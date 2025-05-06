@@ -50,5 +50,33 @@ namespace EcommerceAPI.Services.Product.Interfaces
         /// <param name="productUpdate">The updated product data.</param>
         /// <returns>A <see cref="ProductDto"/> representing the updated product, or <c>null</c> if not found.</returns>
         Task<ProductDto?> UpdateProduct(int userId, ProductUpdateDto productUpdate);
+
+        /// <summary>
+        /// Searches the products.
+        /// </summary>
+        /// <param name="role">The role.</param>
+        /// <param name="parameters">The search parameters.</param>
+        /// <returns>
+        /// A paginated result containing a list of <see cref="ProductDto"/> objects that match the search criteria.
+        /// </returns>
+        /// <exception cref="System.ArgumentException">
+        /// Search term cannot be null or empty. - SearchTerm
+        /// or
+        /// Page and PageSize must be greater than 0.
+        /// </exception>
+        /// <exception cref="System.InvalidOperationException">
+        /// Customers can only view active products.
+        /// or
+        /// Sellers can only view active products of other sellers.
+        /// </exception>
+        Task<PagedResult<ProductDto>> SearchProducts(UserRole role, SearchParameters searchParameters);
+
+        /// <summary>
+        /// Gets the suggestions.
+        /// </summary>
+        /// <param name="query">The query.</param>
+        /// <returns>A collection of suggested product names that match the query.</returns>
+        /// <exception cref="System.ArgumentException">Query cannot be null or empty. - query</exception>
+        Task<IEnumerable<string>> GetSuggestionsProducts(string query);
     }
 }

@@ -9,6 +9,5 @@ namespace EcommerceAPI.Models.DTOs.Product
         public bool? IsActive { get; set; }
         public int? UserId { get; set; }
         public CategoryProduct? Category { get; set; }
-        public string? SearchQuery { get; set; }
     }
 }
