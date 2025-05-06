@@ -27,6 +27,7 @@ namespace EcommerceAPI.AutoMapper
             CreateMap<ProductEntity, ProductDto>().ReverseMap();
             CreateMap<ProductEntity, ProductAddDto>().ReverseMap();
             CreateMap<ProductEntity, ProductUpdateDto>().ReverseMap();
+            CreateMap<ProductEntity, SearchParameters>().ReverseMap();
 
             // Cart to DTO assignments and reverse
             CreateMap<CartEntity, CartDto>().ReverseMap();

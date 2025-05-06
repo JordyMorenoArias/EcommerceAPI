@@ -33,6 +33,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Stripe;
 using System.Text;
+using Elastic.Clients.Elasticsearch;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,6 +62,19 @@ builder.Services.AddMemoryCache();
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration.GetConnectionString("RedisConnection");
+});
+
+builder.Services.AddSingleton(sp =>
+{
+    var elasticSearchUri = builder.Configuration["ElasticSearch:Uri"];
+
+    if (string.IsNullOrEmpty(elasticSearchUri))
+    {
+        throw new Exception("ElasticSearch:Uri is missing in appsettings.json");
+    }
+
+    var settings = new ElasticsearchClientSettings(new Uri(elasticSearchUri));
+    return new ElasticsearchClient(settings);
 });
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
