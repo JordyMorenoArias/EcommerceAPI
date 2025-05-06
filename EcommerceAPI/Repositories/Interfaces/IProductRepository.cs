@@ -39,6 +39,13 @@ namespace EcommerceAPI.Repositories
         Task<PagedResult<ProductEntity>> GetProducts(ProductQueryParameters parameters);
 
         /// <summary>
+        /// Gets the products by ids.
+        /// </summary>
+        /// <param name="ids">The collection of product IDs to retrieve.</param>
+        /// <returns>A collection of <see cref="ProductEntity"/> objects matching the provided IDs.</returns>
+        Task<IEnumerable<ProductEntity>> GetProductsByIds(IEnumerable<int> ids);
+
+        /// <summary>
         /// Updates an existing product in the repository.
         /// </summary>
         /// <param name="product">The product entity with updated information.</param>

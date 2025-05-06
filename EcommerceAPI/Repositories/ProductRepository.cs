@@ -54,14 +54,6 @@ namespace EcommerceAPI.Repositories
             if (parameters.Category.HasValue)
                 query = query.Where(p => p.Category == parameters.Category.Value);
 
-            if (!string.IsNullOrEmpty(parameters.SearchQuery))
-            {
-                var normalizedQuery = parameters.SearchQuery.ToLower();
-                query = query.Where(p =>
-                    (p.Name != null && p.Name.ToLower().Contains(normalizedQuery)) ||
-                    (p.Description != null && p.Description.ToLower().Contains(normalizedQuery)));
-            }
-
             var totalItems = await query.CountAsync();
             var products = await query
                 .Skip((parameters.Page - 1) * parameters.PageSize)
@@ -75,6 +67,18 @@ namespace EcommerceAPI.Repositories
                 Page = parameters.Page,
                 PageSize = parameters.PageSize,
             };
+        }
+
+        /// <summary>
+        /// Gets the products by ids.
+        /// </summary>
+        /// <param name="ids">The collection of product IDs to retrieve.</param>
+        /// <returns>A collection of <see cref="ProductEntity"/> objects matching the provided IDs.</returns>
+        public async Task<IEnumerable<ProductEntity>> GetProductsByIds(IEnumerable<int> ids)
+        {
+            return await _context.Products
+                .Where(p => ids.Contains(p.Id))
+                .ToListAsync();
         }
 
         /// <summary>
