@@ -38,6 +38,31 @@ namespace EcommerceAPI.Controllers
         }
 
         /// <summary>
+        /// Gets the suggestions products.
+        /// </summary>
+        /// <param name="query">The query.</param>
+        /// <returns>A list of suggested products that match the query.</returns>
+        [HttpGet("suggestions")]
+        public async Task<IActionResult> GetSuggestionsProducts([FromQuery] string query)
+        {
+            var suggestions = await _productService.GetSuggestionsProducts(query);
+            return Ok(suggestions);
+        }
+
+        /// <summary>
+        /// Searches the products.
+        /// </summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns>A list of products that match the given search parameters and user role.</returns>
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchProducts([FromQuery] SearchParameters parameters)
+        {
+            var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
+            var products = await _productService.SearchProducts(userAuthenticated.Role, parameters);
+            return Ok(products);
+        }
+
+        /// <summary>
         /// Retrieves a paginated list of products based on the provided query parameters.
         /// Filters results depending on the authenticated user's role and permissions.
         /// </summary>
