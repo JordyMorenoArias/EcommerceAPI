@@ -93,6 +93,9 @@ namespace EcommerceAPI.Services.Product
             if (string.IsNullOrWhiteSpace(parameters.SearchTerm))
                 throw new ArgumentException("Search term cannot be null or empty.", nameof(parameters.SearchTerm));
 
+            if (parameters.MinPrice > parameters.MaxPrice)
+                throw new ArgumentException("MinPrice cannot be greater than MaxPrice.");
+
             if (parameters.Page <= 0 || parameters.PageSize <= 0)
                 throw new ArgumentException("Page and PageSize must be greater than 0.");
 

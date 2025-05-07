@@ -5,6 +5,7 @@ using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Services.ElasticService.Interfaces;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Core.Bulk;
+using Elastic.Clients.Elasticsearch.Core.Search;
 using Elastic.Clients.Elasticsearch.QueryDsl;
 
 namespace EcommerceAPI.Services.ElasticProductService
@@ -62,6 +63,7 @@ namespace EcommerceAPI.Services.ElasticProductService
         /// <exception cref="System.InvalidOperationException">Failed to search products: {response.ElasticsearchServerError}</exception>
         public async Task<PagedResult<int>> SearchProducts(SearchParameters parameters)
         {
+
             int from = (parameters.Page - 1) * parameters.PageSize;
 
             var response = await _client.SearchAsync<ProductElasticDto>(s => s
@@ -77,6 +79,21 @@ namespace EcommerceAPI.Services.ElasticProductService
                                 .Fields(new[] { "name", "description" })
                                 .Fuzziness("AUTO")
                                 .MinimumShouldMatch("75%")
+                            )
+                        )
+                        .Filter(f => f
+                              .Term(t => t
+                                .Field(f => f.IsActive)
+                                .Value(parameters.IsActive ?? true)
+                              )
+                        )
+                        .Filter(f => f
+                            .Range(r => r
+                                .Number(d => d
+                                    .Field(f => f.Price)
+                                    .Gte(parameters.MinPrice ?? 0)
+                                    .Lte(parameters.MaxPrice ?? double.MaxValue)
+                                )
                             )
                         );
                     })
@@ -110,7 +127,8 @@ namespace EcommerceAPI.Services.ElasticProductService
 
             var response = await _client.IndexAsync(productDto, idx => idx
                 .Index(_indexName)
-                .Id(productDto.Id));
+                .Id(productDto.Id)
+            );
 
             if (!response.IsValidResponse)
             {
