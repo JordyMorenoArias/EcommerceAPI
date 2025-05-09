@@ -18,5 +18,6 @@ namespace EcommerceAPI.Data
         public DbSet<PaymentEntity> Payments { get; set; }
         public DbSet<ProductEntity> Products { get; set; }
         public DbSet<UserEntity> Users { get; set; }
+        public DbSet<CategoryEntity> Categories { get; set; }
     }
 }

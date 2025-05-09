@@ -1,4 +1,5 @@
 ﻿using EcommerceAPI.Constants;
+using System.ComponentModel.DataAnnotations;
 
 namespace EcommerceAPI.Models.DTOs.Product
 {
@@ -8,6 +9,6 @@ namespace EcommerceAPI.Models.DTOs.Product
         public int PageSize { get; set; } = 10;
         public bool? IsActive { get; set; }
         public int? UserId { get; set; }
-        public CategoryProduct? Category { get; set; }
+        public int? CategoryId { get; set; }
     }
 }

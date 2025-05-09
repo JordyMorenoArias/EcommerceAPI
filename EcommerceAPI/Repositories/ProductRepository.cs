@@ -51,8 +51,8 @@ namespace EcommerceAPI.Repositories
             if (parameters.UserId.HasValue)
                 query = query.Where(p => p.UserId == parameters.UserId.Value);
 
-            if (parameters.Category.HasValue)
-                query = query.Where(p => p.Category == parameters.Category.Value);
+            if (parameters.CategoryId.HasValue)
+                query = query.Where(p => p.CategoryId == parameters.CategoryId.Value);
 
             var totalItems = await query.CountAsync();
             var products = await query

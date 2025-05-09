@@ -34,6 +34,8 @@ using Microsoft.IdentityModel.Tokens;
 using Stripe;
 using System.Text;
 using Elastic.Clients.Elasticsearch;
+using EcommerceAPI.Services.ElasticService.Interfaces;
+using EcommerceAPI.Services.ElasticProductService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -104,6 +106,7 @@ builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
 builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IPaymentGatewayService, MockPaymentGatewayService>();
+builder.Services.AddScoped<IElasticProductService, ElasticProductService>();
 
 var jwtKey = builder.Configuration["Jwt:Key"];
 

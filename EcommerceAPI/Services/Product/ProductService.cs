@@ -186,8 +186,8 @@ namespace EcommerceAPI.Services.Product
                 ? parameters.IsActive.Value.ToString() 
                 : "all";
 
-            var categoryPart = parameters.Category.HasValue
-                ? parameters.Category.Value.ToString()
+            var categoryPart = parameters.CategoryId.HasValue
+                ? parameters.CategoryId.Value.ToString()
                 : "all_categories";
 
             var cacheKey = $"Products_{categoryPart}_{userIdPart}_Page_{parameters.Page}_PageSize_{parameters.PageSize}_IsActive_{isActivePart}";

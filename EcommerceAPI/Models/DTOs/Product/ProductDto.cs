@@ -17,7 +17,8 @@ namespace EcommerceAPI.Models.DTOs.Product
         public string? Description { get; set; }
 
         [Required]
-        public CategoryProduct Category { get; set; }
+        public int CategoryId { get; set; }
+        public CategoryEntity Category { get; set; } = null!;
 
         [Required, Column(TypeName = "decimal(18, 2)")]
         public decimal Price { get; set; } = 0;
