@@ -29,7 +29,6 @@ namespace EcommerceAPI.Repositories
         public async Task<CategoryEntity?> GetCategoryById(int id)
         {
             return await _context.Categories
-                .Include(c => c.Products)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
@@ -41,7 +40,6 @@ namespace EcommerceAPI.Repositories
         public async Task<IEnumerable<CategoryEntity>> GetCategories()
         {
             return await _context.Categories
-                .Include(c => c.Products)
                 .AsNoTracking()
                 .ToListAsync();
         }

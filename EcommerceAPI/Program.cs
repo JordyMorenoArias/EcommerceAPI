@@ -36,6 +36,8 @@ using System.Text;
 using Elastic.Clients.Elasticsearch;
 using EcommerceAPI.Services.ElasticService.Interfaces;
 using EcommerceAPI.Services.ElasticProductService;
+using EcommerceAPI.Services.Category.Interfaces;
+using EcommerceAPI.Services.Category;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -81,6 +83,7 @@ builder.Services.AddSingleton(sp =>
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
@@ -99,6 +102,7 @@ builder.Services.AddScoped<ICacheService, MemoryCacheService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<ICartItemService, CartItemService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
