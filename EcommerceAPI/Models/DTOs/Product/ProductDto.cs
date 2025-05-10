@@ -1,8 +1,8 @@
-﻿using EcommerceAPI.Constants;
-using EcommerceAPI.Models.Entities;
+﻿using EcommerceAPI.Models.Entities;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using EcommerceAPI.Models.DTOs.User;
+using EcommerceAPI.Models.DTOs.ProductTags;
 
 namespace EcommerceAPI.Models.DTOs.Product
 {
@@ -37,5 +37,7 @@ namespace EcommerceAPI.Models.DTOs.Product
         [Required]
         public int? UserId { get; set; }
         public UserDto User { get; set; } = null!;
+
+        public ICollection<ProductTagDto> ProductTags { get; set; } = new List<ProductTagDto>();
     }
 }

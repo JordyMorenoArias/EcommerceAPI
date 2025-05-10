@@ -15,7 +15,6 @@ namespace EcommerceAPI.Services.ElasticProductService
     public class ElasticProductService : IElasticProductService
     {
         private readonly ElasticsearchClient _client;
-        private readonly IMapper _mapper;
         private readonly string _indexName = "products";
 
         /// <summary>
@@ -23,10 +22,9 @@ namespace EcommerceAPI.Services.ElasticProductService
         /// </summary>
         /// <param name="client">The client.</param>
         /// <param name="mapper">The mapper.</param>
-        public ElasticProductService(ElasticsearchClient client, IMapper mapper)
+        public ElasticProductService(ElasticsearchClient client)
         {
             _client = client;
-            _mapper = mapper;
         }
 
         /// <summary>
@@ -40,17 +38,32 @@ namespace EcommerceAPI.Services.ElasticProductService
                 .Indices(_indexName)
                 .Size(50)
                 .Query(q => q
-                    .MatchPhrasePrefix(m => m
-                        .Field(f => f.Name)
-                        .Query(query)
-                    )
+                    .Bool(b =>
+                    {
+                        b.Should(sh =>
+                            sh.MatchPhrasePrefix(m => m
+                                .Field(f => f.Name)
+                                .Query(query)
+                            )
+                        )
+                        .Should(sh => sh
+                            .MatchPhrasePrefix(m => m
+                                .Field("tags.name")
+                                .Query(query)
+                            )
+                        )
+                        .MinimumShouldMatch(1);
+                    })
                 )
             );
 
             if (!response.IsValidResponse)
                 return Enumerable.Empty<string>();
 
-            return response.Documents.Select(p => p.Name).Distinct().Take(20);
+            return response.Documents
+                .Select(p => p.Name)
+                .Distinct()
+                .Take(20);
         }
 
         /// <summary>
@@ -75,6 +88,14 @@ namespace EcommerceAPI.Services.ElasticProductService
                             .MultiMatch(mm => mm
                                 .Query(parameters.SearchTerm)
                                 .Fields(new[] { "name", "description" })
+                                .Fuzziness("AUTO")
+                                .MinimumShouldMatch("75%")
+                            )
+                        )
+                        .Should(sh => sh
+                            .MultiMatch(mm => mm
+                                .Query(parameters.SearchTerm)
+                                .Fields(new[] { "tags.name", "tags.description" })
                                 .Fuzziness("AUTO")
                                 .MinimumShouldMatch("75%")
                             )
@@ -112,84 +133,6 @@ namespace EcommerceAPI.Services.ElasticProductService
                 Page = parameters.Page,
                 PageSize = parameters.PageSize
             };
-        }
-
-        /// <summary>
-        /// Indexes the product.
-        /// </summary>
-        /// <param name="product">The product.</param>
-        /// <exception cref="System.InvalidOperationException">Failed to index product with ID {productDto.Id}: {errorMessage}</exception>
-        public async Task IndexProduct(ProductEntity product)
-        {
-            var productDto = _mapper.Map<ProductElasticDto>(product);
-
-            var response = await _client.IndexAsync(productDto, idx => idx
-                .Index(_indexName)
-                .Id(productDto.Id)
-            );
-
-            if (!response.IsValidResponse)
-            {
-                var errorMessage = response.ElasticsearchServerError?.ToString() ?? "Unknown error";
-                throw new InvalidOperationException($"Failed to index product with ID {productDto.Id}: {errorMessage}");
-            }
-        }
-
-        /// <summary>
-        /// Indexes multiple products in Elasticsearch in batches.
-        /// </summary>
-        /// <param name="products">The collection of products to index.</param>
-        /// <param name="batchSize">The maximum number of products per batch (default is 500).</param>
-        /// <exception cref="System.InvalidOperationException">Thrown when one or more batch operations fail.</exception>
-        public async Task IndexManyProducts(IEnumerable<ProductEntity> products, int batchSize = 500)
-        {
-            var productDtos = products.Select(p => _mapper.Map<ProductElasticDto>(p)).ToList();
-
-            for (int i = 0; i < productDtos.Count; i += batchSize)
-            {
-                var batch = productDtos.Skip(i).Take(batchSize).ToList();
-
-                var bulkRequest = new BulkRequest(_indexName)
-                {
-                    Operations = batch.Select(dto => new BulkIndexOperation<ProductElasticDto>(dto)
-                    {
-                        Id = dto.Id.ToString()
-                    }).Cast<IBulkOperation>().ToList()
-                };
-
-                var response = await _client.BulkAsync(bulkRequest);
-
-                if (!response.IsValidResponse)
-                {
-                    var errorMessage = response.ElasticsearchServerError?.ToString() ?? "Unknown error";
-                    throw new InvalidOperationException($"Bulk index operation failed at batch {i / batchSize + 1}: {errorMessage}");
-                }
-
-                if (response.Errors)
-                {
-                    var failedItems = response.ItemsWithErrors.Select(e => $"ID: {e.Id}, Error: {e.Error?.Reason}");
-                    var errorDetails = string.Join("; ", failedItems);
-                    throw new InvalidOperationException($"Some documents failed to index in batch {i / batchSize + 1}: {errorDetails}");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Removes the product.
-        /// </summary>
-        /// <param name="productId">The product identifier.</param>
-        /// <exception cref="System.InvalidOperationException">Failed to delete product with ID {productId}: {errorMessage}</exception>
-        public async Task RemoveProduct(int productId)
-        {
-            var response = await _client.DeleteAsync<ProductElasticDto>(productId, idx => idx
-                .Index(_indexName));
-
-            if (!response.IsValidResponse)
-            {
-                var errorMessage = response.ElasticsearchServerError?.ToString() ?? "Unknown error";
-                throw new InvalidOperationException($"Failed to delete product with ID {productId}: {errorMessage}");
-            }
-
         }
     }
 }

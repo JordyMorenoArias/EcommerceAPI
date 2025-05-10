@@ -18,13 +18,15 @@ namespace EcommerceAPI.Services.Product
     {
         private readonly IProductRepository _productRepository;
         private readonly IElasticProductService _elasticProductService;
+        private readonly IElasticGenericService<ProductElasticDto> _elasticGenericService;
         private readonly ICacheService _cacheService;
         private readonly IMapper _mapper;
 
-        public ProductService(IProductRepository productRepository, IElasticProductService elasticProductService , ICacheService cacheService, IMapper mapper)
+        public ProductService(IProductRepository productRepository, IElasticProductService elasticProductService, IElasticGenericService<ProductElasticDto> elasticGenericService, ICacheService cacheService, IMapper mapper)
         {
             _productRepository = productRepository;
             _elasticProductService = elasticProductService;
+            _elasticGenericService = elasticGenericService;
             _cacheService = cacheService;
             _mapper = mapper;
         }
@@ -217,10 +219,11 @@ namespace EcommerceAPI.Services.Product
             product.UserId = userId;
 
             var addedProduct = await _productRepository.AddProduct(product);
-            await _elasticProductService.IndexProduct(addedProduct);
+
+            var elasticProduct = _mapper.Map<ProductElasticDto>(addedProduct);
+            await _elasticGenericService.Index(elasticProduct, elasticProduct.Id.ToString());
 
             await InvalidateProductCache(addedProduct);
-
             return _mapper.Map<ProductDto>(addedProduct);
         }
 
@@ -243,10 +246,11 @@ namespace EcommerceAPI.Services.Product
 
             _mapper.Map(productUpdate, product);
             var updatedProduct = await _productRepository.UpdateProduct(product);
-            await _elasticProductService.IndexProduct(updatedProduct);
+
+            var elasticProduct = _mapper.Map<ProductElasticDto>(updatedProduct);
+            await _elasticGenericService.Index(elasticProduct, elasticProduct.Id.ToString());
 
             await InvalidateProductCache(product);
-
             return _mapper.Map<ProductDto>(product);
         }
 
@@ -271,7 +275,8 @@ namespace EcommerceAPI.Services.Product
             if (result)
             {
                 await InvalidateProductCache(product);
-                await _elasticProductService.RemoveProduct(productId);
+
+                await _elasticGenericService.Delete(product.Id.ToString());
             }
 
             return result;

@@ -58,6 +58,10 @@ namespace EcommerceAPI.Repositories
             var products = await query
                 .Skip((parameters.Page - 1) * parameters.PageSize)
                 .Take(parameters.PageSize)
+                .Include(p => p.Category)
+                .Include(p => p.User)
+                .Include(p => p.ProductTags)
+                    .ThenInclude(pt => pt.Tag)
                 .ToListAsync();
 
             return new PagedResult<ProductEntity>
@@ -78,6 +82,10 @@ namespace EcommerceAPI.Repositories
         {
             return await _context.Products
                 .Where(p => ids.Contains(p.Id))
+                .Include(p => p.Category)
+                .Include(p => p.User)
+                .Include(p => p.ProductTags)
+                    .ThenInclude(pt => pt.Tag)
                 .ToListAsync();
         }
 

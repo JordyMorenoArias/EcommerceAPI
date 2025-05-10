@@ -8,6 +8,8 @@ using EcommerceAPI.Models.DTOs.Order;
 using EcommerceAPI.Models.DTOs.OrderDetail;
 using EcommerceAPI.Models.DTOs.Payment;
 using EcommerceAPI.Models.DTOs.Product;
+using EcommerceAPI.Models.DTOs.ProductTags;
+using EcommerceAPI.Models.DTOs.Tag;
 using EcommerceAPI.Models.DTOs.User;
 using EcommerceAPI.Models.Entities;
 
@@ -29,6 +31,9 @@ namespace EcommerceAPI.AutoMapper
             CreateMap<ProductEntity, ProductAddDto>().ReverseMap();
             CreateMap<ProductEntity, ProductUpdateDto>().ReverseMap();
             CreateMap<ProductEntity, SearchParameters>().ReverseMap();
+            CreateMap<ProductEntity, ProductElasticDto>()
+                .ForMember(dest => dest.Tags, opt => opt.MapFrom(src =>
+                    src.ProductTags.Select(pt => pt.Tag)));
 
             // Cart to DTO assignments and reverse
             CreateMap<CartEntity, CartDto>().ReverseMap();
@@ -55,6 +60,12 @@ namespace EcommerceAPI.AutoMapper
             CreateMap<CategoryEntity, CategoryDto>().ReverseMap();
             CreateMap<CategoryEntity, CategoryAddDto>().ReverseMap();
             CreateMap<CategoryEntity, CategoryUpdateDto>().ReverseMap();
+
+            // Tag to DTO assignments and reverse
+            CreateMap<TagEntity, TagDto>().ReverseMap();
+
+            // ProductTag to DTO assignments and reverse
+            CreateMap<ProductTagEntity, ProductTagDto>().ReverseMap();
         }
     }
 }
