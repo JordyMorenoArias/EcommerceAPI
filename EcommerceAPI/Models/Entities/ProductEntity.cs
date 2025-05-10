@@ -40,5 +40,7 @@ namespace EcommerceAPI.Models
         [Required, ForeignKey("User")]
         public int? UserId { get; set; }
         public UserEntity User { get; set; } = null!;
+
+        public ICollection<ProductTagEntity> ProductTags { get; set; } = new List<ProductTagEntity>();
     }
 }
