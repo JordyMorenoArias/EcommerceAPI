@@ -41,7 +41,7 @@ namespace EcommerceAPI.Services.Product.Interfaces
         /// <param name="role">The role of the user (e.g., Admin, Seller, Client).</param>
         /// <param name="parameters">The query parameters to filter and paginate the product results.</param>
         /// <returns>A <see cref="PagedResult{ProductDto}"/> containing the list of products based on the query.</returns>
-        Task<PagedResult<ProductDto>> GetProducts(int userId, UserRole role, ProductQueryParameters parameters);
+        Task<PagedResult<ProductDto>> GetProducts(int userId, UserRole role, QueryProductParameters parameters);
 
         /// <summary>
         /// Updates an existing product.
@@ -69,7 +69,7 @@ namespace EcommerceAPI.Services.Product.Interfaces
         /// or
         /// Sellers can only view active products of other sellers.
         /// </exception>
-        Task<PagedResult<ProductDto>> SearchProducts(UserRole role, SearchParameters searchParameters);
+        Task<PagedResult<ProductDto>> SearchProducts(UserRole role, SearchProductParameters searchParameters);
 
         /// <summary>
         /// Gets the suggestions.

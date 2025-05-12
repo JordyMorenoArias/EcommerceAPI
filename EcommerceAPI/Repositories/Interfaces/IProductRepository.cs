@@ -36,7 +36,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="parameters">The query parameters used to filter and paginate the products.</param>
         /// <returns>A paginated result of product entities.</returns>
-        Task<PagedResult<ProductEntity>> GetProducts(ProductQueryParameters parameters);
+        Task<PagedResult<ProductEntity>> GetProducts(QueryProductParameters parameters);
 
         /// <summary>
         /// Gets the products by ids.

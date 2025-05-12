@@ -41,7 +41,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="parameters">The filtering and pagination parameters.</param>
         /// <returns>A task representing the asynchronous operation. The task result contains a paged result of products.</returns>
-        public async Task<PagedResult<ProductEntity>> GetProducts(ProductQueryParameters parameters)
+        public async Task<PagedResult<ProductEntity>> GetProducts(QueryProductParameters parameters)
         {
             var query = _context.Products.AsQueryable();
 

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EcommerceAPI.Models.DTOs.Product
 {
-    public class ProductQueryParameters
+    public class QueryProductParameters
     {
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 10;

@@ -30,7 +30,7 @@ namespace EcommerceAPI.AutoMapper
             CreateMap<ProductEntity, ProductDto>().ReverseMap();
             CreateMap<ProductEntity, ProductAddDto>().ReverseMap();
             CreateMap<ProductEntity, ProductUpdateDto>().ReverseMap();
-            CreateMap<ProductEntity, SearchParameters>().ReverseMap();
+            CreateMap<ProductEntity, SearchProductParameters>().ReverseMap();
             CreateMap<ProductEntity, ProductElasticDto>()
                 .ForMember(dest => dest.Tags, opt => opt.MapFrom(src =>
                     src.ProductTags.Select(pt => pt.Tag)));

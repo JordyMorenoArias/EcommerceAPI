@@ -38,6 +38,9 @@ using EcommerceAPI.Services.ElasticService.Interfaces;
 using EcommerceAPI.Services.ElasticProductService;
 using EcommerceAPI.Services.Category.Interfaces;
 using EcommerceAPI.Services.Category;
+using EcommerceAPI.Services.ElasticService;
+using EcommerceAPI.Models.DTOs.Product;
+using EcommerceAPI.Models.DTOs.Tag;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -111,6 +114,18 @@ builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IPaymentGatewayService, MockPaymentGatewayService>();
 builder.Services.AddScoped<IElasticProductService, ElasticProductService>();
+
+builder.Services.AddSingleton<IElasticGenericService<ProductElasticDto>>(sp =>
+    new ElasticGenericService<ProductElasticDto>(
+        sp.GetRequiredService<ElasticsearchClient>(),
+        "products"
+    ));
+
+builder.Services.AddSingleton<IElasticGenericService<TagDto>>(sp =>
+    new ElasticGenericService<TagDto>(
+        sp.GetRequiredService<ElasticsearchClient>(),
+        "tags"
+    ));
 
 var jwtKey = builder.Configuration["Jwt:Key"];
 

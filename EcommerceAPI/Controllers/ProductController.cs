@@ -55,7 +55,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="parameters">The parameters.</param>
         /// <returns>A list of products that match the given search parameters and user role.</returns>
         [HttpGet("search")]
-        public async Task<IActionResult> SearchProducts([FromQuery] SearchParameters parameters)
+        public async Task<IActionResult> SearchProducts([FromQuery] SearchProductParameters parameters)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
             var products = await _productService.SearchProducts(userAuthenticated.Role, parameters);
@@ -69,7 +69,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="parameters">The parameters.</param>
         /// <returns>Returns an HTTP 200 OK response containing a paged result of <see cref="ProductDto"/> items.</returns>
         [HttpGet]
-        public async Task<IActionResult> GetProducts([FromQuery] ProductQueryParameters parameters)
+        public async Task<IActionResult> GetProducts([FromQuery] QueryProductParameters parameters)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
             var products = await _productService.GetProducts(userAuthenticated.Id, userAuthenticated.Role, parameters);

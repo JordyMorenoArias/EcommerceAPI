@@ -90,7 +90,7 @@ namespace EcommerceAPI.Services.Product
         /// or
         /// Sellers can only view active products of other sellers.
         /// </exception>
-        public async Task<PagedResult<ProductDto>> SearchProducts(UserRole role, SearchParameters parameters)
+        public async Task<PagedResult<ProductDto>> SearchProducts(UserRole role, SearchProductParameters parameters)
         {
             if (string.IsNullOrWhiteSpace(parameters.SearchTerm))
                 throw new ArgumentException("Search term cannot be null or empty.", nameof(parameters.SearchTerm));
@@ -149,7 +149,7 @@ namespace EcommerceAPI.Services.Product
         /// </returns>
         /// <exception cref="System.ArgumentException">Page and PageSize must be greater than 0.</exception>
         /// <exception cref="System.ArgumentOutOfRangeException">role - null</exception>
-        public async Task<PagedResult<ProductDto>> GetProducts(int userId, UserRole role, ProductQueryParameters parameters)
+        public async Task<PagedResult<ProductDto>> GetProducts(int userId, UserRole role, QueryProductParameters parameters)
         {
             if (parameters.Page <= 0 || parameters.PageSize <= 0)
                 throw new ArgumentException("Page and PageSize must be greater than 0.");

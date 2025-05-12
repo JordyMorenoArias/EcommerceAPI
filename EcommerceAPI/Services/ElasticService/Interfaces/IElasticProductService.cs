@@ -22,6 +22,6 @@ namespace EcommerceAPI.Services.ElasticService.Interfaces
         /// </summary>
         /// <param name="searchDto">The search parameters including filters and pagination.</param>
         /// <returns>A paged result containing the IDs of products that match the search criteria.</returns>
-        Task<PagedResult<int>> SearchProducts(SearchParameters searchDto);
+        Task<PagedResult<int>> SearchProducts(SearchProductParameters searchDto);
     }
 }

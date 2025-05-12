@@ -5,6 +5,7 @@ using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Services.ElasticService.Interfaces;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Core.Bulk;
+using Elastic.Clients.Elasticsearch.QueryDsl;
 
 namespace EcommerceAPI.Services.ElasticProductService
 {
@@ -72,7 +73,7 @@ namespace EcommerceAPI.Services.ElasticProductService
         /// <param name="parameters">The parameters.</param>
         /// <returns>A paged result containing the IDs of products that match the search criteria.</returns>
         /// <exception cref="System.InvalidOperationException">Failed to search products: {response.ElasticsearchServerError}</exception>
-        public async Task<PagedResult<int>> SearchProducts(SearchParameters parameters)
+        public async Task<PagedResult<int>> SearchProducts(SearchProductParameters parameters)
         {
 
             int from = (parameters.Page - 1) * parameters.PageSize;
@@ -81,13 +82,14 @@ namespace EcommerceAPI.Services.ElasticProductService
                 .Indices(_indexName)
                 .From(from)
                 .Size(parameters.PageSize)
-                .Query(q =>
-                    q.Bool(b =>
+                .Query(q => q
+                    .Bool(b =>
                     {
                         b.Must(m => m
                             .MultiMatch(mm => mm
                                 .Query(parameters.SearchTerm)
                                 .Fields(new[] { "name", "description" })
+                                .Type(TextQueryType.BestFields) // BestFields or MostFields
                                 .Fuzziness("AUTO")
                                 .MinimumShouldMatch("75%")
                             )
@@ -96,6 +98,7 @@ namespace EcommerceAPI.Services.ElasticProductService
                             .MultiMatch(mm => mm
                                 .Query(parameters.SearchTerm)
                                 .Fields(new[] { "tags.name", "tags.description" })
+                                .Type(TextQueryType.BestFields)
                                 .Fuzziness("AUTO")
                                 .MinimumShouldMatch("75%")
                             )
