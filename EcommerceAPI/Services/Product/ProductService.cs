@@ -92,8 +92,16 @@ namespace EcommerceAPI.Services.Product
         /// </exception>
         public async Task<PagedResult<ProductDto>> SearchProducts(UserRole role, SearchProductParameters parameters)
         {
-            if (string.IsNullOrWhiteSpace(parameters.SearchTerm))
-                throw new ArgumentException("Search term cannot be null or empty.", nameof(parameters.SearchTerm));
+            if (string.IsNullOrEmpty(parameters.SearchTerm))
+            {
+                return new PagedResult<ProductDto>
+                {
+                    Items = Enumerable.Empty<ProductDto>(),
+                    TotalItems = 0,
+                    Page = parameters.Page,
+                    PageSize = parameters.PageSize
+                };
+            }
 
             if (parameters.MinPrice > parameters.MaxPrice)
                 throw new ArgumentException("MinPrice cannot be greater than MaxPrice.");
@@ -110,6 +118,7 @@ namespace EcommerceAPI.Services.Product
             {
                 if (parameters.IsActive != null && parameters.IsActive != true)
                     throw new InvalidOperationException("Sellers can only view active products of other sellers.");
+
                 parameters.IsActive = true;
             }
 
@@ -200,11 +209,10 @@ namespace EcommerceAPI.Services.Product
                 return cachedProducts;
 
             var products = await _productRepository.GetProducts(parameters);
+            var productsDtos = _mapper.Map<PagedResult<ProductDto>>(products);
 
-            var productDtos = _mapper.Map<PagedResult<ProductDto>>(products);
-
-            await _cacheService.Set(cacheKey, productDtos, TimeSpan.FromMinutes(5));
-            return productDtos;
+            await _cacheService.Set(cacheKey, productsDtos, TimeSpan.FromMinutes(5));
+            return productsDtos;
         }
 
         /// <summary>
@@ -223,7 +231,6 @@ namespace EcommerceAPI.Services.Product
             var elasticProduct = _mapper.Map<ProductElasticDto>(addedProduct);
             await _elasticGenericService.Index(elasticProduct, elasticProduct.Id.ToString());
 
-            await InvalidateProductCache(addedProduct);
             return _mapper.Map<ProductDto>(addedProduct);
         }
 

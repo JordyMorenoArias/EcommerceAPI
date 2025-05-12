@@ -1,9 +1,8 @@
-﻿using EcommerceAPI.Models.Entities;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace EcommerceAPI.Models.DTOs.Tag
 {
-    public class TagDto
+    public class TagUpdateDto
     {
         [Required]
         public int Id { get; set; }

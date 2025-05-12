@@ -1,5 +1,6 @@
 ﻿using EcommerceAPI.Data;
 using EcommerceAPI.Models.DTOs;
+using EcommerceAPI.Models.DTOs.Tag;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -39,21 +40,21 @@ namespace EcommerceAPI.Repositories
         /// <param name="page">The page.</param>
         /// <param name="pageSize">Size of the page.</param>
         /// <returns>A Task that represents the asynchronous operation. The task result contains a PagedResult of TagEntity with pagination information.</returns>
-        public async Task<PagedResult<TagEntity>> GetTags(int page, int pageSize)
+        public async Task<PagedResult<TagEntity>> GetTags(GetTagParameters parameters)
         {
             var totalItems = await _context.Tags.CountAsync();
 
             var tags = await _context.Tags
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
+                .Skip((parameters.Page - 1) * parameters.PageSize)
+                .Take(parameters.PageSize)
                 .ToListAsync();
 
             return new PagedResult<TagEntity>
             {
                 Items = tags,
                 TotalItems = totalItems,
-                Page = page,
-                PageSize = pageSize
+                Page = parameters.Page,
+                PageSize = parameters.PageSize
             };
         }
 

@@ -1,4 +1,5 @@
 ﻿using EcommerceAPI.Models.DTOs;
+using EcommerceAPI.Models.DTOs.Tag;
 using EcommerceAPI.Models.Entities;
 
 namespace EcommerceAPI.Repositories.Interfaces
@@ -32,10 +33,9 @@ namespace EcommerceAPI.Repositories.Interfaces
         /// <summary>
         /// Gets the tags.
         /// </summary>
-        /// <param name="page">The page.</param>
-        /// <param name="pageSize">Size of the page.</param>
+        /// <param name="parameters">The parameters.</param>
         /// <returns>A Task that represents the asynchronous operation. The task result contains a PagedResult of TagEntity with pagination information.</returns>
-        Task<PagedResult<TagEntity>> GetTags(int page, int pageSize);
+        Task<PagedResult<TagEntity>> GetTags(GetTagParameters parameters);
 
         /// <summary>
         /// Updates the tag.
