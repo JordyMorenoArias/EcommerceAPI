@@ -23,6 +23,13 @@ namespace EcommerceAPI.Services.Tag
         Task<bool> DeleteTag(int id);
 
         /// <summary>
+        /// Filters the existing tags.
+        /// </summary>
+        /// <param name="tagIds">The tag ids.</param>
+        /// <returns>A filtered enumerable containing only the tag IDs that exist in the system.</returns>
+        Task<IEnumerable<int>> FilterExistingTags(IEnumerable<int> tagIds);
+
+        /// <summary>
         /// Gets the tag by identifier.
         /// </summary>
         /// <param name="id">The identifier.</param>

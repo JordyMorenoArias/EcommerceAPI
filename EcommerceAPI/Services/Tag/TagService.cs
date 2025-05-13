@@ -62,6 +62,17 @@ namespace EcommerceAPI.Services.Tag
         }
 
         /// <summary>
+        /// Filters the existing tags.
+        /// </summary>
+        /// <param name="tagIds">The tag ids.</param>
+        /// <returns>A filtered enumerable containing only the tag IDs that exist in the system.</returns>
+        public async Task<IEnumerable<int>> FilterExistingTags(IEnumerable<int> tagIds)
+        {
+            var existingTags = await _tagRepository.FilterExistingTags(tagIds);
+            return existingTags;
+        }
+
+        /// <summary>
         /// Searches the tags.
         /// </summary>
         /// <param name="parameters">The parameters.</param>
