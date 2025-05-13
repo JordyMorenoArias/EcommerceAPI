@@ -8,6 +8,7 @@ using EcommerceAPI.Models.DTOs.Order;
 using EcommerceAPI.Models.DTOs.OrderDetail;
 using EcommerceAPI.Models.DTOs.Payment;
 using EcommerceAPI.Models.DTOs.Product;
+using EcommerceAPI.Models.DTOs.ProductTag;
 using EcommerceAPI.Models.DTOs.ProductTags;
 using EcommerceAPI.Models.DTOs.Tag;
 using EcommerceAPI.Models.DTOs.User;
@@ -66,6 +67,10 @@ namespace EcommerceAPI.AutoMapper
 
             // ProductTag to DTO assignments and reverse
             CreateMap<ProductTagEntity, ProductTagDto>().ReverseMap();
+
+            // ProductTagAdd to DTO assignments and reverse
+            CreateMap<ProductTagEntity, ProductTagDto>().ReverseMap();
+            CreateMap<ProductTagEntity, ProductTagAddDto>().ReverseMap();      
         }
     }
 }
