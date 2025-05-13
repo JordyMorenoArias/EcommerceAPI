@@ -24,15 +24,28 @@ namespace EcommerceAPI.Repositories
         }
 
         /// <summary>
+        /// Retrieves all tag IDs associated with the specified product.
+        /// </summary>
+        /// <param name="productId">The ID of the product to query for tags.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains an enumerable of tag IDs associated with the product.</returns>
+        public async Task<IEnumerable<int>> GetTagIdsForProduct(int productId)
+        {
+            return await _context.ProductTags
+                .Where(pt => pt.ProductId == productId)
+                .Select(pt => pt.TagId)
+                .ToListAsync();
+        }
+
+        /// <summary>
         /// Adds the product tag.
         /// </summary>
-        /// <param name="productTagEntity">The product tag entity.</param>
+        /// <param name="entity">The product tag entity.</param>
         /// <returns>The added product tag entity.</returns>
-        public async Task<ProductTagEntity> AddProductTag(ProductTagEntity productTagEntity)
+        public async Task<ProductTagEntity> AddProductTag(ProductTagEntity entity)
         {
-            await _context.ProductTags.AddAsync(productTagEntity);
+            await _context.ProductTags.AddAsync(entity);
             await _context.SaveChangesAsync();
-            return productTagEntity;
+            return entity;
         }
 
         /// <summary>
@@ -65,30 +78,15 @@ namespace EcommerceAPI.Repositories
         }
 
         /// <summary>
-        /// Adds the tags product.
+        /// Adds the range product tag.
         /// </summary>
-        /// <param name="productTagsAddDto">The product tags add dto.</param>
-        public async Task AddTagsProduct(ProductTagsAddDto productTagsAddDto)
+        /// <param name="entities">The entities.</param>
+        /// <returns>The input entities with all database-generated values updated, in the same order as provided.</returns>
+        public async Task<IEnumerable<ProductTagEntity>> AddRangeProductTag(IEnumerable<ProductTagEntity> entities)
         {
-            var existingTags = await _context.ProductTags
-                .Where(pt => pt.ProductId == productTagsAddDto.ProductId)
-                .Select(pt => pt.TagId)
-                .ToListAsync();
-
-            var newTags = productTagsAddDto.TagIds.Except(existingTags).ToList();
-
-            foreach (var tagId in newTags)
-            {
-                var productTag = new ProductTagEntity
-                {
-                    ProductId = productTagsAddDto.ProductId,
-                    TagId = tagId
-                };
-
-                await _context.ProductTags.AddAsync(productTag);
-            }
-
+            await _context.ProductTags.AddRangeAsync(entities);
             await _context.SaveChangesAsync();
+            return entities;
         }
 
         /// <summary>

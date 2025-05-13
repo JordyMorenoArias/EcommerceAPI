@@ -13,10 +13,21 @@ namespace EcommerceAPI.Repositories.Interfaces
         Task<ProductTagEntity> AddProductTag(ProductTagEntity productTagEntity);
 
         /// <summary>
-        /// Adds the tags product.
+        /// Adds the range product tag.
         /// </summary>
-        /// <param name="productTagsAddDto">The product tags add dto.</param>
-        Task AddTagsProduct(ProductTagsAddDto productTagsAddDto);
+        /// <param name="entities">The entities.</param>
+        /// <returns>The input entities with all database-generated values updated, in the same order as provided.</returns>
+        Task<IEnumerable<ProductTagEntity>> AddRangeProductTag(IEnumerable<ProductTagEntity> entities);
+
+
+        /// <summary>
+        /// Retrieves all tag IDs associated with the specified product.
+        /// </summary>
+        /// <param name="productId">The ID of the product to query for tags.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains an enumerable of tag IDs associated with the product.
+        /// </returns>
+        Task<IEnumerable<int>> GetTagIdsForProduct(int productId);
 
         /// <summary>
         /// Products the has tag.
