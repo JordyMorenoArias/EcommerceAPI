@@ -42,6 +42,8 @@ using EcommerceAPI.Services.ElasticService;
 using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Models.DTOs.Tag;
 using EcommerceAPI.Services.Tag;
+using EcommerceAPI.Services.ProductTag.Interfaces;
+using EcommerceAPI.Services.ProductTag;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -109,6 +111,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ITagService, TagService>();
+builder.Services.AddScoped<IProductTagService, ProductTagService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<ICartItemService, CartItemService>();

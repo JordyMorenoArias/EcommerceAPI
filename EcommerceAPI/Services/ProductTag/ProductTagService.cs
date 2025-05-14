@@ -10,6 +10,10 @@ using Elastic.Clients.Elasticsearch.Security;
 
 namespace EcommerceAPI.Services.ProductTag
 {
+    /// <summary>
+    /// Service for managing product tags.
+    /// </summary>
+    /// <seealso cref="EcommerceAPI.Services.ProductTag.Interfaces.IProductTagService" />
     public class ProductTagService : IProductTagService
     {
         private readonly IProductTagRepository _productTagRepository;
@@ -17,6 +21,13 @@ namespace EcommerceAPI.Services.ProductTag
         private readonly ITagService _tagService;
         private readonly IMapper _mapper;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProductTagService"/> class.
+        /// </summary>
+        /// <param name="productTagRepository">The product tag repository.</param>
+        /// <param name="productService">The product service.</param>
+        /// <param name="tagService">The tag service.</param>
+        /// <param name="mapper">The mapper.</param>
         public ProductTagService(IProductTagRepository productTagRepository, IProductService productService, ITagService tagService,IMapper mapper)
         {
             _productTagRepository = productTagRepository;
@@ -30,7 +41,7 @@ namespace EcommerceAPI.Services.ProductTag
         /// </summary>
         /// <param name="userId">The user identifier.</param>
         /// <param name="productTagAdd">The product tag add.</param>
-        /// <returns></returns>
+        /// <returns>The assigned <see cref="ProductTagDto"/>.</returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">
         /// Product not found
         /// or
@@ -79,7 +90,7 @@ namespace EcommerceAPI.Services.ProductTag
         /// <param name="userId">The user identifier.</param>
         /// <param name="productId">The product identifier.</param>
         /// <param name="tagId">The tag identifier.</param>
-        /// <returns></returns>
+        /// <returns><c>true</c> if the tag was successfully removed; otherwise, <c>false</c>.</returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">
         /// Product not found
         /// or
@@ -111,17 +122,17 @@ namespace EcommerceAPI.Services.ProductTag
         }
 
         /// <summary>
-        /// Tries the assign tags to product.
+        /// Tries to assign multiple tags to the product.
+        /// Only valid and non-duplicate tags are added, up to a maximum of 10 tags per product.
         /// </summary>
         /// <param name="userId">The user identifier.</param>
-        /// <param name="productId">The product identifier.</param>
-        /// <param name="tagIds">The tag ids.</param>
-        /// <returns></returns>
+        /// <param name="assignTags">The assign tags DTO containing the product ID and tag IDs.</param>
+        /// <returns>A collection of <see cref="ProductTagDto"/> representing the tags that were successfully assigned.</returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Product not found</exception>
         /// <exception cref="System.UnauthorizedAccessException">You are not the owner of this product</exception>
-        public async Task<IEnumerable<ProductTagDto>> TryAssignTagsToProduct(int userId, int productId, IEnumerable<int> tagIds)
+        public async Task<IEnumerable<ProductTagDto>> TryAssignTagsToProduct(int userId, AssignTagsDto assignTags)
         {
-            var product = await _productService.GetProductById(productId);
+            var product = await _productService.GetProductById(assignTags.ProductId);
 
             if (product == null)
                 throw new KeyNotFoundException("Product not found");
@@ -129,8 +140,8 @@ namespace EcommerceAPI.Services.ProductTag
             if (product.UserId != userId)
                 throw new UnauthorizedAccessException("You are not the owner of this product");
 
-            var validTags = await _tagService.FilterExistingTags(tagIds);
-            var existingTags = await _productTagRepository.GetTagIdsForProduct(productId);
+            var validTags = await _tagService.FilterExistingTags(assignTags.TagIds);
+            var existingTags = await _productTagRepository.GetTagIdsForProduct(assignTags.ProductId);
             var newTags = validTags.Except(existingTags).ToList();
 
             if (!newTags.Any())
@@ -141,7 +152,7 @@ namespace EcommerceAPI.Services.ProductTag
 
             var productTags = await _productTagRepository.AddRangeProductTag(newTags.Select(tagId => new ProductTagEntity
             {
-                ProductId = productId,
+                ProductId = assignTags.ProductId,
                 TagId = tagId
             }));
 
@@ -149,10 +160,11 @@ namespace EcommerceAPI.Services.ProductTag
         }
 
         /// <summary>
-        /// Removes the tags from product.
+        /// Removes all tags from the specified product.
         /// </summary>
         /// <param name="userId">The user identifier.</param>
         /// <param name="productId">The product identifier.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Product not found</exception>
         /// <exception cref="System.UnauthorizedAccessException">You are not the owner of this product</exception>
         public async Task RemoveTagsFromProduct(int userId, int productId)
