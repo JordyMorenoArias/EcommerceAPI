@@ -31,10 +31,35 @@ namespace EcommerceAPI.Controllers
         /// <param name="id">The ID of the product.</param>
         /// <returns>The product details.</returns>
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetProductById(int id)
+        public async Task<IActionResult> GetProductById([FromRoute] int id)
         {
             var product = await _productService.GetProductById(id);
             return Ok(product);
+        }
+
+        /// <summary>
+        /// Gets the suggestions products.
+        /// </summary>
+        /// <param name="query">The query.</param>
+        /// <returns>A list of suggested products that match the query.</returns>
+        [HttpGet("suggestions")]
+        public async Task<IActionResult> GetSuggestionsProducts([FromQuery] string query)
+        {
+            var suggestions = await _productService.GetSuggestionsProducts(query);
+            return Ok(suggestions);
+        }
+
+        /// <summary>
+        /// Searches the products.
+        /// </summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns>A list of products that match the given search parameters and user role.</returns>
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchProducts([FromQuery] SearchProductParameters parameters)
+        {
+            var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
+            var products = await _productService.SearchProducts(userAuthenticated.Role, parameters);
+            return Ok(products);
         }
 
         /// <summary>
@@ -44,7 +69,7 @@ namespace EcommerceAPI.Controllers
         /// <param name="parameters">The parameters.</param>
         /// <returns>Returns an HTTP 200 OK response containing a paged result of <see cref="ProductDto"/> items.</returns>
         [HttpGet]
-        public async Task<IActionResult> GetProducts([FromQuery] ProductQueryParameters parameters)
+        public async Task<IActionResult> GetProducts([FromQuery] QueryProductParameters parameters)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
             var products = await _productService.GetProducts(userAuthenticated.Id, userAuthenticated.Role, parameters);
@@ -83,14 +108,14 @@ namespace EcommerceAPI.Controllers
         /// <summary>
         /// Deletes a product by its ID (Admin and Seller only).
         /// </summary>
-        /// <param name="productId">The ID of the product to delete.</param>
+        /// <param name="id">The ID of the product to delete.</param>
         /// <returns>No content if deleted, or not found/error message.</returns>
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [AuthorizeRole(UserRole.Admin, UserRole.Seller)]
-        public async Task<IActionResult> DeleteProduct(int productId)
+        public async Task<IActionResult> DeleteProduct([FromRoute] int id)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
-            var result = await _productService.DeleteProduct(userAuthenticated.Id, userAuthenticated.Role, productId);
+            var result = await _productService.DeleteProduct(userAuthenticated.Id, userAuthenticated.Role, id);
 
             if (result)
                 return NoContent();

@@ -17,8 +17,9 @@ namespace EcommerceAPI.Models
         [MaxLength(500)]
         public string? Description { get; set; }
 
-        [Required]
-        public CategoryProduct Category { get; set; }
+        [Required, ForeignKey("Category")]
+        public int? CategoryId { get; set; }
+        public CategoryEntity Category { get; set; } = null!;
 
         [Required, Column(TypeName = "decimal(18, 2)")]
         public decimal Price { get; set; } = 0;
@@ -39,5 +40,7 @@ namespace EcommerceAPI.Models
         [Required, ForeignKey("User")]
         public int? UserId { get; set; }
         public UserEntity User { get; set; } = null!;
+
+        public ICollection<ProductTagEntity> ProductTags { get; set; } = new List<ProductTagEntity>();
     }
 }

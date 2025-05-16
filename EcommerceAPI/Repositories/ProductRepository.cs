@@ -41,7 +41,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="parameters">The filtering and pagination parameters.</param>
         /// <returns>A task representing the asynchronous operation. The task result contains a paged result of products.</returns>
-        public async Task<PagedResult<ProductEntity>> GetProducts(ProductQueryParameters parameters)
+        public async Task<PagedResult<ProductEntity>> GetProducts(QueryProductParameters parameters)
         {
             var query = _context.Products.AsQueryable();
 
@@ -51,21 +51,17 @@ namespace EcommerceAPI.Repositories
             if (parameters.UserId.HasValue)
                 query = query.Where(p => p.UserId == parameters.UserId.Value);
 
-            if (parameters.Category.HasValue)
-                query = query.Where(p => p.Category == parameters.Category.Value);
-
-            if (!string.IsNullOrEmpty(parameters.SearchQuery))
-            {
-                var normalizedQuery = parameters.SearchQuery.ToLower();
-                query = query.Where(p =>
-                    (p.Name != null && p.Name.ToLower().Contains(normalizedQuery)) ||
-                    (p.Description != null && p.Description.ToLower().Contains(normalizedQuery)));
-            }
+            if (parameters.CategoryId.HasValue)
+                query = query.Where(p => p.CategoryId == parameters.CategoryId.Value);
 
             var totalItems = await query.CountAsync();
             var products = await query
                 .Skip((parameters.Page - 1) * parameters.PageSize)
                 .Take(parameters.PageSize)
+                .Include(p => p.Category)
+                .Include(p => p.User)
+                .Include(p => p.ProductTags)
+                    .ThenInclude(pt => pt.Tag)
                 .ToListAsync();
 
             return new PagedResult<ProductEntity>
@@ -75,6 +71,22 @@ namespace EcommerceAPI.Repositories
                 Page = parameters.Page,
                 PageSize = parameters.PageSize,
             };
+        }
+
+        /// <summary>
+        /// Gets the products by ids.
+        /// </summary>
+        /// <param name="ids">The collection of product IDs to retrieve.</param>
+        /// <returns>A collection of <see cref="ProductEntity"/> objects matching the provided IDs.</returns>
+        public async Task<IEnumerable<ProductEntity>> GetProductsByIds(IEnumerable<int> ids)
+        {
+            return await _context.Products
+                .Where(p => ids.Contains(p.Id))
+                .Include(p => p.Category)
+                .Include(p => p.User)
+                .Include(p => p.ProductTags)
+                    .ThenInclude(pt => pt.Tag)
+                .ToListAsync();
         }
 
         /// <summary>

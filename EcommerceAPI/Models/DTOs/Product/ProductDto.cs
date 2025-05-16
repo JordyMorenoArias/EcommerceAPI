@@ -1,8 +1,8 @@
-﻿using EcommerceAPI.Constants;
-using EcommerceAPI.Models.Entities;
+﻿using EcommerceAPI.Models.Entities;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using EcommerceAPI.Models.DTOs.User;
+using EcommerceAPI.Models.DTOs.ProductTags;
 
 namespace EcommerceAPI.Models.DTOs.Product
 {
@@ -17,7 +17,8 @@ namespace EcommerceAPI.Models.DTOs.Product
         public string? Description { get; set; }
 
         [Required]
-        public CategoryProduct Category { get; set; }
+        public int CategoryId { get; set; }
+        public CategoryEntity Category { get; set; } = null!;
 
         [Required, Column(TypeName = "decimal(18, 2)")]
         public decimal Price { get; set; } = 0;
@@ -36,5 +37,7 @@ namespace EcommerceAPI.Models.DTOs.Product
         [Required]
         public int? UserId { get; set; }
         public UserDto User { get; set; } = null!;
+
+        public ICollection<ProductTagDto> ProductTags { get; set; } = new List<ProductTagDto>();
     }
 }

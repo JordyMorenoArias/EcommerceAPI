@@ -33,6 +33,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Stripe;
 using System.Text;
+using Elastic.Clients.Elasticsearch;
+using EcommerceAPI.Services.ElasticService.Interfaces;
+using EcommerceAPI.Services.ElasticProductService;
+using EcommerceAPI.Services.Category.Interfaces;
+using EcommerceAPI.Services.Category;
+using EcommerceAPI.Services.ElasticService;
+using EcommerceAPI.Models.DTOs.Product;
+using EcommerceAPI.Models.DTOs.Tag;
+using EcommerceAPI.Services.Tag;
+using EcommerceAPI.Services.ProductTag.Interfaces;
+using EcommerceAPI.Services.ProductTag;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,8 +74,25 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.Configuration = builder.Configuration.GetConnectionString("RedisConnection");
 });
 
+builder.Services.AddSingleton(sp =>
+{
+    var elasticSearchUri = builder.Configuration["ElasticSearch:Uri"];
+
+    if (string.IsNullOrEmpty(elasticSearchUri))
+    {
+        throw new Exception("ElasticSearch:Uri is missing in appsettings.json");
+    }
+
+    var settings = new ElasticsearchClientSettings(new Uri(elasticSearchUri));
+    return new ElasticsearchClient(settings);
+});
+
+// Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<ITagRepository, TagRepository>();
+builder.Services.AddScoped<IProductTagRepository, ProductTagRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
@@ -72,17 +100,19 @@ builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 
-builder.Services.AddScoped<PasswordHasher<UserEntity>>();
-builder.Services.AddTransient<ITokenGenerator, TokenGenerator>();
-
+// Singleton and Infrastructure Services
 builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
-builder.Services.AddScoped<IOAuthProviderService, GoogleAuthService>();
-builder.Services.AddScoped<ICacheService, MemoryCacheService>();
+builder.Services.AddSingleton<IOAuthProviderService, GoogleAuthService>();
+builder.Services.AddSingleton<ICacheService, MemoryCacheService>();
 
+// Domain Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ITagService, TagService>();
+builder.Services.AddScoped<IProductTagService, ProductTagService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<ICartItemService, CartItemService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
@@ -90,7 +120,23 @@ builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
 builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IPaymentGatewayService, MockPaymentGatewayService>();
+builder.Services.AddScoped<IElasticProductService, ElasticProductService>();
+builder.Services.AddScoped<IElasticTagService, ElasticTagService>();
 
+// Elasticsearch Generic Services
+builder.Services.AddSingleton<IElasticGenericService<ProductElasticDto>>(sp =>
+    new ElasticGenericService<ProductElasticDto>(
+        sp.GetRequiredService<ElasticsearchClient>(),
+        "products"
+    ));
+
+builder.Services.AddSingleton<IElasticGenericService<TagDto>>(sp =>
+    new ElasticGenericService<TagDto>(
+        sp.GetRequiredService<ElasticsearchClient>(),
+        "tags"
+    ));
+
+//  JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"];
 
 if (string.IsNullOrEmpty(jwtKey))
@@ -127,6 +173,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     };
 });
 
+// Entity Framework Core Identity
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())

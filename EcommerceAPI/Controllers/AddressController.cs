@@ -36,9 +36,9 @@ namespace EcommerceAPI.Controllers
         /// <returns>
         /// An <see cref="IActionResult"/> containing the address if found, otherwise a not found result.
         /// </returns>
-        [HttpGet]
+        [HttpGet("{id}")]
         [AuthorizeRole(UserRole.Customer, UserRole.Admin, UserRole.Seller)]
-        public async Task<IActionResult> GetAddressById([FromQuery] int id)
+        public async Task<IActionResult> GetAddressById([FromRoute] int id)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
             var address = await _addressService.GetAddressById(userAuthenticated.Id, userAuthenticated.Role, id);
@@ -51,7 +51,7 @@ namespace EcommerceAPI.Controllers
         /// <returns>
         /// An <see cref="IActionResult"/> containing a list of the user's addresses.
         /// </returns>
-        [HttpGet("user")]
+        [HttpGet]
         [AuthorizeRole(UserRole.Customer)]
         public async Task<IActionResult> GetAddressesByUserId()
         {

@@ -4,6 +4,7 @@ using EcommerceAPI.Models;
 using EcommerceAPI.Models.DTOs;
 using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Repositories;
+using EcommerceAPI.Services.ElasticService.Interfaces;
 using EcommerceAPI.Services.Infrastructure.Interfaces;
 using EcommerceAPI.Services.Product.Interfaces;
 
@@ -16,12 +17,16 @@ namespace EcommerceAPI.Services.Product
     public class ProductService : IProductService
     {
         private readonly IProductRepository _productRepository;
+        private readonly IElasticProductService _elasticProductService;
+        private readonly IElasticGenericService<ProductElasticDto> _elasticGenericService;
         private readonly ICacheService _cacheService;
         private readonly IMapper _mapper;
 
-        public ProductService(IProductRepository productRepository, ICacheService cacheService, IMapper mapper)
+        public ProductService(IProductRepository productRepository, IElasticProductService elasticProductService, IElasticGenericService<ProductElasticDto> elasticGenericService, ICacheService cacheService, IMapper mapper)
         {
             _productRepository = productRepository;
+            _elasticProductService = elasticProductService;
+            _elasticGenericService = elasticGenericService;
             _cacheService = cacheService;
             _mapper = mapper;
         }
@@ -53,6 +58,95 @@ namespace EcommerceAPI.Services.Product
         }
 
         /// <summary>
+        /// Gets the suggestions.
+        /// </summary>
+        /// <param name="query">The query.</param>
+        /// <returns>A collection of suggested product names that match the query.</returns>
+        /// <exception cref="System.ArgumentException">Query cannot be null or empty. - query</exception>
+        public async Task<IEnumerable<string>> GetSuggestionsProducts(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+                throw new ArgumentException("Query cannot be null or empty.", nameof(query));
+
+            var response = await _elasticProductService.GetSuggestionsProducts(query);
+            return response;
+        }
+
+        /// <summary>
+        /// Searches the products.
+        /// </summary>
+        /// <param name="role">The role.</param>
+        /// <param name="parameters">The search parameters.</param>
+        /// <returns>
+        /// A paginated result containing a list of <see cref="ProductDto"/> objects that match the search criteria.
+        /// </returns>
+        /// <exception cref="System.ArgumentException">
+        /// Search term cannot be null or empty. - SearchTerm
+        /// or
+        /// Page and PageSize must be greater than 0.
+        /// </exception>
+        /// <exception cref="System.InvalidOperationException">
+        /// Customers can only view active products.
+        /// or
+        /// Sellers can only view active products of other sellers.
+        /// </exception>
+        public async Task<PagedResult<ProductDto>> SearchProducts(UserRole role, SearchProductParameters parameters)
+        {
+            if (string.IsNullOrEmpty(parameters.SearchTerm))
+            {
+                return new PagedResult<ProductDto>
+                {
+                    Items = Enumerable.Empty<ProductDto>(),
+                    TotalItems = 0,
+                    Page = parameters.Page,
+                    PageSize = parameters.PageSize
+                };
+            }
+
+            if (parameters.MinPrice > parameters.MaxPrice)
+                throw new ArgumentException("MinPrice cannot be greater than MaxPrice.");
+
+            if (parameters.Page <= 0 || parameters.PageSize <= 0)
+                throw new ArgumentException("Page and PageSize must be greater than 0.");
+
+            if (role == UserRole.Customer)
+            {
+                if (parameters.IsActive != null && parameters.IsActive != true)
+                    throw new InvalidOperationException("Customers can only view active products.");
+            }
+            else if (role == UserRole.Seller)
+            {
+                if (parameters.IsActive != null && parameters.IsActive != true)
+                    throw new InvalidOperationException("Sellers can only view active products of other sellers.");
+
+                parameters.IsActive = true;
+            }
+
+            var productIds = await _elasticProductService.SearchProducts(parameters);
+
+            if (!productIds.Items.Any())
+            {
+                return new PagedResult<ProductDto>
+                {
+                    Items = Enumerable.Empty<ProductDto>(),
+                    TotalItems = 0,
+                    Page = parameters.Page,
+                    PageSize = parameters.PageSize
+                };
+            }
+
+            var products = await _productRepository.GetProductsByIds(productIds.Items);
+
+            return new PagedResult<ProductDto>
+            {
+                Items = _mapper.Map<IEnumerable<ProductDto>>(products),
+                TotalItems = productIds.TotalItems,
+                Page = productIds.Page,
+                PageSize = productIds.PageSize
+            };
+        }
+
+        /// <summary>
         /// Gets the products.
         /// </summary>
         /// <param name="userId">The user identifier.</param>
@@ -64,7 +158,7 @@ namespace EcommerceAPI.Services.Product
         /// </returns>
         /// <exception cref="System.ArgumentException">Page and PageSize must be greater than 0.</exception>
         /// <exception cref="System.ArgumentOutOfRangeException">role - null</exception>
-        public async Task<PagedResult<ProductDto>> GetProducts(int userId, UserRole role, ProductQueryParameters parameters)
+        public async Task<PagedResult<ProductDto>> GetProducts(int userId, UserRole role, QueryProductParameters parameters)
         {
             if (parameters.Page <= 0 || parameters.PageSize <= 0)
                 throw new ArgumentException("Page and PageSize must be greater than 0.");
@@ -72,17 +166,23 @@ namespace EcommerceAPI.Services.Product
             switch (role)
             {
                 case UserRole.Customer:
+                    if (parameters.IsActive != null && parameters.IsActive != true)
+                        throw new InvalidOperationException("Customers can only view active products.");
                     parameters.IsActive = true;
                     break;
 
                 case UserRole.Seller:
                     if (!parameters.UserId.HasValue || parameters.UserId != userId)
                     {
+                        if (parameters.IsActive != null && parameters.IsActive != true)
+                            throw new InvalidOperationException("Sellers can only view active products of other sellers.");
                         parameters.IsActive = true;
                     }
+                    // else: seller viewing their own products; allow active and inactive
                     break;
 
                 case UserRole.Admin:
+                    // Admin has full access; no restrictions
                     break;
 
                 default:
@@ -97,8 +197,8 @@ namespace EcommerceAPI.Services.Product
                 ? parameters.IsActive.Value.ToString() 
                 : "all";
 
-            var categoryPart = parameters.Category.HasValue
-                ? parameters.Category.Value.ToString()
+            var categoryPart = parameters.CategoryId.HasValue
+                ? parameters.CategoryId.Value.ToString()
                 : "all_categories";
 
             var cacheKey = $"Products_{categoryPart}_{userIdPart}_Page_{parameters.Page}_PageSize_{parameters.PageSize}_IsActive_{isActivePart}";
@@ -109,11 +209,10 @@ namespace EcommerceAPI.Services.Product
                 return cachedProducts;
 
             var products = await _productRepository.GetProducts(parameters);
+            var productsDtos = _mapper.Map<PagedResult<ProductDto>>(products);
 
-            var productDtos = _mapper.Map<PagedResult<ProductDto>>(products);
-
-            await _cacheService.Set(cacheKey, productDtos, TimeSpan.FromMinutes(5));
-            return productDtos;
+            await _cacheService.Set(cacheKey, productsDtos, TimeSpan.FromMinutes(5));
+            return productsDtos;
         }
 
         /// <summary>
@@ -129,7 +228,8 @@ namespace EcommerceAPI.Services.Product
 
             var addedProduct = await _productRepository.AddProduct(product);
 
-            await InvalidateProductCache(addedProduct);
+            var elasticProduct = _mapper.Map<ProductElasticDto>(addedProduct);
+            await _elasticGenericService.Index(elasticProduct, elasticProduct.Id.ToString());
 
             return _mapper.Map<ProductDto>(addedProduct);
         }
@@ -152,10 +252,12 @@ namespace EcommerceAPI.Services.Product
                 throw new InvalidOperationException("You are not authorized to update this product.");
 
             _mapper.Map(productUpdate, product);
-            product = await _productRepository.UpdateProduct(product);
-            
-            await InvalidateProductCache(product);
+            var updatedProduct = await _productRepository.UpdateProduct(product);
 
+            var elasticProduct = _mapper.Map<ProductElasticDto>(updatedProduct);
+            await _elasticGenericService.Index(elasticProduct, elasticProduct.Id.ToString());
+
+            await InvalidateProductCache(product);
             return _mapper.Map<ProductDto>(product);
         }
 
@@ -178,7 +280,11 @@ namespace EcommerceAPI.Services.Product
             var result = await _productRepository.DeleteProduct(productId);
 
             if (result)
+            {
                 await InvalidateProductCache(product);
+
+                await _elasticGenericService.Delete(product.Id.ToString());
+            }
 
             return result;
         }

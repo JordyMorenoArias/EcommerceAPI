@@ -41,7 +41,7 @@ namespace EcommerceAPI.Services.Product.Interfaces
         /// <param name="role">The role of the user (e.g., Admin, Seller, Client).</param>
         /// <param name="parameters">The query parameters to filter and paginate the product results.</param>
         /// <returns>A <see cref="PagedResult{ProductDto}"/> containing the list of products based on the query.</returns>
-        Task<PagedResult<ProductDto>> GetProducts(int userId, UserRole role, ProductQueryParameters parameters);
+        Task<PagedResult<ProductDto>> GetProducts(int userId, UserRole role, QueryProductParameters parameters);
 
         /// <summary>
         /// Updates an existing product.
@@ -50,5 +50,33 @@ namespace EcommerceAPI.Services.Product.Interfaces
         /// <param name="productUpdate">The updated product data.</param>
         /// <returns>A <see cref="ProductDto"/> representing the updated product, or <c>null</c> if not found.</returns>
         Task<ProductDto?> UpdateProduct(int userId, ProductUpdateDto productUpdate);
+
+        /// <summary>
+        /// Searches the products.
+        /// </summary>
+        /// <param name="role">The role.</param>
+        /// <param name="parameters">The search parameters.</param>
+        /// <returns>
+        /// A paginated result containing a list of <see cref="ProductDto"/> objects that match the search criteria.
+        /// </returns>
+        /// <exception cref="System.ArgumentException">
+        /// Search term cannot be null or empty. - SearchTerm
+        /// or
+        /// Page and PageSize must be greater than 0.
+        /// </exception>
+        /// <exception cref="System.InvalidOperationException">
+        /// Customers can only view active products.
+        /// or
+        /// Sellers can only view active products of other sellers.
+        /// </exception>
+        Task<PagedResult<ProductDto>> SearchProducts(UserRole role, SearchProductParameters searchParameters);
+
+        /// <summary>
+        /// Gets the suggestions.
+        /// </summary>
+        /// <param name="query">The query.</param>
+        /// <returns>A collection of suggested product names that match the query.</returns>
+        /// <exception cref="System.ArgumentException">Query cannot be null or empty. - query</exception>
+        Task<IEnumerable<string>> GetSuggestionsProducts(string query);
     }
 }
