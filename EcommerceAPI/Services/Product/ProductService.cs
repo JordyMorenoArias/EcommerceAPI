@@ -109,17 +109,10 @@ namespace EcommerceAPI.Services.Product
             if (parameters.Page <= 0 || parameters.PageSize <= 0)
                 throw new ArgumentException("Page and PageSize must be greater than 0.");
 
-            if (role == UserRole.Customer)
+            if (role == UserRole.Customer || role == UserRole.Seller)
             {
-                if (parameters.IsActive != null && parameters.IsActive != true)
-                    throw new InvalidOperationException("Customers can only view active products.");
-            }
-            else if (role == UserRole.Seller)
-            {
-                if (parameters.IsActive != null && parameters.IsActive != true)
-                    throw new InvalidOperationException("Sellers can only view active products of other sellers.");
-
-                parameters.IsActive = true;
+                if (parameters.IsActive != null)
+                    throw new InvalidOperationException("Customers and sellers can only view active products.");
             }
 
             var productIds = await _elasticProductService.SearchProducts(parameters);
