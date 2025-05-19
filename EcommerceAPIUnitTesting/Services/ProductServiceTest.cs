@@ -133,6 +133,9 @@ namespace EcommerceAPIUnitTesting.Services
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _productService.GetProductById(productId));
         }
 
+        /// <summary>
+        /// Gets the suggestions valid query returns results.
+        /// </summary>
         [Fact]
         public async Task GetSuggestions_ValidQuery_ReturnsResults()
         {
@@ -149,6 +152,9 @@ namespace EcommerceAPIUnitTesting.Services
             Assert.NotNull(result);
         }
 
+        /// <summary>
+        /// Gets the suggestions empty or null query throws exception.
+        /// </summary>
         [Fact]
         public async Task GetSuggestions_EmptyOrNullQuery_ThrowsException()
         {
@@ -159,6 +165,9 @@ namespace EcommerceAPIUnitTesting.Services
             await Assert.ThrowsAsync<ArgumentException>(() => _productService.GetSuggestionsProducts(query));
         }
 
+        /// <summary>
+        /// Searches the products valid parameters with results returns paged result.
+        /// </summary>
         [Fact]
         public async Task SearchProducts_ValidParametersWithResults_ReturnsPagedResult()
         {
@@ -187,6 +196,9 @@ namespace EcommerceAPIUnitTesting.Services
             Assert.NotNull(result);
         }
 
+        /// <summary>
+        /// Searches the products valid parameters no results returns empty paged result.
+        /// </summary>
         [Fact]
         public async Task SearchProducts_ValidParametersNoResults_ReturnsEmptyPagedResult()
         {
@@ -215,6 +227,9 @@ namespace EcommerceAPIUnitTesting.Services
             Assert.NotNull(result);
         }
 
+        /// <summary>
+        /// Searches the products empty search term returns empty paged result.
+        /// </summary>
         [Fact]
         public async Task SearchProducts_EmptySearchTerm_ReturnsEmptyPagedResult()
         {
@@ -234,6 +249,9 @@ namespace EcommerceAPIUnitTesting.Services
             Assert.NotNull(result);
         }
 
+        /// <summary>
+        /// Searches the products minimum price greater than maximum price throws argument exception.
+        /// </summary>
         [Fact]
         public async Task SearchProducts_MinPriceGreaterThanMaxPrice_ThrowsArgumentException()
         {
@@ -252,6 +270,9 @@ namespace EcommerceAPIUnitTesting.Services
             await Assert.ThrowsAsync<ArgumentException>(() => _productService.SearchProducts(role, parameters));
         }
 
+        /// <summary>
+        /// Searches the products invalid pagination throws argument exception.
+        /// </summary>
         [Fact]
         public async Task SearchProducts_InvalidPagination_ThrowsArgumentException()
         {
@@ -268,12 +289,14 @@ namespace EcommerceAPIUnitTesting.Services
             await Assert.ThrowsAsync<ArgumentException>(() => _productService.SearchProducts(role, parameters));
         }
 
+        /// <summary>
+        /// Searches the products customer searching inactive products throws invalid operation exception.
+        /// </summary>
         [Fact]
         public async Task SearchProducts_CustomerSearchingInactiveProducts_ThrowsInvalidOperationException()
         {
             // Arrange
             var role = UserRole.Customer;
-
             var parameters = new SearchProductParameters
             {
                 SearchTerm = "test",
@@ -286,12 +309,14 @@ namespace EcommerceAPIUnitTesting.Services
             await Assert.ThrowsAsync<InvalidOperationException>(() => _productService.SearchProducts(role, parameters));
         }
 
+        /// <summary>
+        /// Searches the products seller searching other inactive products throws invalid operation exception.
+        /// </summary>
         [Fact]
         public async Task SearchProducts_SellerSearchingOtherInactiveProducts_ThrowsInvalidOperationException()
         {
             // Arrange
             var role = UserRole.Seller;
-
             var parameters = new SearchProductParameters
             {
                 SearchTerm = "test",
@@ -303,5 +328,205 @@ namespace EcommerceAPIUnitTesting.Services
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() => _productService.SearchProducts(role, parameters));
         }
+
+        /// <summary>
+        /// Gets the products admin role returns all products.
+        /// </summary>
+        [Fact]
+        public async Task GetProducts_AdminRole_ReturnsResult()
+        {
+            // Arrange
+            int userId = 1;
+            var role = UserRole.Admin;
+            var parameters = new QueryProductParameters
+            {
+                Page = 1,
+                PageSize = 10,
+            };
+
+            _mockCacheService.Setup(sp => sp.Get<PagedResult<ProductDto>>(It.IsAny<string>())).ReturnsAsync((PagedResult<ProductDto>?)null);
+
+            _mockProductRepository.Setup(sp => sp.GetProducts(It.IsAny<QueryProductParameters>()))
+                .ReturnsAsync(new PagedResult<ProductEntity>
+                {
+                    TotalItems = 100,
+                    PageSize = parameters.PageSize,
+                    Page = parameters.Page,
+                    Items = new List<ProductEntity> { new ProductEntity { Id = 1, Name = "Test Product" } }
+                });
+
+            _mockMapper.Setup(sp => sp.Map<PagedResult<ProductDto>>(It.IsAny<PagedResult<ProductEntity>>()))
+                .Returns(new PagedResult<ProductDto>
+                {
+                    TotalItems = 100,
+                    PageSize = parameters.PageSize,
+                    Page = parameters.Page,
+                    Items = new List<ProductDto> { new ProductDto { Id = 1, Name = "Test Product" } }
+                });
+
+            // Act
+            var result = await _productService.GetProducts(userId, role, parameters);
+
+            // Assert
+            Assert.NotNull(result);
+        }
+
+        /// <summary>
+        /// Gets the products products in cache returns cached result.
+        /// </summary>
+        [Fact]
+        public async Task GetProducts_ProductsInCache_ReturnsCachedResult()
+        {
+            // Arrange
+            var userId = 1;
+            var role = UserRole.Admin;
+            var parameters = new QueryProductParameters
+            {
+                Page = 1,
+                PageSize = 10,
+            };
+
+            _mockCacheService.Setup(sp => sp.Get<PagedResult<ProductDto>>(It.IsAny<string>()))
+                .ReturnsAsync(new PagedResult<ProductDto>
+                {
+                    TotalItems = 100,
+                    PageSize = parameters.PageSize,
+                    Page = parameters.Page,
+                    Items = new List<ProductDto> { new ProductDto { Id = 1, Name = "Test Product" } }
+                });
+
+            // Act
+            var result = await _productService.GetProducts(userId, role, parameters);
+
+            // Assert
+            Assert.NotNull(result);
+        }
+
+        /// <summary>
+        /// Gets the products customer role returns only active products.
+        /// </summary>
+        [Fact]
+        public async Task GetProducts_CustomerRole_ReturnsOnlyActiveProducts()
+        {
+            // Arrange
+            var userId = 1;
+            var role = UserRole.Customer;
+            var parameters = new QueryProductParameters
+            {
+                Page = 1,
+                PageSize = 10,
+                IsActive = true
+            };
+
+            _mockCacheService.Setup(sp => sp.Get<PagedResult<ProductDto>>(It.IsAny<string>())).ReturnsAsync((PagedResult<ProductDto>?)null);
+
+            _mockProductRepository.Setup(sp => sp.GetProducts(It.IsAny<QueryProductParameters>()))
+                .ReturnsAsync(new PagedResult<ProductEntity>
+                {
+                    TotalItems = 100,
+                    PageSize = parameters.PageSize,
+                    Page = parameters.Page,
+                    Items = new List<ProductEntity> { new ProductEntity { Id = 1, Name = "Test Product" } }
+                });
+
+            _mockMapper.Setup(sp => sp.Map<PagedResult<ProductDto>>(It.IsAny<PagedResult<ProductEntity>>()))
+                .Returns(new PagedResult<ProductDto>
+                {
+                    TotalItems = 100,
+                    PageSize = parameters.PageSize,
+                    Page = parameters.Page,
+                    Items = new List<ProductDto> { new ProductDto { Id = 1, Name = "Test Product" } }
+                });
+
+            // Act
+            var result = await _productService.GetProducts(userId, role, parameters);
+
+            // Assert
+            Assert.NotNull(result);
+        }
+
+        /// <summary>
+        /// Gets the products seller role returns own products.
+        /// </summary>
+        [Fact]
+        public async Task GetProducts_SellerRole_ReturnsOwnProducts()
+        {
+            // Arrange
+            var userId = 1;
+            var role = UserRole.Seller;
+            var parameters = new QueryProductParameters
+            {
+                Page = 1,
+                PageSize = 10,
+                UserId = 1
+            };
+
+            _mockCacheService.Setup(sp => sp.Get<PagedResult<ProductDto>>(It.IsAny<string>())).ReturnsAsync((PagedResult<ProductDto>?)null);
+
+            _mockProductRepository.Setup(sp => sp.GetProducts(It.IsAny<QueryProductParameters>()))
+                .ReturnsAsync(new PagedResult<ProductEntity>
+                {
+                    TotalItems = 100,
+                    PageSize = parameters.PageSize,
+                    Page = parameters.Page,
+                    Items = new List<ProductEntity> { new ProductEntity { Id = 1, Name = "Test Product" } }
+                });
+
+            _mockMapper.Setup(sp => sp.Map<PagedResult<ProductDto>>(It.IsAny<PagedResult<ProductEntity>>()))
+                .Returns(new PagedResult<ProductDto>
+                {
+                    TotalItems = 100,
+                    PageSize = parameters.PageSize,
+                    Page = parameters.Page,
+                    Items = new List<ProductDto> { new ProductDto { Id = 1, Name = "Test Product" } }
+                });
+
+            // Act
+            var result = await _productService.GetProducts(userId, role, parameters);
+
+            // Assert
+            Assert.NotNull(result);
+        }
+
+        /// <summary>
+        /// Gets the products invalid pagination throws argument exception.
+        /// </summary>
+        [Fact]
+        public async Task GetProducts_InvalidPagination_ThrowsArgumentException()
+        {
+            // Arrange
+            var userId = 1;
+            var role = UserRole.Admin;
+
+            var parameters = new QueryProductParameters
+            {
+                Page = -1,
+                PageSize = 0,
+            };
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => _productService.GetProducts(userId, role, parameters));
+        }
+
+        /// <summary>
+        /// Gets the products invalid user role throws argument out of range exception.
+        /// </summary>
+        [Fact]
+        public async Task GetProducts_InvalidUserRole_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            var userId = 1;
+            var role = (UserRole)999; // Invalid role
+            var parameters = new QueryProductParameters
+            {
+                Page = 1,
+                PageSize = 10,
+            };
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _productService.GetProducts(userId, role, parameters));
+        }
+
+
     }
 }
