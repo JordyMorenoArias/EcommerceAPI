@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using EcommerceAPI.Constants;
 using EcommerceAPI.Models;
+using EcommerceAPI.Models.DTOs;
 using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Repositories;
 using EcommerceAPI.Services.ElasticService.Interfaces;
@@ -155,6 +157,151 @@ namespace EcommerceAPIUnitTesting.Services
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() => _productService.GetSuggestionsProducts(query));
+        }
+
+        [Fact]
+        public async Task SearchProducts_ValidParametersWithResults_ReturnsPagedResult()
+        {
+            // Arrange
+            var role = UserRole.Admin;
+            var parameters = new SearchProductParameters
+            {
+                Page = 1,
+                PageSize = 10,
+                SearchTerm = "test",
+            };
+
+            _mockElasticProductService.Setup(sp => sp.SearchProducts(parameters))
+                .ReturnsAsync(new PagedResult<int>
+                {
+                    TotalItems = 100,
+                    PageSize = parameters.PageSize,
+                    Page = parameters.Page,
+                    Items = new List<int> { 1, 2, 3 }
+                });
+
+            // Act
+            var result = await _productService.SearchProducts(role, parameters);
+
+            // Assert
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public async Task SearchProducts_ValidParametersNoResults_ReturnsEmptyPagedResult()
+        {
+            // Arrange
+            var role = UserRole.Admin;
+            var parameters = new SearchProductParameters
+            {
+                SearchTerm = "test",
+                Page = 1,
+                PageSize = 10
+            };
+
+            _mockElasticProductService.Setup(sp => sp.SearchProducts(parameters))
+                    .ReturnsAsync(new PagedResult<int>
+                    {
+                        TotalItems = 0,
+                        PageSize = parameters.PageSize,
+                        Page = parameters.Page,
+                        Items = new List<int>()
+                    });
+
+            // Act
+            var result = await _productService.SearchProducts(role, parameters);
+
+            // Assert
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public async Task SearchProducts_EmptySearchTerm_ReturnsEmptyPagedResult()
+        {
+            // Arrange
+            var role = UserRole.Admin;
+            var parameters = new SearchProductParameters
+            {
+                SearchTerm = string.Empty,
+                Page = 1,
+                PageSize = 10
+            };
+
+            // Act
+            var result = await _productService.SearchProducts(role, parameters);
+
+            // Assert
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public async Task SearchProducts_MinPriceGreaterThanMaxPrice_ThrowsArgumentException()
+        {
+            // Arrange
+            var role = UserRole.Admin;
+            var parameters = new SearchProductParameters
+            {
+                SearchTerm = "test",
+                Page = 1,
+                PageSize = 10,
+                MinPrice = 100,
+                MaxPrice = 50,
+            };
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => _productService.SearchProducts(role, parameters));
+        }
+
+        [Fact]
+        public async Task SearchProducts_InvalidPagination_ThrowsArgumentException()
+        {
+            // Arrange
+            var role = UserRole.Admin;
+            var parameters = new SearchProductParameters
+            {
+                SearchTerm = "test",
+                Page = -1,
+                PageSize = 0,
+            };
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => _productService.SearchProducts(role, parameters));
+        }
+
+        [Fact]
+        public async Task SearchProducts_CustomerSearchingInactiveProducts_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var role = UserRole.Customer;
+
+            var parameters = new SearchProductParameters
+            {
+                SearchTerm = "test",
+                Page = 1,
+                PageSize = 10,
+                IsActive = false,
+            };
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _productService.SearchProducts(role, parameters));
+        }
+
+        [Fact]
+        public async Task SearchProducts_SellerSearchingOtherInactiveProducts_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            var role = UserRole.Seller;
+
+            var parameters = new SearchProductParameters
+            {
+                SearchTerm = "test",
+                Page = 1,
+                PageSize = 10,
+                IsActive = false,
+            };
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _productService.SearchProducts(role, parameters));
         }
     }
 }
