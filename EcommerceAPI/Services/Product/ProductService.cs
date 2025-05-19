@@ -111,8 +111,8 @@ namespace EcommerceAPI.Services.Product
 
             if (role == UserRole.Customer || role == UserRole.Seller)
             {
-                if (parameters.IsActive != null)
-                    throw new InvalidOperationException("Customers and sellers can only view active products.");
+                if (parameters.IsActive != null || parameters.IsActive == false)
+                    throw new InvalidOperationException("Customers and sellers can only search active products.");
             }
 
             var productIds = await _elasticProductService.SearchProducts(parameters);
@@ -159,17 +159,15 @@ namespace EcommerceAPI.Services.Product
             switch (role)
             {
                 case UserRole.Customer:
-                    if (parameters.IsActive != null && parameters.IsActive != true)
+                    if (parameters.IsActive != null && parameters.IsActive == false)
                         throw new InvalidOperationException("Customers can only view active products.");
-                    parameters.IsActive = true;
                     break;
 
                 case UserRole.Seller:
                     if (!parameters.UserId.HasValue || parameters.UserId != userId)
                     {
-                        if (parameters.IsActive != null && parameters.IsActive != true)
-                            throw new InvalidOperationException("Sellers can only view active products of other sellers.");
-                        parameters.IsActive = true;
+                        if (parameters.IsActive != null && parameters.IsActive == false)
+                        throw new InvalidOperationException("Sellers can only view active products of other sellers.");
                     }
                     // else: seller viewing their own products; allow active and inactive
                     break;
