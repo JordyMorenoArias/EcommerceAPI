@@ -1,4 +1,5 @@
-﻿using EcommerceAPI.Constants;
+﻿using AutoFixture;
+using EcommerceAPI.Constants;
 using EcommerceAPI.Models;
 using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Repositories;
@@ -6,6 +7,7 @@ using EcommerceAPI.Services.ElasticService.Interfaces;
 using EcommerceAPI.Services.Infrastructure.Interfaces;
 using EcommerceAPI.Services.Product;
 using Moq;
+using System.Runtime.CompilerServices;
 
 namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
 {
@@ -18,6 +20,7 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
         private readonly Mock<IElasticGenericService<ProductElasticDto>> _mockElasticGenericService;
         private readonly Mock<ICacheService> _mockCacheService;
         private readonly ProductService _productService;
+        private readonly Fixture _fixture;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DeleteProductTests"/> class.
@@ -27,6 +30,7 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
             _mockProductRepository = new Mock<IProductRepository>();
             _mockElasticGenericService = new Mock<IElasticGenericService<ProductElasticDto>>();
             _mockCacheService = new Mock<ICacheService>();
+            _fixture = new Fixture();
 
             _productService = new ProductService(
                 _mockProductRepository.Object,
@@ -45,15 +49,13 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
         {
             // Arrange
             var userId = 1;
-            var role = UserRole.Seller;
             var productId = 1;
+            var role = UserRole.Seller;
+
+            var productEntity = CreateProductEntity(userId, productId);
 
             _mockProductRepository.Setup(sp => sp.GetProductById(It.IsAny<int>()))
-                .ReturnsAsync(new ProductEntity
-                {
-                    Id = productId,
-                    UserId = userId,    
-                });
+                .ReturnsAsync(productEntity);
 
             _mockProductRepository.Setup(sp => sp.DeleteProduct(It.IsAny<int>()))
                 .ReturnsAsync(true);
@@ -69,6 +71,10 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
 
             // Assert
             Assert.True(result);
+            _mockProductRepository.Verify(sp => sp.GetProductById(It.IsAny<int>()), Times.Once);
+            _mockProductRepository.Verify(sp => sp.DeleteProduct(It.IsAny<int>()), Times.Once);
+            _mockCacheService.Verify(sp => sp.Remove(It.IsAny<string>()), Times.Once);
+            _mockElasticGenericService.Verify(e => e.Delete(It.IsAny<string>()), Times.Once);
         }
 
         /// <summary>
@@ -79,14 +85,15 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
         {
             // Arrange
             var userId = 1;
-            var role = UserRole.Seller;
             var productId = 1;
+            var role = UserRole.Seller;
 
             _mockProductRepository.Setup(sp => sp.GetProductById(It.IsAny<int>()))
                 .ReturnsAsync((ProductEntity?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _productService.DeleteProduct(userId, role, productId));
+            _mockProductRepository.Verify(sp => sp.GetProductById(It.IsAny<int>()), Times.Once);
         }
 
         /// <summary>
@@ -97,18 +104,27 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
         {
             // Arrange
             var userId = 1;
-            var role = UserRole.Customer;
             var productId = 1;
+            var role = UserRole.Customer;
+
+            var productEntity = CreateProductEntity(userId, 2);
 
             _mockProductRepository.Setup(sp => sp.GetProductById(It.IsAny<int>()))
-                .ReturnsAsync(new ProductEntity
-                {
-                    Id = productId,
-                    UserId = 2,
-                });
+                .ReturnsAsync(productEntity);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() => _productService.DeleteProduct(userId, role, productId));
+            _mockProductRepository.Verify(sp => sp.GetProductById(It.IsAny<int>()), Times.Once);
+        }
+
+        private ProductEntity CreateProductEntity(int userId, int productId)
+        {
+            return _fixture.Build<ProductEntity>()
+                .With(p => p.Id, userId)
+                .With(p => p.UserId, productId)
+                .Without(p => p.ProductTags)
+                .Without(p => p.Category)
+                .Create();
         }
     }
 }

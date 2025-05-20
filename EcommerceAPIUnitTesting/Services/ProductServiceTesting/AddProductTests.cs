@@ -5,9 +5,7 @@ using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Repositories;
 using EcommerceAPI.Services.ElasticService.Interfaces;
 using EcommerceAPI.Services.Product;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Moq;
-using System.Runtime.CompilerServices;
 
 namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
 {
@@ -20,7 +18,7 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
         public readonly Mock<IElasticGenericService<ProductElasticDto>> _mockElasticGenericService;
         private readonly Mock<IMapper> _mockMapper;
         private readonly ProductService _productService;
-        private readonly IFixture _fixture;
+        private readonly Fixture _fixture;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AddProductTests"/> class.
