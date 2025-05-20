@@ -100,11 +100,13 @@ builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 
-// Singleton and Infrastructure Services
+// Infrastructure Services
+builder.Services.AddTransient<ITokenGenerator, TokenGenerator>();
+builder.Services.AddScoped<IOAuthProviderService, GoogleAuthService>();
+builder.Services.AddScoped<ICacheService, MemoryCacheService>();
+builder.Services.AddScoped<IPasswordHasher<UserEntity>, PasswordHasher<UserEntity>>();
 builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
-builder.Services.AddSingleton<IOAuthProviderService, GoogleAuthService>();
-builder.Services.AddSingleton<ICacheService, MemoryCacheService>();
 
 // Domain Services
 builder.Services.AddScoped<IAuthService, AuthService>();

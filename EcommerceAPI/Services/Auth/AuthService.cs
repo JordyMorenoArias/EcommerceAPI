@@ -21,11 +21,11 @@ namespace EcommerceAPI.Services.Auth
         private readonly IJwtService _jwtService;
         private readonly ITokenGenerator _tokenGenerator;
         private readonly IEmailService _emailService;
-        private readonly PasswordHasher<UserEntity> _passwordHasher;
+        private readonly IPasswordHasher<UserEntity> _passwordHasher;
         private readonly IMapper _mapper;
         private readonly ILogger<AuthService> _logger;
 
-        public AuthService(IUserRepository userRepository, IJwtService jwtService, ITokenGenerator tokenGenerator, IEmailService emailService, PasswordHasher<UserEntity> passwordHasher, IMapper mapper, ILogger<AuthService> logger)
+        public AuthService(IUserRepository userRepository, IJwtService jwtService, ITokenGenerator tokenGenerator, IEmailService emailService, IPasswordHasher<UserEntity> passwordHasher, IMapper mapper, ILogger<AuthService> logger)
         {
             _userRepository = userRepository;
             _jwtService = jwtService;
