@@ -9,6 +9,9 @@ using Moq;
 
 namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
 {
+    /// <summary>
+    /// Unit tests for the DeleteProduct method in the ProductService class.
+    /// </summary>
     public class DeleteProductTests
     {
         private readonly Mock<IProductRepository> _mockProductRepository;
@@ -16,6 +19,9 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
         private readonly Mock<ICacheService> _mockCacheService;
         private readonly ProductService _productService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DeleteProductTests"/> class.
+        /// </summary>
         public DeleteProductTests()
         {
             _mockProductRepository = new Mock<IProductRepository>();
@@ -31,6 +37,9 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
             );
         }
 
+        /// <summary>
+        /// Deletes the product product exists and user authorized deletes successfully.
+        /// </summary>
         [Fact]
         public async Task DeleteProduct_ProductExistsAndUserAuthorized_DeletesSuccessfully()
         {
@@ -62,6 +71,9 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
             Assert.True(result);
         }
 
+        /// <summary>
+        /// Deletes the product product does not exist throws key not found exception.
+        /// </summary>
         [Fact]
         public async Task DeleteProduct_ProductDoesNotExist_ThrowsKeyNotFoundException()
         {
@@ -77,6 +89,9 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _productService.DeleteProduct(userId, role, productId));
         }
 
+        /// <summary>
+        /// Deletes the product user not authorized throws invalid operation exception.
+        /// </summary>
         [Fact]
         public async Task DeleteProduct_UserNotAuthorized_ThrowsInvalidOperationException()
         {
