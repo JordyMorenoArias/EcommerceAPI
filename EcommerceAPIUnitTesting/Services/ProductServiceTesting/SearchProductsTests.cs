@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using EcommerceAPI.Constants;
+using EcommerceAPI.Models;
 using EcommerceAPI.Models.DTOs;
 using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Repositories;
@@ -8,30 +9,32 @@ using EcommerceAPI.Services.Infrastructure.Interfaces;
 using EcommerceAPI.Services.Product;
 using Moq;
 
-namespace EcommerceAPIUnitTesting.Services.ProductServiceTests
+namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
 {
+    /// <summary>
+    /// Unit tests for the SearchProducts method in the ProductService class.
+    /// </summary>
     public class SearchProductsTests
     {
-        public readonly Mock<IProductRepository> _mockProductRepository;
         private readonly Mock<IElasticProductService> _mockElasticProductService;
-        private readonly Mock<IElasticGenericService<ProductElasticDto>> _mockElasticGenericService;
-        private readonly Mock<ICacheService> _mockCacheService;
+        private readonly Mock<IProductRepository> _mockProductRepository;
         private readonly Mock<IMapper> _mockMapper;
         private readonly ProductService _productService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearchProductsTests"/> class.
+        /// </summary>
         public SearchProductsTests()
         {
-            _mockProductRepository = new Mock<IProductRepository>();
             _mockElasticProductService = new Mock<IElasticProductService>();
-            _mockElasticGenericService = new Mock<IElasticGenericService<ProductElasticDto>>();
-            _mockCacheService = new Mock<ICacheService>();
+            _mockProductRepository = new Mock<IProductRepository>();
             _mockMapper = new Mock<IMapper>();
 
             _productService = new ProductService(
                 _mockProductRepository.Object,
                 _mockElasticProductService.Object,
-                _mockElasticGenericService.Object,
-                _mockCacheService.Object,
+                elasticGenericService: null!,
+                cacheService: null!,
                 _mockMapper.Object
             );
         }
@@ -58,6 +61,22 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTests
                     PageSize = parameters.PageSize,
                     Page = parameters.Page,
                     Items = new List<int> { 1, 2, 3 }
+                });
+
+            _mockProductRepository.Setup(sp => sp.GetProductsByIds(It.IsAny<IEnumerable<int>>()))
+                .ReturnsAsync(new List<ProductEntity>
+                {
+                    new ProductEntity { Id = 1, Name = "Test Product 1" },
+                    new ProductEntity { Id = 2, Name = "Test Product 2" },
+                    new ProductEntity { Id = 3, Name = "Test Product 3" }
+                });
+
+            _mockMapper.Setup(sp => sp.Map<IEnumerable<ProductDto>>(It.IsAny<IEnumerable<ProductEntity>>()))
+                .Returns(new List<ProductDto>
+                {
+                    new ProductDto { Id = 1, Name = "Test Product 1" },
+                    new ProductDto { Id = 2, Name = "Test Product 2" },
+                    new ProductDto { Id = 3, Name = "Test Product 3" }
                 });
 
             // Act

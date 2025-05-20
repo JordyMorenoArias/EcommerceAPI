@@ -7,13 +7,11 @@ using EcommerceAPI.Services.Infrastructure.Interfaces;
 using EcommerceAPI.Services.Product;
 using Moq;
 
-namespace EcommerceAPIUnitTesting.Services.ProductServiceTests
+namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
 {
     public class GetProductByIdTests
     {
         public readonly Mock<IProductRepository> _mockProductRepository;
-        private readonly Mock<IElasticProductService> _mockElasticProductService;
-        private readonly Mock<IElasticGenericService<ProductElasticDto>> _mockElasticGenericService;
         private readonly Mock<ICacheService> _mockCacheService;
         private readonly Mock<IMapper> _mockMapper;
         private readonly ProductService _productService;
@@ -21,15 +19,13 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTests
         public GetProductByIdTests()
         {
             _mockProductRepository = new Mock<IProductRepository>();
-            _mockElasticProductService = new Mock<IElasticProductService>();
-            _mockElasticGenericService = new Mock<IElasticGenericService<ProductElasticDto>>();
             _mockCacheService = new Mock<ICacheService>();
             _mockMapper = new Mock<IMapper>();
 
             _productService = new ProductService(
                 _mockProductRepository.Object,
-                _mockElasticProductService.Object,
-                _mockElasticGenericService.Object,
+                elasticProductService: null!,
+                elasticGenericService: null!,
                 _mockCacheService.Object,
                 _mockMapper.Object
             );

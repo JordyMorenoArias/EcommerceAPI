@@ -22,6 +22,14 @@ namespace EcommerceAPI.Services.Product
         private readonly ICacheService _cacheService;
         private readonly IMapper _mapper;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProductService"/> class.
+        /// </summary>
+        /// <param name="productRepository">The product repository.</param>
+        /// <param name="elasticProductService">The elastic product service.</param>
+        /// <param name="elasticGenericService">The elastic generic service.</param>
+        /// <param name="cacheService">The cache service.</param>
+        /// <param name="mapper">The mapper.</param>
         public ProductService(IProductRepository productRepository, IElasticProductService elasticProductService, IElasticGenericService<ProductElasticDto> elasticGenericService, ICacheService cacheService, IMapper mapper)
         {
             _productRepository = productRepository;
@@ -167,7 +175,9 @@ namespace EcommerceAPI.Services.Product
                     if (!parameters.UserId.HasValue || parameters.UserId != userId)
                     {
                         if (parameters.IsActive != null && parameters.IsActive == false)
-                        throw new InvalidOperationException("Sellers can only view active products of other sellers.");
+                            throw new InvalidOperationException("Sellers can only view active products of other sellers.");
+
+                        parameters.IsActive = true; // Ensure only active products are fetched for other sellers
                     }
                     // else: seller viewing their own products; allow active and inactive
                     break;
@@ -248,8 +258,8 @@ namespace EcommerceAPI.Services.Product
             var elasticProduct = _mapper.Map<ProductElasticDto>(updatedProduct);
             await _elasticGenericService.Index(elasticProduct, elasticProduct.Id.ToString());
 
-            await InvalidateProductCache(product);
-            return _mapper.Map<ProductDto>(product);
+            await _cacheService.Remove($"Product_{updatedProduct.Id}");
+            return _mapper.Map<ProductDto>(updatedProduct);
         }
 
         /// <summary>
@@ -272,22 +282,12 @@ namespace EcommerceAPI.Services.Product
 
             if (result)
             {
-                await InvalidateProductCache(product);
+                await _cacheService.Remove($"Product_{product.Id}");
 
                 await _elasticGenericService.Delete(product.Id.ToString());
             }
 
             return result;
-        }
-
-        /// <summary>
-        /// Invalidates cache entries related to the given product.
-        /// </summary>
-        /// <param name="product">The product entity.</param>
-        private async Task InvalidateProductCache(ProductEntity product)
-        {
-            // Invalidates the individual product
-            await _cacheService.Remove($"Product_{product.Id}");
         }
     }
 }

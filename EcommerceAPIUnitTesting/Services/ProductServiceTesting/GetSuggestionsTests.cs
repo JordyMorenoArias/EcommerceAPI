@@ -6,31 +6,29 @@ using EcommerceAPI.Services.Infrastructure.Interfaces;
 using EcommerceAPI.Services.Product;
 using Moq;
 
-namespace EcommerceAPIUnitTesting.Services.ProductServiceTests
+namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
 {
+    /// <summary>
+    /// Unit tests for the GetSuggestions method in the ProductService class.
+    /// </summary>
     public class GetSuggestionsTests
     {
-        public readonly Mock<IProductRepository> _mockProductRepository;
         private readonly Mock<IElasticProductService> _mockElasticProductService;
-        private readonly Mock<IElasticGenericService<ProductElasticDto>> _mockElasticGenericService;
-        private readonly Mock<ICacheService> _mockCacheService;
-        private readonly Mock<IMapper> _mockMapper;
         private readonly ProductService _productService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetSuggestionsTests"/> class.
+        /// </summary>
         public GetSuggestionsTests()
         {
-            _mockProductRepository = new Mock<IProductRepository>();
             _mockElasticProductService = new Mock<IElasticProductService>();
-            _mockElasticGenericService = new Mock<IElasticGenericService<ProductElasticDto>>();
-            _mockCacheService = new Mock<ICacheService>();
-            _mockMapper = new Mock<IMapper>();
 
             _productService = new ProductService(
-                _mockProductRepository.Object,
+                productRepository: null!,
                 _mockElasticProductService.Object,
-                _mockElasticGenericService.Object,
-                _mockCacheService.Object,
-                _mockMapper.Object
+                elasticGenericService: null!,
+                cacheService: null!,
+                mapper: null!
             );
         }
 
