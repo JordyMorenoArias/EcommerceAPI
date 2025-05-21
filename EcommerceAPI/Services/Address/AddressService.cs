@@ -14,15 +14,15 @@ namespace EcommerceAPI.Services.Address
     /// <seealso cref="EcommerceAPI.Services.Address.Interfaces.IAddressService" />
     public class AddressService : IAddressService
     {
-        private readonly IMapper _mapper;
-        private readonly ICacheService _cacheService;
         private readonly IAddressRepository _addressRepository;
+        private readonly ICacheService _cacheService;
+        private readonly IMapper _mapper;
 
-        public AddressService(IMapper mapper, ICacheService cacheService ,IAddressRepository addressRepository)
+        public AddressService(IAddressRepository addressRepository, ICacheService cacheService, IMapper mapper)
         {
-            _mapper = mapper;
-            _cacheService = cacheService;
             _addressRepository = addressRepository;
+            _cacheService = cacheService;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -35,29 +35,31 @@ namespace EcommerceAPI.Services.Address
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Thrown when the address is not found.</exception>
         /// <exception cref="System.InvalidOperationException">Thrown when the user is not authorized to access the address.</exception>
         public async Task<AddressDto> GetAddressById(int userId, UserRole userRole, int id)
-        {   
+        {
             var cacheKey = $"Address_{id}";
             var cachedAddress = await _cacheService.Get<AddressDto>(cacheKey);
 
             if (cachedAddress != null)
             {
-                if (cachedAddress.UserId != userId && userRole != UserRole.Admin && userRole != UserRole.Seller)
+                if (userRole == UserRole.Customer && cachedAddress.UserId != userId)
                     throw new InvalidOperationException("You are not authorized to access this address");
+
+                if (userRole != UserRole.Customer && userRole != UserRole.Admin)
+                    throw new InvalidOperationException("Only customers and admins can access addresses");
 
                 return cachedAddress;
             }
-                
 
             var address = await _addressRepository.GetAddressById(id);
 
             if (address == null)
                 throw new KeyNotFoundException("Address not found");
 
-            if (address.UserId != userId && userRole != UserRole.Admin && userRole != UserRole.Seller)
+            if (userRole == UserRole.Customer && address.UserId != userId)
                 throw new InvalidOperationException("You are not authorized to access this address");
 
-            if (userId != address.UserId)
-                throw new InvalidOperationException("You are not authorized to access this address");
+            if (userRole != UserRole.Customer && userRole != UserRole.Admin)
+                throw new InvalidOperationException("Only customers and admins can access addresses"); ;
 
             var addressDto = _mapper.Map<AddressDto>(address);
             await _cacheService.Set(cacheKey, addressDto, TimeSpan.FromMinutes(30));
