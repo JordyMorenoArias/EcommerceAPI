@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using AutoFixture;
+using AutoMapper;
 using EcommerceAPI.Constants;
 using EcommerceAPI.Models;
 using EcommerceAPI.Models.DTOs;
@@ -20,6 +21,7 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
         private readonly Mock<IProductRepository> _mockProductRepository;
         private readonly Mock<IMapper> _mockMapper;
         private readonly ProductService _productService;
+        private readonly Fixture _fixture;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SearchProductsTests"/> class.
@@ -29,6 +31,7 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
             _mockElasticProductService = new Mock<IElasticProductService>();
             _mockProductRepository = new Mock<IProductRepository>();
             _mockMapper = new Mock<IMapper>();
+            _fixture = new Fixture();
 
             _productService = new ProductService(
                 _mockProductRepository.Object,
@@ -54,7 +57,10 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
                 SearchTerm = "test",
             };
 
-            _mockElasticProductService.Setup(sp => sp.SearchProducts(parameters))
+            var productsEntity = CreateProductsEntity();
+            var productsDto = CreateProductsDto();
+
+            _mockElasticProductService.Setup(sp => sp.SearchProducts(It.IsAny<SearchProductParameters>()))
                 .ReturnsAsync(new PagedResult<int>
                 {
                     TotalItems = 100,
@@ -64,26 +70,35 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
                 });
 
             _mockProductRepository.Setup(sp => sp.GetProductsByIds(It.IsAny<IEnumerable<int>>()))
-                .ReturnsAsync(new List<ProductEntity>
-                {
-                    new ProductEntity { Id = 1, Name = "Test Product 1" },
-                    new ProductEntity { Id = 2, Name = "Test Product 2" },
-                    new ProductEntity { Id = 3, Name = "Test Product 3" }
-                });
+                .ReturnsAsync(productsEntity);
 
             _mockMapper.Setup(sp => sp.Map<IEnumerable<ProductDto>>(It.IsAny<IEnumerable<ProductEntity>>()))
-                .Returns(new List<ProductDto>
-                {
-                    new ProductDto { Id = 1, Name = "Test Product 1" },
-                    new ProductDto { Id = 2, Name = "Test Product 2" },
-                    new ProductDto { Id = 3, Name = "Test Product 3" }
-                });
+                .Returns(productsDto);
 
             // Act
             var result = await _productService.SearchProducts(role, parameters);
 
             // Assert
             Assert.NotNull(result);
+            _mockElasticProductService.Verify(sp => sp.SearchProducts(It.IsAny<SearchProductParameters>()), Times.Once);
+            _mockProductRepository.Verify(sp => sp.GetProductsByIds(It.IsAny<IEnumerable<int>>()), Times.Once);
+            _mockMapper.Verify(sp => sp.Map<IEnumerable<ProductDto>>(It.IsAny<IEnumerable<ProductEntity>>()), Times.Once);
+        }
+
+        private IEnumerable<ProductEntity> CreateProductsEntity()
+        {
+            return _fixture.Build<ProductEntity>()
+                .Without(p => p.Category)
+                .Without(p => p.ProductTags)
+                .CreateMany(5);
+        }
+
+        private IEnumerable<ProductDto> CreateProductsDto()
+        {
+            return _fixture.Build<ProductDto>()
+                .Without(p => p.Category)
+                .Without(p => p.ProductTags)
+                .CreateMany(5);
         }
 
         /// <summary>
@@ -115,6 +130,9 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
 
             // Assert
             Assert.NotNull(result);
+            _mockElasticProductService.Verify(sp => sp.SearchProducts(parameters), Times.Once);
+            _mockProductRepository.Verify(sp => sp.GetProductsByIds(It.IsAny<IEnumerable<int>>()), Times.Never);
+            _mockMapper.Verify(sp => sp.Map<IEnumerable<ProductDto>>(It.IsAny<IEnumerable<ProductEntity>>()), Times.Never);
         }
 
         /// <summary>
@@ -137,6 +155,9 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
 
             // Assert
             Assert.NotNull(result);
+            _mockElasticProductService.Verify(sp => sp.SearchProducts(It.IsAny<SearchProductParameters>()), Times.Never);
+            _mockProductRepository.Verify(sp => sp.GetProductsByIds(It.IsAny<IEnumerable<int>>()), Times.Never);
+            _mockMapper.Verify(sp => sp.Map<IEnumerable<ProductDto>>(It.IsAny<IEnumerable<ProductEntity>>()), Times.Never);
         }
 
         /// <summary>
@@ -158,6 +179,9 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() => _productService.SearchProducts(role, parameters));
+            _mockElasticProductService.Verify(sp => sp.SearchProducts(It.IsAny<SearchProductParameters>()), Times.Never);
+            _mockProductRepository.Verify(sp => sp.GetProductsByIds(It.IsAny<IEnumerable<int>>()), Times.Never);
+            _mockMapper.Verify(sp => sp.Map<IEnumerable<ProductDto>>(It.IsAny<IEnumerable<ProductEntity>>()), Times.Never);
         }
 
         /// <summary>
@@ -177,6 +201,9 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() => _productService.SearchProducts(role, parameters));
+            _mockElasticProductService.Verify(sp => sp.SearchProducts(It.IsAny<SearchProductParameters>()), Times.Never);
+            _mockProductRepository.Verify(sp => sp.GetProductsByIds(It.IsAny<IEnumerable<int>>()), Times.Never);
+            _mockMapper.Verify(sp => sp.Map<IEnumerable<ProductDto>>(It.IsAny<IEnumerable<ProductEntity>>()), Times.Never);
         }
 
         /// <summary>
@@ -197,6 +224,9 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() => _productService.SearchProducts(role, parameters));
+            _mockElasticProductService.Verify(sp => sp.SearchProducts(It.IsAny<SearchProductParameters>()), Times.Never);
+            _mockProductRepository.Verify(sp => sp.GetProductsByIds(It.IsAny<IEnumerable<int>>()), Times.Never);
+            _mockMapper.Verify(sp => sp.Map<IEnumerable<ProductDto>>(It.IsAny<IEnumerable<ProductEntity>>()), Times.Never);
         }
 
         /// <summary>
@@ -217,6 +247,9 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() => _productService.SearchProducts(role, parameters));
+            _mockElasticProductService.Verify(sp => sp.SearchProducts(It.IsAny<SearchProductParameters>()), Times.Never);
+            _mockProductRepository.Verify(sp => sp.GetProductsByIds(It.IsAny<IEnumerable<int>>()), Times.Never);
+            _mockMapper.Verify(sp => sp.Map<IEnumerable<ProductDto>>(It.IsAny<IEnumerable<ProductEntity>>()), Times.Never);
         }
     }
 }

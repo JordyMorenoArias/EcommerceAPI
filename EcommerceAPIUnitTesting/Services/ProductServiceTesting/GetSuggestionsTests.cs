@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using AutoFixture;
+using AutoMapper;
 using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Repositories;
 using EcommerceAPI.Services.ElasticService.Interfaces;
@@ -49,6 +50,7 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
 
             // Assert
             Assert.NotNull(result);
+            _mockElasticProductService.Verify(sp => sp.GetSuggestionsProducts(query), Times.Once);
         }
 
         /// <summary>
