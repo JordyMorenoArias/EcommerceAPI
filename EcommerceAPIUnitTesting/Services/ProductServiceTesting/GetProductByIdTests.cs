@@ -62,6 +62,9 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
             // Assert
             Assert.NotNull(result);
             _mockCacheService.Verify(sp => sp.Get<ProductDto>(It.IsAny<string>()));
+            _mockProductRepository.Verify(sp => sp.GetProductById(It.IsAny<int>()), Times.Never);
+            _mockMapper.Verify(sp => sp.Map<ProductDto>(It.IsAny<ProductEntity>()), Times.Never);
+            _mockCacheService.Verify(sp => sp.Set(It.IsAny<string>(), It.IsAny<ProductDto>(), It.IsAny<TimeSpan>()), Times.Never);
         }
 
         /// <summary>
@@ -118,6 +121,8 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _productService.GetProductById(productId));
             _mockCacheService.Verify(sp => sp.Get<ProductDto>(It.IsAny<string>()), Times.Once);
             _mockProductRepository.Verify(sp => sp.GetProductById(It.IsAny<int>()), Times.Once);
+            _mockMapper.Verify(sp => sp.Map<ProductDto>(It.IsAny<ProductEntity>()), Times.Never);
+            _mockCacheService.Verify(sp => sp.Set(It.IsAny<string>(), It.IsAny<ProductDto>(), It.IsAny<TimeSpan>()), Times.Never);
         }
 
         private ProductEntity CreateProductEntity(int productId)

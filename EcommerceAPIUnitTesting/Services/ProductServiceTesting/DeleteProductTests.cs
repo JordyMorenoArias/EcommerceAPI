@@ -93,6 +93,9 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
             // Act & Assert
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _productService.DeleteProduct(userId, role, productId));
             _mockProductRepository.Verify(sp => sp.GetProductById(It.IsAny<int>()), Times.Once);
+            _mockProductRepository.Verify(sp => sp.DeleteProduct(It.IsAny<int>()), Times.Never);
+            _mockCacheService.Verify(sp => sp.Remove(It.IsAny<string>()), Times.Never);
+            _mockElasticGenericService.Verify(e => e.Delete(It.IsAny<string>()), Times.Never);
         }
 
         /// <summary>
@@ -114,6 +117,9 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() => _productService.DeleteProduct(userId, role, productId));
             _mockProductRepository.Verify(sp => sp.GetProductById(It.IsAny<int>()), Times.Once);
+            _mockProductRepository.Verify(sp => sp.DeleteProduct(It.IsAny<int>()), Times.Never);
+            _mockCacheService.Verify(sp => sp.Remove(It.IsAny<string>()), Times.Never);
+            _mockElasticGenericService.Verify(e => e.Delete(It.IsAny<string>()), Times.Never);
         }
 
         private ProductEntity CreateProductEntity(int userId, int productId)

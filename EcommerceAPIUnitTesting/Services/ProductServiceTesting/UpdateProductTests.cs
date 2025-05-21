@@ -88,6 +88,13 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
 
             // Assert
             Assert.NotNull(result);
+            _mockProductRepository.Verify(r => r.GetProductById(productUpdate.Id), Times.Once);
+            _mockMapper.Verify(m => m.Map(It.IsAny<ProductUpdateDto>(), It.IsAny<ProductEntity>()), Times.Once);
+            _mockProductRepository.Verify(r => r.UpdateProduct(It.IsAny<ProductEntity>()), Times.Once);
+            _mockMapper.Verify(m => m.Map<ProductElasticDto>(It.IsAny<ProductEntity>()), Times.Once);
+            _mockElasticGenericService.Verify(e => e.Index(productElasticDto, It.IsAny<string>()), Times.Once);
+            _mockCacheService.Verify(c => c.Remove(It.IsAny<string>()), Times.Once);
+            _mockMapper.Verify(m => m.Map<ProductDto>(It.IsAny<ProductEntity>()), Times.Once);
         }
 
         private ProductEntity CreateProductEntity(int id, int userId) =>
@@ -121,6 +128,13 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
 
             // Act & Assert
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _productService.UpdateProduct(userId, productUpdate));
+            _mockProductRepository.Verify(sp => sp.GetProductById(productUpdate.Id), Times.Once);
+            _mockProductRepository.Verify(sp => sp.UpdateProduct(It.IsAny<ProductEntity>()), Times.Never);
+            _mockMapper.Verify(sp => sp.Map(It.IsAny<ProductUpdateDto>(), It.IsAny<ProductEntity>()), Times.Never);
+            _mockMapper.Verify(sp => sp.Map<ProductElasticDto>(It.IsAny<ProductEntity>()), Times.Never);
+            _mockElasticGenericService.Verify(sp => sp.Index(It.IsAny<ProductElasticDto>(), It.IsAny<string>()), Times.Never);
+            _mockCacheService.Verify(sp => sp.Remove(It.IsAny<string>()), Times.Never);
+            _mockMapper.Verify(sp => sp.Map<ProductDto>(It.IsAny<ProductEntity>()), Times.Never);
         }
 
         /// <summary>
@@ -140,6 +154,13 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() => _productService.UpdateProduct(userId, productUpdate));
+            _mockProductRepository.Verify(sp => sp.GetProductById(productUpdate.Id), Times.Once);
+            _mockProductRepository.Verify(sp => sp.UpdateProduct(It.IsAny<ProductEntity>()), Times.Never);
+            _mockMapper.Verify(sp => sp.Map(It.IsAny<ProductUpdateDto>(), It.IsAny<ProductEntity>()), Times.Never);
+            _mockMapper.Verify(sp => sp.Map<ProductElasticDto>(It.IsAny<ProductEntity>()), Times.Never);
+            _mockElasticGenericService.Verify(sp => sp.Index(It.IsAny<ProductElasticDto>(), It.IsAny<string>()), Times.Never);
+            _mockCacheService.Verify(sp => sp.Remove(It.IsAny<string>()), Times.Never);
+            _mockMapper.Verify(sp => sp.Map<ProductDto>(It.IsAny<ProductEntity>()), Times.Never);
         }
     }
 }
