@@ -7,12 +7,12 @@ using EcommerceAPI.Services.ElasticService.Interfaces;
 using EcommerceAPI.Services.Product;
 using Moq;
 
-namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
+namespace EcommerceAPIUnitTesting.Services.ProductServiceTest
 {
     /// <summary>
     /// Unit tests for the AddProduct method in the ProductService class.
     /// </summary>
-    public class AddProductTests
+    public class AddProductTest
     {
         public readonly Mock<IProductRepository> _mockProductRepository;
         public readonly Mock<IElasticGenericService<ProductElasticDto>> _mockElasticGenericService;
@@ -21,9 +21,9 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
         private readonly Fixture _fixture;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AddProductTests"/> class.
+        /// Initializes a new instance of the <see cref="AddProductTest"/> class.
         /// </summary>
-        public AddProductTests()
+        public AddProductTest()
         {
             _mockProductRepository = new Mock<IProductRepository>();
             _mockElasticGenericService = new Mock<IElasticGenericService<ProductElasticDto>>();

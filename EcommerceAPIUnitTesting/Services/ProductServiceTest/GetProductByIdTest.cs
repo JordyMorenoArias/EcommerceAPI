@@ -7,12 +7,12 @@ using EcommerceAPI.Services.Infrastructure.Interfaces;
 using EcommerceAPI.Services.Product;
 using Moq;
 
-namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
+namespace EcommerceAPIUnitTesting.Services.ProductServiceTest
 {
     /// <summary>
     /// Unit tests for the GetProductById method in the ProductService class.
     /// </summary>
-    public class GetProductByIdTests
+    public class GetProductByIdTest
     {
         public readonly Mock<IProductRepository> _mockProductRepository;
         private readonly Mock<ICacheService> _mockCacheService;
@@ -21,9 +21,9 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
         private readonly Fixture _fixture;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GetProductByIdTests"/> class.
+        /// Initializes a new instance of the <see cref="GetProductByIdTest"/> class.
         /// </summary>
-        public GetProductByIdTests()
+        public GetProductByIdTest()
         {
             _mockProductRepository = new Mock<IProductRepository>();
             _mockCacheService = new Mock<ICacheService>();

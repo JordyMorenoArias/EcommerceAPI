@@ -7,20 +7,20 @@ using EcommerceAPI.Services.Infrastructure.Interfaces;
 using EcommerceAPI.Services.Product;
 using Moq;
 
-namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
+namespace EcommerceAPIUnitTesting.Services.ProductServiceTest
 {
     /// <summary>
     /// Unit tests for the GetSuggestions method in the ProductService class.
     /// </summary>
-    public class GetSuggestionsTests
+    public class GetSuggestionsTest
     {
         private readonly Mock<IElasticProductService> _mockElasticProductService;
         private readonly ProductService _productService;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GetSuggestionsTests"/> class.
+        /// Initializes a new instance of the <see cref="GetSuggestionsTest"/> class.
         /// </summary>
-        public GetSuggestionsTests()
+        public GetSuggestionsTest()
         {
             _mockElasticProductService = new Mock<IElasticProductService>();
 

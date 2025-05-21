@@ -10,12 +10,12 @@ using EcommerceAPI.Services.Infrastructure.Interfaces;
 using EcommerceAPI.Services.Product;
 using Moq;
 
-namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
+namespace EcommerceAPIUnitTesting.Services.ProductServiceTest
 {
     /// <summary>
     /// Unit tests for the SearchProducts method in the ProductService class.
     /// </summary>
-    public class SearchProductsTests
+    public class SearchProductsTest
     {
         private readonly Mock<IElasticProductService> _mockElasticProductService;
         private readonly Mock<IProductRepository> _mockProductRepository;
@@ -24,9 +24,9 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
         private readonly Fixture _fixture;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SearchProductsTests"/> class.
+        /// Initializes a new instance of the <see cref="SearchProductsTest"/> class.
         /// </summary>
-        public SearchProductsTests()
+        public SearchProductsTest()
         {
             _mockElasticProductService = new Mock<IElasticProductService>();
             _mockProductRepository = new Mock<IProductRepository>();

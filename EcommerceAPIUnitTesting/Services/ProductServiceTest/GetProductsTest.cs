@@ -10,12 +10,12 @@ using Moq;
 using EcommerceAPI.Services.Product;
 using AutoFixture;
 
-namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
+namespace EcommerceAPIUnitTesting.Services.ProductServiceTest
 {
     /// <summary>
     /// Unit tests for the GetProducts method in the ProductService class.
     /// </summary>
-    public class GetProductsTests
+    public class GetProductsTest
     {
         public readonly Mock<IProductRepository> _mockProductRepository;
         private readonly Mock<ICacheService> _mockCacheService;
@@ -24,9 +24,9 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
         private readonly Fixture _fixture;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GetProductsTests"/> class.
+        /// Initializes a new instance of the <see cref="GetProductsTest"/> class.
         /// </summary>
-        public GetProductsTests()
+        public GetProductsTest()
         {
             _mockProductRepository = new Mock<IProductRepository>();
             _mockCacheService = new Mock<ICacheService>();
