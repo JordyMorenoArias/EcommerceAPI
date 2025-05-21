@@ -8,6 +8,7 @@ using EcommerceAPI.Services.ElasticService.Interfaces;
 using EcommerceAPI.Services.Infrastructure.Interfaces;
 using Moq;
 using EcommerceAPI.Services.Product;
+using AutoFixture;
 
 namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
 {
@@ -20,6 +21,7 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
         private readonly Mock<ICacheService> _mockCacheService;
         private readonly Mock<IMapper> _mockMapper;
         private readonly ProductService _productService;
+        private readonly Fixture _fixture;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GetProductsTests"/> class.
@@ -29,6 +31,7 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
             _mockProductRepository = new Mock<IProductRepository>();
             _mockCacheService = new Mock<ICacheService>();
             _mockMapper = new Mock<IMapper>();
+            _fixture = new Fixture();
 
             _productService = new ProductService(
                 _mockProductRepository.Object,
@@ -55,31 +58,26 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
                 PageSize = 10,
             };
 
+            var pagedResultProductEntity = CreatePagedResultProductEntity();
+            var pagedResultProductDto = CreatePagedResultProductDto();
+
             _mockCacheService.Setup(sp => sp.Get<PagedResult<ProductDto>>(It.IsAny<string>())).ReturnsAsync((PagedResult<ProductDto>?)null);
 
             _mockProductRepository.Setup(sp => sp.GetProducts(It.IsAny<QueryProductParameters>()))
-                .ReturnsAsync(new PagedResult<ProductEntity>
-                {
-                    TotalItems = 100,
-                    PageSize = parameters.PageSize,
-                    Page = parameters.Page,
-                    Items = new List<ProductEntity> { new ProductEntity { Id = 1, Name = "Test Product" } }
-                });
+                .ReturnsAsync(pagedResultProductEntity);
 
             _mockMapper.Setup(sp => sp.Map<PagedResult<ProductDto>>(It.IsAny<PagedResult<ProductEntity>>()))
-                .Returns(new PagedResult<ProductDto>
-                {
-                    TotalItems = 100,
-                    PageSize = parameters.PageSize,
-                    Page = parameters.Page,
-                    Items = new List<ProductDto> { new ProductDto { Id = 1, Name = "Test Product" } }
-                });
+                .Returns(pagedResultProductDto);
 
             // Act
             var result = await _productService.GetProducts(userId, role, parameters);
 
             // Assert
             Assert.NotNull(result);
+            _mockCacheService.Verify(sp => sp.Get<PagedResult<ProductDto>>(It.IsAny<string>()), Times.Once);
+            _mockProductRepository.Verify(sp => sp.GetProducts(It.IsAny<QueryProductParameters>()), Times.Once);
+            _mockMapper.Verify(sp => sp.Map<PagedResult<ProductDto>>(It.IsAny<PagedResult<ProductEntity>>()), Times.Once);
+            _mockCacheService.Verify(sp => sp.Set(It.IsAny<string>(), It.IsAny<PagedResult<ProductDto>>(), It.IsAny<TimeSpan>()), Times.Once);
         }
 
         /// <summary>
@@ -97,20 +95,17 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
                 PageSize = 10,
             };
 
+            var pagedResultProductDto = CreatePagedResultProductDto();
+
             _mockCacheService.Setup(sp => sp.Get<PagedResult<ProductDto>>(It.IsAny<string>()))
-                .ReturnsAsync(new PagedResult<ProductDto>
-                {
-                    TotalItems = 100,
-                    PageSize = parameters.PageSize,
-                    Page = parameters.Page,
-                    Items = new List<ProductDto> { new ProductDto { Id = 1, Name = "Test Product" } }
-                });
+                .ReturnsAsync(pagedResultProductDto);
 
             // Act
             var result = await _productService.GetProducts(userId, role, parameters);
 
             // Assert
             Assert.NotNull(result);
+            _mockCacheService.Verify(sp => sp.Get<PagedResult<ProductDto>>(It.IsAny<string>()), Times.Once);
         }
 
         /// <summary>
@@ -129,31 +124,26 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
                 IsActive = true
             };
 
+            var pagedResultProductEntity = CreatePagedResultProductEntity();
+            var pagedResultProductDto = CreatePagedResultProductDto();
+
             _mockCacheService.Setup(sp => sp.Get<PagedResult<ProductDto>>(It.IsAny<string>())).ReturnsAsync((PagedResult<ProductDto>?)null);
 
             _mockProductRepository.Setup(sp => sp.GetProducts(It.IsAny<QueryProductParameters>()))
-                .ReturnsAsync(new PagedResult<ProductEntity>
-                {
-                    TotalItems = 100,
-                    PageSize = parameters.PageSize,
-                    Page = parameters.Page,
-                    Items = new List<ProductEntity> { new ProductEntity { Id = 1, Name = "Test Product" } }
-                });
+                .ReturnsAsync(pagedResultProductEntity);
 
             _mockMapper.Setup(sp => sp.Map<PagedResult<ProductDto>>(It.IsAny<PagedResult<ProductEntity>>()))
-                .Returns(new PagedResult<ProductDto>
-                {
-                    TotalItems = 100,
-                    PageSize = parameters.PageSize,
-                    Page = parameters.Page,
-                    Items = new List<ProductDto> { new ProductDto { Id = 1, Name = "Test Product" } }
-                });
+                .Returns(pagedResultProductDto);
 
             // Act
             var result = await _productService.GetProducts(userId, role, parameters);
 
             // Assert
             Assert.NotNull(result);
+            _mockCacheService.Verify(sp => sp.Get<PagedResult<ProductDto>>(It.IsAny<string>()), Times.Once);
+            _mockProductRepository.Verify(sp => sp.GetProducts(It.IsAny<QueryProductParameters>()), Times.Once);
+            _mockMapper.Verify(sp => sp.Map<PagedResult<ProductDto>>(It.IsAny<PagedResult<ProductEntity>>()), Times.Once);
+            _mockCacheService.Verify(sp => sp.Set(It.IsAny<string>(), It.IsAny<PagedResult<ProductDto>>(), It.IsAny<TimeSpan>()), Times.Once);
         }
 
         /// <summary>
@@ -172,31 +162,26 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
                 UserId = 1
             };
 
+            var pagedResultProductEntity = CreatePagedResultProductEntity();
+            var pagedResultProductDto = CreatePagedResultProductDto();
+
             _mockCacheService.Setup(sp => sp.Get<PagedResult<ProductDto>>(It.IsAny<string>())).ReturnsAsync((PagedResult<ProductDto>?)null);
 
             _mockProductRepository.Setup(sp => sp.GetProducts(It.IsAny<QueryProductParameters>()))
-                .ReturnsAsync(new PagedResult<ProductEntity>
-                {
-                    TotalItems = 100,
-                    PageSize = parameters.PageSize,
-                    Page = parameters.Page,
-                    Items = new List<ProductEntity> { new ProductEntity { Id = 1, Name = "Test Product" } }
-                });
+                .ReturnsAsync(pagedResultProductEntity);
 
             _mockMapper.Setup(sp => sp.Map<PagedResult<ProductDto>>(It.IsAny<PagedResult<ProductEntity>>()))
-                .Returns(new PagedResult<ProductDto>
-                {
-                    TotalItems = 100,
-                    PageSize = parameters.PageSize,
-                    Page = parameters.Page,
-                    Items = new List<ProductDto> { new ProductDto { Id = 1, Name = "Test Product" } }
-                });
+                .Returns(pagedResultProductDto);
 
             // Act
             var result = await _productService.GetProducts(userId, role, parameters);
 
             // Assert
             Assert.NotNull(result);
+            _mockCacheService.Verify(sp => sp.Get<PagedResult<ProductDto>>(It.IsAny<string>()), Times.Once);
+            _mockProductRepository.Verify(sp => sp.GetProducts(It.IsAny<QueryProductParameters>()), Times.Once);
+            _mockMapper.Verify(sp => sp.Map<PagedResult<ProductDto>>(It.IsAny<PagedResult<ProductEntity>>()), Times.Once);
+            _mockCacheService.Verify(sp => sp.Set(It.IsAny<string>(), It.IsAny<PagedResult<ProductDto>>(), It.IsAny<TimeSpan>()), Times.Once);
         }
 
         /// <summary>
@@ -217,6 +202,10 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() => _productService.GetProducts(userId, role, parameters));
+            _mockCacheService.Verify(sp => sp.Get<PagedResult<ProductDto>>(It.IsAny<string>()), Times.Never);
+            _mockProductRepository.Verify(sp => sp.GetProducts(It.IsAny<QueryProductParameters>()), Times.Never);
+            _mockMapper.Verify(sp => sp.Map<PagedResult<ProductDto>>(It.IsAny<PagedResult<ProductEntity>>()), Times.Never);
+            _mockCacheService.Verify(sp => sp.Set(It.IsAny<string>(), It.IsAny<PagedResult<ProductDto>>(), It.IsAny<TimeSpan>()), Times.Never);
         }
 
         /// <summary>
@@ -236,6 +225,36 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _productService.GetProducts(userId, role, parameters));
+            _mockCacheService.Verify(sp => sp.Get<PagedResult<ProductDto>>(It.IsAny<string>()), Times.Never);
+            _mockProductRepository.Verify(sp => sp.GetProducts(It.IsAny<QueryProductParameters>()), Times.Never);
+            _mockMapper.Verify(sp => sp.Map<PagedResult<ProductDto>>(It.IsAny<PagedResult<ProductEntity>>()), Times.Never);
+            _mockCacheService.Verify(sp => sp.Set(It.IsAny<string>(), It.IsAny<PagedResult<ProductDto>>(), It.IsAny<TimeSpan>()), Times.Never);
+        }
+
+        private PagedResult<ProductEntity> CreatePagedResultProductEntity()
+        {
+            return _fixture.Build<PagedResult<ProductEntity>>()
+                .With(p => p.TotalItems, 100)
+                .With(p => p.PageSize, 10)
+                .With(p => p.Page, 1)
+                .With(p => p.Items, _fixture.Build<ProductEntity>()
+                                            .Without(p => p.Category)
+                                            .Without(p => p.ProductTags)
+                                            .CreateMany(5).ToList())
+                .Create();
+        }
+
+        private PagedResult<ProductDto> CreatePagedResultProductDto()
+        {
+            return _fixture.Build<PagedResult<ProductDto>>()
+                .With(p => p.TotalItems, 100)
+                .With(p => p.PageSize, 10)
+                .With(p => p.Page, 1)
+                .With(p => p.Items, _fixture.Build<ProductDto>()
+                                            .Without(p => p.Category)
+                                            .Without(p => p.ProductTags)
+                                            .CreateMany(5).ToList())
+                .Create();
         }
     }
 }
