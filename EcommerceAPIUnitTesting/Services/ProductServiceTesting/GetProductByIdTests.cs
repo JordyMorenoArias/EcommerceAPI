@@ -1,26 +1,34 @@
-﻿using AutoMapper;
+﻿using AutoFixture;
+using AutoMapper;
 using EcommerceAPI.Models;
 using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Repositories;
-using EcommerceAPI.Services.ElasticService.Interfaces;
 using EcommerceAPI.Services.Infrastructure.Interfaces;
 using EcommerceAPI.Services.Product;
 using Moq;
 
 namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
 {
+    /// <summary>
+    /// Unit tests for the GetProductById method in the ProductService class.
+    /// </summary>
     public class GetProductByIdTests
     {
         public readonly Mock<IProductRepository> _mockProductRepository;
         private readonly Mock<ICacheService> _mockCacheService;
         private readonly Mock<IMapper> _mockMapper;
         private readonly ProductService _productService;
+        private readonly Fixture _fixture;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetProductByIdTests"/> class.
+        /// </summary>
         public GetProductByIdTests()
         {
             _mockProductRepository = new Mock<IProductRepository>();
             _mockCacheService = new Mock<ICacheService>();
             _mockMapper = new Mock<IMapper>();
+            _fixture = new Fixture();
 
             _productService = new ProductService(
                 _mockProductRepository.Object,
@@ -40,23 +48,20 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
             // Arrange
             int productId = 1;
 
-            _mockCacheService.Setup(sp => sp.Get<ProductDto>(It.IsAny<string>())).ReturnsAsync(new ProductDto
-            {
-                Id = productId,
-                Name = "Test Product",
-                Price = 100.00m,
-                Description = "Test Description",
-                Stock = 10
-            });
+            var productDto = CreateProductDto(productId);
+
+            _mockCacheService.Setup(sp => sp.Get<ProductDto>(It.IsAny<string>()))
+                .ReturnsAsync(productDto);
 
             _mockMapper.Setup(sp => sp.Map<ProductDto>(It.IsAny<ProductEntity>()))
-                .Returns(GetTestProductDto());
+                .Returns(productDto);
 
             // Act
             var result = await _productService.GetProductById(productId);
 
             // Assert
             Assert.NotNull(result);
+            _mockCacheService.Verify(sp => sp.Get<ProductDto>(It.IsAny<string>()));
         }
 
         /// <summary>
@@ -68,25 +73,30 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
             // Arrange
             var productId = 1;
 
-            _mockCacheService.Setup(sp => sp.Get<ProductDto>(It.IsAny<string>())).ReturnsAsync((ProductDto?)null);
+            var productEntity = CreateProductEntity(productId);
+            var productDto = CreateProductDto(productId);
 
-            _mockProductRepository.Setup(sp => sp.GetProductById(productId)).ReturnsAsync(new ProductEntity
-            {
-                Id = productId,
-                Name = "Test Product",
-                Price = 100.00m,
-                Description = "Test Description",
-                Stock = 10
-            });
+            _mockCacheService.Setup(sp => sp.Get<ProductDto>(It.IsAny<string>()))
+                .ReturnsAsync((ProductDto?)null);
+
+            _mockProductRepository.Setup(sp => sp.GetProductById(productId))
+                .ReturnsAsync(productEntity);
 
             _mockMapper.Setup(sp => sp.Map<ProductDto>(It.IsAny<ProductEntity>()))
-            .Returns(GetTestProductDto());
+                .Returns(productDto);
+
+            _mockCacheService.Setup(sp => sp.Set(It.IsAny<string>(), It.IsAny<ProductDto>(), It.IsAny<TimeSpan>()))
+                .Returns(Task.CompletedTask);
 
             // Act
             var result = await _productService.GetProductById(productId);
 
             // Asset
             Assert.NotNull(result);
+            _mockCacheService.Verify(sp => sp.Get<ProductDto>(It.IsAny<string>()), Times.Once);
+            _mockProductRepository.Verify(sp => sp.GetProductById(It.IsAny<int>()), Times.Once);
+            _mockMapper.Verify(sp => sp.Map<ProductDto>(It.IsAny<ProductEntity>()), Times.Once);
+            _mockCacheService.Verify(sp => sp.Set(It.IsAny<string>(), It.IsAny<ProductDto>(), It.IsAny<TimeSpan>()), Times.Once);
         }
 
         /// <summary>
@@ -98,24 +108,34 @@ namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
             // Arrange
             var productId = 1;
 
-            _mockCacheService.Setup(sp => sp.Get<ProductDto>(It.IsAny<string>())).ReturnsAsync((ProductDto?)null);
+            _mockCacheService.Setup(sp => sp.Get<ProductDto>(It.IsAny<string>()))
+                .ReturnsAsync((ProductDto?)null);
 
-            _mockProductRepository.Setup(sp => sp.GetProductById(productId)).ReturnsAsync((ProductEntity?)null);
+            _mockProductRepository.Setup(sp => sp.GetProductById(It.IsAny<int>()))
+                .ReturnsAsync((ProductEntity?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _productService.GetProductById(productId));
+            _mockCacheService.Verify(sp => sp.Get<ProductDto>(It.IsAny<string>()), Times.Once);
+            _mockProductRepository.Verify(sp => sp.GetProductById(It.IsAny<int>()), Times.Once);
         }
 
-        private ProductDto GetTestProductDto()
+        private ProductEntity CreateProductEntity(int productId)
         {
-            return new ProductDto
-            {
-                Id = 1,
-                Name = "Test Product",
-                Price = 100.00m,
-                Description = "Test Description",
-                Stock = 10
-            };
+            return _fixture.Build<ProductEntity>()
+                .With(p => p.Id, productId)
+                .Without(p => p.Category)
+                .Without(p => p.ProductTags)
+                .Create();
+        }
+
+        private ProductDto CreateProductDto(int productId)
+        {
+            return _fixture.Build<ProductDto>()
+             .With(p => p.Id, productId)
+             .Without(p => p.Category)
+             .Without(p => p.ProductTags)
+             .Create();
         }
     }
 }

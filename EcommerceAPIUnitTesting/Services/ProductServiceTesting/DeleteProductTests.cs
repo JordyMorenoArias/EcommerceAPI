@@ -7,7 +7,6 @@ using EcommerceAPI.Services.ElasticService.Interfaces;
 using EcommerceAPI.Services.Infrastructure.Interfaces;
 using EcommerceAPI.Services.Product;
 using Moq;
-using System.Runtime.CompilerServices;
 
 namespace EcommerceAPIUnitTesting.Services.ProductServiceTesting
 {
