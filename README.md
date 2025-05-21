@@ -31,23 +31,21 @@ A robust and modern **Ecommerce RESTful API** built with **ASP.NET Core**. This 
 
 ## 📁 Project Structure
 
-EcommerceAPI/
-│
-├── AutoMapper/ AutoMapper profiles
-├── Configurations/ Service configurations and DI
-├── Constants/ Constant values used in the app
-├── Controllers/ API Controllers
-├── Data/ DbContext and data-related classes
-├── Filters/ Action filters
-├── Middlewares/ Custom middleware logic
-├── Migrations/ EF Core database migrations
-├── Models/ Entity models
-├── Repositories/ Repository interfaces and implementations
-├── Services/ Business logic services
-├── Utilities/ Helper and utility classes
-├── appsettings.json Main configuration file
-├── Program.cs Application startup
-└── EcommerceAPI.http HTTP requests for testing
+- `AutoMapper/` - AutoMapper profiles
+- `Configurations/` - Service configurations and DI
+- `Constants/` - Constant values used in the app
+- `Controllers/` - API Controllers
+- `Data/` - DbContext and data-related classes
+- `Filters/` - Action filters
+- `Middlewares/` - Custom middleware logic
+- `Migrations/` - EF Core database migrations
+- `Models/` - Entity models
+- `Repositories/` - Repository interfaces and implementations
+- `Services/` - Business logic services
+- `Utilities/` - Helper and utility classes
+- `appsettings.json` - Main configuration file
+- `Program.cs` - Application startup
+- `EcommerceAPI.http` - HTTP requests for testing
 
 ## ⚙️ Configuration
 
