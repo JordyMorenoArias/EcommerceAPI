@@ -24,7 +24,9 @@ namespace EcommerceAPI.AutoMapper
             CreateMap<UserEntity, UserAuthenticatedDto>().ReverseMap();
             CreateMap<UserEntity, UserDto>().ReverseMap();
             CreateMap<UserEntity, UserGenerateTokenDto>().ReverseMap();
-            CreateMap<UserEntity, UserRegisterDto>().ReverseMap();
+            CreateMap<UserEntity, UserRegisterDto>()
+                .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.PasswordHash))
+                .ReverseMap();
             CreateMap<UserEntity, UserUpdateDto>().ReverseMap();
 
             // Product to DTO assignments and reverse

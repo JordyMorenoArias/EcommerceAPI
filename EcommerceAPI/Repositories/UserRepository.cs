@@ -105,7 +105,6 @@ namespace EcommerceAPI.Repositories
                 user.IsEmailConfirmed = true;
                 user.EmailConfirmedToken = string.Empty;
                 _context.Users.Update(user);
-                await _context.SaveChangesAsync();
             }
 
             return await _context.SaveChangesAsync() > 0;
