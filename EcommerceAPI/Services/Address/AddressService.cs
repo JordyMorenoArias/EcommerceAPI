@@ -128,10 +128,6 @@ namespace EcommerceAPI.Services.Address
             addressEntity.UserId = userId;
             var address = await _addressRepository.AddAddress(addressEntity);
 
-            if (address == null)
-                throw new Exception("Failed to add address");
-
-            await _cacheService.Remove($"Address_{address.Id}");
             await _cacheService.Remove($"Addresses_User_{address.UserId}");
 
             var addressDto = _mapper.Map<AddressDto>(address);
@@ -160,9 +156,6 @@ namespace EcommerceAPI.Services.Address
             _mapper.Map(addressUpdate, address);
             var updatedAddress = await _addressRepository.UpdateAddress(address);
 
-            if (updatedAddress == null)
-                throw new Exception("Failed to update address");
-
             await _cacheService.Remove($"Address_{addressUpdate.Id}");
             await _cacheService.Remove($"Addresses_User_{userId}");
             
@@ -190,9 +183,6 @@ namespace EcommerceAPI.Services.Address
                 throw new InvalidOperationException("You are not authorized to delete this address");
 
             var result = await _addressRepository.DeleteAddress(id);
-
-            if (!result)
-                throw new Exception("Failed to delete address");
 
             await _cacheService.Remove($"Address_{id}");
             await _cacheService.Remove($"Addresses_User_{userId}");

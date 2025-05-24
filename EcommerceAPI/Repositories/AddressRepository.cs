@@ -63,14 +63,9 @@ namespace EcommerceAPI.Repositories
         /// <returns>True if the operation was successful, false if the address was not found.</returns>
         public async Task<AddressEntity?> UpdateAddress(AddressEntity address)
         {
-            var existingAddress = await GetAddressById(address.Id);
-
-            if (existingAddress is null)
-                return null;
-
-            _context.Entry(existingAddress).CurrentValues.SetValues(address);
+            _context.Addresses.Update(address);
             await _context.SaveChangesAsync();
-            return existingAddress;
+            return address;
         }
 
         /// <summary>
