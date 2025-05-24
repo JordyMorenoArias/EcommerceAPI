@@ -21,11 +21,11 @@ namespace EcommerceAPI.Services.Auth
         private readonly IJwtService _jwtService;
         private readonly ITokenGenerator _tokenGenerator;
         private readonly IEmailService _emailService;
-        private readonly PasswordHasher<UserEntity> _passwordHasher;
+        private readonly IPasswordHasher<UserEntity> _passwordHasher;
         private readonly IMapper _mapper;
         private readonly ILogger<AuthService> _logger;
 
-        public AuthService(IUserRepository userRepository, IJwtService jwtService, ITokenGenerator tokenGenerator, IEmailService emailService, PasswordHasher<UserEntity> passwordHasher, IMapper mapper, ILogger<AuthService> logger)
+        public AuthService(IUserRepository userRepository, IJwtService jwtService, ITokenGenerator tokenGenerator, IEmailService emailService, IPasswordHasher<UserEntity> passwordHasher, IMapper mapper, ILogger<AuthService> logger)
         {
             _userRepository = userRepository;
             _jwtService = jwtService;
@@ -47,7 +47,7 @@ namespace EcommerceAPI.Services.Auth
         {
             var user = await _userRepository.GetUserByEmail(loginDto.Email);
 
-            if (user == null || _passwordHasher.VerifyHashedPassword(user, user.PasswordHash!, loginDto.Password) == PasswordVerificationResult.Failed)
+            if (user == null || string.IsNullOrEmpty(user.PasswordHash) || _passwordHasher.VerifyHashedPassword(user, user.PasswordHash!, loginDto.Password) == PasswordVerificationResult.Failed)
             {
                 _logger.LogWarning("Invalid login attempt for email: {Email}", loginDto.Email);
                 throw new UnauthorizedAccessException("Invalid email or password");
@@ -84,10 +84,10 @@ namespace EcommerceAPI.Services.Auth
 
             string token = _tokenGenerator.GenerateToken();
 
-            var newUser = _mapper.Map<UserEntity>(userRegister);
-            newUser.EmailConfirmedToken = token;
+            var userEntity = _mapper.Map<UserEntity>(userRegister);
+            userEntity.EmailConfirmedToken = token;
 
-            var userResult = await _userRepository.AddUser(newUser);
+            var userResult = await _userRepository.AddUser(userEntity);
 
             if (userResult is null)
                 throw new InvalidOperationException("Failed to register user");

@@ -38,7 +38,7 @@ namespace EcommerceAPI.Services.Infrastructure
             message.To.Add(new MailboxAddress("", email));
             message.Subject = "Email Confirmation";
 
-            var verificationLink = $"{_BaseURL}/api/auth/confirm-email?token={token}&email={email}";
+            var verificationLink = $"{_BaseURL}/api/auth/confirm-email?email={email}&token={token}";
 
             message.Body = new TextPart("html")
             {

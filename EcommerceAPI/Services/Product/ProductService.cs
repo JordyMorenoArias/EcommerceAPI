@@ -22,6 +22,14 @@ namespace EcommerceAPI.Services.Product
         private readonly ICacheService _cacheService;
         private readonly IMapper _mapper;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProductService"/> class.
+        /// </summary>
+        /// <param name="productRepository">The product repository.</param>
+        /// <param name="elasticProductService">The elastic product service.</param>
+        /// <param name="elasticGenericService">The elastic generic service.</param>
+        /// <param name="cacheService">The cache service.</param>
+        /// <param name="mapper">The mapper.</param>
         public ProductService(IProductRepository productRepository, IElasticProductService elasticProductService, IElasticGenericService<ProductElasticDto> elasticGenericService, ICacheService cacheService, IMapper mapper)
         {
             _productRepository = productRepository;
@@ -109,17 +117,10 @@ namespace EcommerceAPI.Services.Product
             if (parameters.Page <= 0 || parameters.PageSize <= 0)
                 throw new ArgumentException("Page and PageSize must be greater than 0.");
 
-            if (role == UserRole.Customer)
+            if (role == UserRole.Customer || role == UserRole.Seller)
             {
-                if (parameters.IsActive != null && parameters.IsActive != true)
-                    throw new InvalidOperationException("Customers can only view active products.");
-            }
-            else if (role == UserRole.Seller)
-            {
-                if (parameters.IsActive != null && parameters.IsActive != true)
-                    throw new InvalidOperationException("Sellers can only view active products of other sellers.");
-
-                parameters.IsActive = true;
+                if (parameters.IsActive != null || parameters.IsActive == false)
+                    throw new InvalidOperationException("Customers and sellers can only search active products.");
             }
 
             var productIds = await _elasticProductService.SearchProducts(parameters);
@@ -166,17 +167,17 @@ namespace EcommerceAPI.Services.Product
             switch (role)
             {
                 case UserRole.Customer:
-                    if (parameters.IsActive != null && parameters.IsActive != true)
+                    if (parameters.IsActive != null && parameters.IsActive == false)
                         throw new InvalidOperationException("Customers can only view active products.");
-                    parameters.IsActive = true;
                     break;
 
                 case UserRole.Seller:
                     if (!parameters.UserId.HasValue || parameters.UserId != userId)
                     {
-                        if (parameters.IsActive != null && parameters.IsActive != true)
+                        if (parameters.IsActive != null && parameters.IsActive == false)
                             throw new InvalidOperationException("Sellers can only view active products of other sellers.");
-                        parameters.IsActive = true;
+
+                        parameters.IsActive = true; // Ensure only active products are fetched for other sellers
                     }
                     // else: seller viewing their own products; allow active and inactive
                     break;
@@ -257,8 +258,8 @@ namespace EcommerceAPI.Services.Product
             var elasticProduct = _mapper.Map<ProductElasticDto>(updatedProduct);
             await _elasticGenericService.Index(elasticProduct, elasticProduct.Id.ToString());
 
-            await InvalidateProductCache(product);
-            return _mapper.Map<ProductDto>(product);
+            await _cacheService.Remove($"Product_{updatedProduct.Id}");
+            return _mapper.Map<ProductDto>(updatedProduct);
         }
 
         /// <summary>
@@ -281,22 +282,12 @@ namespace EcommerceAPI.Services.Product
 
             if (result)
             {
-                await InvalidateProductCache(product);
+                await _cacheService.Remove($"Product_{product.Id}");
 
                 await _elasticGenericService.Delete(product.Id.ToString());
             }
 
             return result;
-        }
-
-        /// <summary>
-        /// Invalidates cache entries related to the given product.
-        /// </summary>
-        /// <param name="product">The product entity.</param>
-        private async Task InvalidateProductCache(ProductEntity product)
-        {
-            // Invalidates the individual product
-            await _cacheService.Remove($"Product_{product.Id}");
         }
     }
 }
