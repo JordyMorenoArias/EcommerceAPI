@@ -116,4 +116,4 @@ Press F5 or click on the Start Debugging button.
 ## 📬 Contact
 Jordy Moreno Arias
 📧 yordimorenoarias.11@gmail.com
-🔗 [LinkedIn <!-- Replace with your actual LinkedIn URL -->](https://www.linkedin.com/in/jordymorenoarias/)
+🔗 [LinkedIn ](https://www.linkedin.com/in/jordymorenoarias/)
