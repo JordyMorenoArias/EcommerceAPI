@@ -6,11 +6,6 @@ using EcommerceAPI.Repositories.Interfaces;
 using EcommerceAPI.Services.Address;
 using EcommerceAPI.Services.Infrastructure.Interfaces;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EcommerceAPIUnitTesting.Services.AddressServiceTest
 {

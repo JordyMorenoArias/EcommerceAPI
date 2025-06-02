@@ -92,7 +92,7 @@ namespace EcommerceAPI.Services.Cart
             var cacheKey = $"cart_total_{userId}";
             var cachedTotal = await _cacheService.Get<decimal?>(cacheKey);
 
-            if (cachedTotal.HasValue)
+            if (cachedTotal is not null)
                 return cachedTotal;
 
             var cart = await _cartRepository.GetCartByUserId(userId);
