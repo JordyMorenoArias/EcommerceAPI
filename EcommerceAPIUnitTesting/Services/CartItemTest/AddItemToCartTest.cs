@@ -346,46 +346,46 @@ namespace EcommerceAPIUnitTesting.Services.CartItemTest
 
         private CartEntity CreateCart(int userId)
         {
-            return new CartEntity
-            {
-                Id = _fixture.Create<int>(),
-                UserId = userId
-            };
+            return _fixture.Build<CartEntity>()
+                           .With(c => c.UserId, userId)
+                           .With(c => c.CartItems, new List<CartItemEntity>())
+                           .Create();
         }
 
         private ProductEntity CreateProduct(int productId, bool isActive = true, int stock = 10, decimal price = 100.00m)
         {
-            return new ProductEntity
-            {
-                Id = productId,
-                IsActive = isActive,
-                Stock = stock,
-                Price = price
-            };
+            return _fixture.Build<ProductEntity>()
+                           .With(p => p.Id, productId)
+                           .With(p => p.IsActive, isActive)
+                           .With(p => p.Stock, stock)
+                           .With(p => p.Price, price)
+                           .Without(p => p.Category)
+                           .Without(p => p.ProductTags)
+                           .Without(p => p.User)
+                           .Create();
         }
 
         private CartItemEntity CreateCartItemEntity(int cartId, int productId, int quantity, decimal price)
         {
-            return new CartItemEntity
-            {
-                Id = _fixture.Create<int>(),
-                CartId = cartId,
-                ProductId = productId,
-                Quantity = quantity,
-                UnitPrice = price
-            };
+            return _fixture.Build<CartItemEntity>()
+                           .With(c => c.CartId, cartId)
+                           .With(c => c.ProductId, productId)
+                           .With(c => c.Quantity, quantity)
+                           .With(c => c.UnitPrice, price)
+                           .Without(c => c.Cart)
+                           .Without(c => c.Product)
+                           .Create();
         }
 
         private CartItemDto CreateCartItemDto(int cartId, int productId, int quantity, decimal price)
         {
-            return new CartItemDto
-            {
-                Id = _fixture.Create<int>(),
-                CartId = cartId,
-                ProductId = productId,
-                Quantity = quantity,
-                UnitPrice = price
-            };
+            return _fixture.Build<CartItemDto>()
+                           .With(c => c.CartId, cartId)
+                           .With(c => c.ProductId, productId)
+                           .With(c => c.Quantity, quantity)
+                           .With(c => c.UnitPrice, price)
+                           .Without(c => c.Product)
+                           .Create();
         }
     }
 }
