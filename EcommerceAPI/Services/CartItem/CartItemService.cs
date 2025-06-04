@@ -101,8 +101,7 @@ namespace EcommerceAPI.Services.CartItem
             if (cartItem.Quantity <= 0)
                 throw new ArgumentException("Quantity must be greater than zero", nameof(cartItem.Quantity));
 
-            var cart = await _cartRepository.GetCartByUserId(userId)
-                       ?? throw new KeyNotFoundException("Cart not found");
+            var cart = await _cartRepository.GetCartByUserId(userId) ?? throw new KeyNotFoundException("Cart not found");
 
             var product = await GetProductOrThrow(cartItem.ProductId);
 
@@ -152,10 +151,7 @@ namespace EcommerceAPI.Services.CartItem
 
             var result = await _cartItemRepository.DeleteCartItem(existingItem.Id);
 
-            if (result)
-            {
-                await RemoveCartCache(userId);
-            }
+            await RemoveCartCache(userId);
 
             return result;
         }
