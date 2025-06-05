@@ -18,7 +18,7 @@ namespace EcommerceAPIUnitTesting.Services.AddressServiceTest
     /// <summary>
     /// Unit tests for the AddressService class, specifically for the GetAddressesByUserId method.
     /// </summary>
-    public class GetAddressesByUserId
+    public class GetAddressesByUserIdTest
     {
         private readonly Mock<IAddressRepository> _mockAddressRepository;
         private readonly Mock<ICacheService> _mockCacheService;
@@ -27,9 +27,9 @@ namespace EcommerceAPIUnitTesting.Services.AddressServiceTest
         private readonly Fixture _fixture;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GetAddressesByUserId"/> class.
+        /// Initializes a new instance of the <see cref="GetAddressesByUserIdTest"/> class.
         /// </summary>
-        public GetAddressesByUserId()
+        public GetAddressesByUserIdTest()
         {
             _mockAddressRepository = new Mock<IAddressRepository>();
             _mockCacheService = new Mock<ICacheService>();

@@ -12,7 +12,7 @@ namespace EcommerceAPIUnitTesting.Services.AddressServiceTest
     /// <summary>
     /// Unit tests for the GetDefaultAddressForUser method in the AddressService class.
     /// </summary>
-    public class GetDefaultAddressForUser
+    public class GetDefaultAddressForUserTest
     {
         private readonly Mock<IAddressRepository> _mockAddressRepository;
         private readonly Mock<ICacheService> _mockCacheService;
@@ -23,7 +23,7 @@ namespace EcommerceAPIUnitTesting.Services.AddressServiceTest
         /// <summary>
         /// Initializes a new instance of the <see cref="GetAddressByIdTest"/> class.
         /// </summary>
-        public GetDefaultAddressForUser()
+        public GetDefaultAddressForUserTest()
         {
             _mockAddressRepository = new Mock<IAddressRepository>();
             _mockCacheService = new Mock<ICacheService>();
