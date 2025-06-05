@@ -47,20 +47,36 @@ namespace EcommerceAPI.Services.Auth
         {
             var user = await _userRepository.GetUserByEmail(loginDto.Email);
 
-            if (user == null || string.IsNullOrEmpty(user.PasswordHash) || _passwordHasher.VerifyHashedPassword(user, user.PasswordHash!, loginDto.Password) == PasswordVerificationResult.Failed)
+            if (user == null)
             {
-                _logger.LogWarning("Invalid login attempt for email: {Email}", loginDto.Email);
+                _logger.LogWarning("Login attempt failed: user not found for email {Email}", loginDto.Email);
                 throw new UnauthorizedAccessException("Invalid email or password");
             }
-            
-            var token = _jwtService.GenerateJwtToken(_mapper.Map<UserGenerateTokenDto>(user));
+
+            if (string.IsNullOrEmpty(user.PasswordHash))
+            {
+                _logger.LogWarning("Login attempt failed: no password hash found for user {Email}", loginDto.Email);
+                throw new UnauthorizedAccessException("Invalid email or password");
+            }
+
+            var verificationResult = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginDto.Password);
+            if (verificationResult == PasswordVerificationResult.Failed)
+            {
+                _logger.LogWarning("Login attempt failed: invalid password for user {Email}", loginDto.Email);
+                throw new UnauthorizedAccessException("Invalid email or password");
+            }
+
+            var userTokenDto = _mapper.Map<UserGenerateTokenDto>(user);
+            var token = _jwtService.GenerateJwtToken(userTokenDto);
 
             _logger.LogInformation("User {Email} logged in successfully", loginDto.Email);
+           
+            var userDto = _mapper.Map<UserDto>(user);
             return new AuthResponseDto
             {
                 Token = token,
                 Expires = DateTime.UtcNow.AddHours(3),
-                User = _mapper.Map<UserDto>(user)
+                User = userDto
             };
         }
 
