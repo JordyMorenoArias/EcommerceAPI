@@ -9,20 +9,26 @@ namespace EcommerceAPI.Services.Auth.Interfaces
     public interface IAuthService
     {
         /// <summary>
-        /// Changes the password of the user.
+        /// Changes a user's password after validating the old password.
         /// </summary>
-        /// <param name="id">The identifier of the user.</param>
-        /// <param name="changePasswordDto">The data transfer object containing the new password information.</param>
-        /// <returns>A task representing the asynchronous operation, with a boolean value indicating if the password was successfully changed.</returns>
-        Task<bool> ChangePassword(int id, UserChangePasswordDto changePasswordDto);
+        /// <param name="id">User ID.</param>
+        /// <param name="oldPassword">Current password.</param>
+        /// <param name="newPassword">New password.</param>
+        /// <returns>
+        /// An <see cref="OperationResult"/> indicating whether the password change was successful,
+        /// along with an optional message describing the result.
+        /// </returns>
+        /// <exception cref="UnauthorizedAccessException">Thrown if the old password is incorrect.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if password update fails.</exception>
+        Task<OperationResult> ChangePassword(int id, UserChangePasswordDto changePassword);
 
         /// <summary>
-        /// Confirms the email address of the user.
+        /// Confirms the email.
         /// </summary>
-        /// <param name="email">The email address to be confirmed.</param>
-        /// <param name="token">The token used for email confirmation.</param>
-        /// <returns>A task representing the asynchronous operation, with a boolean value indicating if the email was successfully confirmed.</returns>
-        Task<bool> ConfirmEmail(string email, string token);
+        /// <param name="email">The email.</param>
+        /// <param name="token">The token.</param>
+        /// <returns>A task representing the asynchronous operation, with an <see cref="OperationResult"/> indicating the result of the email confirmation.</returns>
+        Task<OperationResult> ConfirmEmail(string email, string token);
 
         /// <summary>
         /// Logs the user in using the provided credentials.
@@ -32,31 +38,31 @@ namespace EcommerceAPI.Services.Auth.Interfaces
         Task<AuthResponseDto> Login(UserLoginDto loginDto);
 
         /// <summary>
-        /// Registers a new user.
+        /// Registers the specified user register.
         /// </summary>
-        /// <param name="userRegister">The registration data transfer object containing the user's registration information.</param>
-        /// <returns>A task representing the asynchronous operation, with a boolean value indicating if the registration was successful.</returns>
-        Task<bool> Register(UserRegisterDto userRegister);
+        /// <param name="userRegister">The user register.</param>
+        /// <returns>A task representing the asynchronous operation, with an <see cref="OperationResult"/> indicating the result of the registration process.</returns>
+        Task<OperationResult> Register(UserRegisterDto userRegister);
 
         /// <summary>
-        /// Resets the password for the user.
+        /// Resets the password.
         /// </summary>
-        /// <param name="userResetPassword">The data transfer object containing the reset password information.</param>
-        /// <returns>A task representing the asynchronous operation, with a boolean value indicating if the password was successfully reset.</returns>
-        Task<bool> ResetPassword(UserResetPasswordDto userResetPassword);
+        /// <param name="userResetPassword">The user reset password.</param>
+        /// <returns>A task representing the asynchronous operation, with an <see cref="OperationResult"/> indicating the result of the password reset operation.</returns>
+        Task<OperationResult> ResetPassword(UserResetPasswordDto userResetPassword);
 
         /// <summary>
         /// Sends a forgot password email to the user.
         /// </summary>
         /// <param name="email">The email address to send the forgot password email to.</param>
         /// <returns>A task representing the asynchronous operation, with a boolean value indicating if the email was successfully sent.</returns>
-        Task<bool> SendForgotPasswordEmail(string email);
+        Task<OperationResult> SendForgotPasswordEmail(string email);
 
         /// <summary>
-        /// Verifies the reset code for the user.
+        /// Verifies the reset code.
         /// </summary>
-        /// <param name="verifyResetCodeDto">The data transfer object containing the reset code to be verified.</param>
-        /// <returns>A task representing the asynchronous operation, with a boolean value indicating if the reset code was successfully verified.</returns>
-        Task<bool> VerifyResetCode(UserVerifyResetCodeDto verifyResetCodeDto);
+        /// <param name="verifyResetCodeDto">The verify reset code dto.</param>
+        /// <returns>A task representing the asynchronous operation, with an <see cref="OperationResult"/> indicating whether the reset code is valid.</returns>
+        Task<OperationResult> VerifyResetCode(UserVerifyResetCodeDto verifyResetCodeDto);
     }
 }

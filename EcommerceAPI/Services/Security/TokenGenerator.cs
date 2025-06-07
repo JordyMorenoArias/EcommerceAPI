@@ -30,9 +30,9 @@ namespace EcommerceAPI.Services.Security
         /// This is useful for two-factor authentication (2FA), account recovery, or other numeric verification purposes.
         /// </summary>
         /// <returns>A secure 6-digit integer between 100000 and 999999.</returns>
-        public int Generate6DigitToken()
+        public string Generate6DigitToken()
         {
-            int code = RandomNumberGenerator.GetInt32(100000, 1000000);
+            var code = RandomNumberGenerator.GetInt32(100000, 1000000).ToString("D6");
             return code;
         }
     }

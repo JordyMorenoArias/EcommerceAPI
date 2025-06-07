@@ -2,12 +2,12 @@
 using EcommerceAPI.Repositories.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using EcommerceAPI.Models.DTOs.User;
-using System.Security.Cryptography;
 using EcommerceAPI.Services.Security.Interfaces;
 using AutoMapper;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.Auth.Interfaces;
 using EcommerceAPI.Services.Infrastructure.Interfaces;
+using EcommerceAPI.Constants;
 
 namespace EcommerceAPI.Services.Auth
 {
@@ -25,6 +25,16 @@ namespace EcommerceAPI.Services.Auth
         private readonly IMapper _mapper;
         private readonly ILogger<AuthService> _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AuthService"/> class.
+        /// </summary>
+        /// <param name="userRepository">The user repository.</param>
+        /// <param name="jwtService">The JWT service.</param>
+        /// <param name="tokenGenerator">The token generator.</param>
+        /// <param name="emailService">The email service.</param>
+        /// <param name="passwordHasher">The password hasher.</param>
+        /// <param name="mapper">The mapper.</param>
+        /// <param name="logger">The logger.</param>
         public AuthService(IUserRepository userRepository, IJwtService jwtService, ITokenGenerator tokenGenerator, IEmailService emailService, IPasswordHasher<UserEntity> passwordHasher, IMapper mapper, ILogger<AuthService> logger)
         {
             _userRepository = userRepository;
@@ -81,12 +91,12 @@ namespace EcommerceAPI.Services.Auth
         }
 
         /// <summary>
-        /// Registers a new user and sends an email verification token.
+        /// Registers the specified user register.
         /// </summary>
-        /// <param name="userRegister">User registration details.</param>
-        /// <returns>True if registration is successful, otherwise false.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if the email is already registered or registration fails.</exception>
-        public async Task<bool> Register(UserRegisterDto userRegister)
+        /// <param name="userRegister">The user register.</param>
+        /// <returns>A task representing the asynchronous operation, with an <see cref="OperationResult"/> indicating the result of the registration process.</returns>
+        /// <exception cref="System.InvalidOperationException">User with this email already exists</exception>
+        public async Task<OperationResult> Register(UserRegisterDto userRegister)
         {
             var user = await _userRepository.GetUserByEmail(userRegister.Email);
 
@@ -100,31 +110,36 @@ namespace EcommerceAPI.Services.Auth
             string token = _tokenGenerator.GenerateToken();
 
             var userEntity = _mapper.Map<UserEntity>(userRegister);
+            
+            userEntity.Provider = UserProvider.local;
             userEntity.PasswordHash = passwordHash;
             userEntity.EmailConfirmedToken = token;
-
             var userResult = await _userRepository.AddUser(userEntity);
 
-            var emailResult = _emailService.SendVerificationEmail(userRegister.Email, token);
+            _emailService.SendVerificationEmail(userResult.Email, token);
 
-            if (!emailResult)
+            _logger.LogInformation("User {Email} registered successfully", userResult.Email);
+            return new OperationResult
             {
-                _logger.LogWarning("Failed to send verification email to {Email}", userRegister.Email);
-                throw new InvalidOperationException("Failed to send verification email");
-            }
-
-            _logger.LogInformation("User {Email} registered successfully", userRegister.Email);
-            return emailResult;
+                Success = true,
+                Message = "User registered successfully"
+            };
         }
 
         /// <summary>
-        /// Confirms a user's email using a verification token.
+        /// Confirms the email.
         /// </summary>
-        /// <param name="email">User's email.</param>
-        /// <param name="token">Verification token.</param>
-        /// <returns>True if email confirmation is successful, otherwise false.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if the token is invalid or confirmation fails.</exception>
-        public async Task<bool> ConfirmEmail(string email, string token)
+        /// <param name="email">The email.</param>
+        /// <param name="token">The token.</param>
+        /// <returns>A task representing the asynchronous operation, with an <see cref="OperationResult"/> indicating the result of the email confirmation.</returns>
+        /// <exception cref="System.InvalidOperationException">
+        /// User not found
+        /// or
+        /// Email already confirmed
+        /// or
+        /// Invalid token
+        /// </exception>
+        public async Task<OperationResult> ConfirmEmail(string email, string token)
         {
             var user = await _userRepository.GetUserByEmail(email);
 
@@ -141,75 +156,120 @@ namespace EcommerceAPI.Services.Auth
             user.EmailConfirmedToken = string.Empty;
             await _userRepository.UpdateUser(user);
 
-            return true;
+            return new OperationResult
+            {
+                Success = true,
+                Message = "Email confirmed successfully"
+            };
         }
 
         /// <summary>
         /// Changes a user's password after validating the old password.
         /// </summary>
         /// <param name="id">User ID.</param>
-        /// <param name="oldPassword">Current password.</param>
-        /// <param name="newPassword">New password.</param>
-        /// <returns>True if the password is changed successfully, otherwise false.</returns>
-        /// <exception cref="UnauthorizedAccessException">Thrown if the old password is incorrect.</exception>
-        /// <exception cref="InvalidOperationException">Thrown if password update fails.</exception>
-        public async Task<bool> ChangePassword(int id, UserChangePasswordDto changePassword)
+        /// <param name="changePassword"></param>
+        /// <returns>
+        /// An <see cref="OperationResult"/> indicating whether the password change was successful,
+        /// along with an optional message describing the result.
+        /// </returns>
+        /// <exception cref="System.InvalidOperationException">
+        /// User not found
+        /// or
+        /// Password change is only allowed for local users
+        /// or
+        /// Local user must have a password set.
+        /// or
+        /// New password cannot be the same as the old password
+        /// </exception>
+        /// <exception cref="System.UnauthorizedAccessException">Invalid old password</exception>
+        public async Task<OperationResult> ChangePassword(int id, UserChangePasswordDto changePassword)
         {
             var user = await _userRepository.GetUserById(id);
 
-            if (user == null || _passwordHasher.VerifyHashedPassword(user, user.PasswordHash!, changePassword.OldPassword) == PasswordVerificationResult.Failed)
+            if (user == null)
             {
-                _logger.LogWarning("Invalid password change attempt for user ID: {UserId}", id);
-                throw new UnauthorizedAccessException("Invalid password");
+                _logger.LogWarning("User with ID {UserId} not found for password change", id);
+                throw new InvalidOperationException("User not found");
+            }
+
+            if (user.Provider != UserProvider.local)
+            {
+                _logger.LogWarning("Password change attempted for non-local user ID: {UserId}", id);
+                throw new InvalidOperationException("Password change is only allowed for local users");
+            }
+
+            if (user.PasswordHash is null)
+            {
+                throw new InvalidOperationException("Local user must have a password set.");
+            }
+
+            var verificationResult = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, changePassword.OldPassword);
+            if (verificationResult == PasswordVerificationResult.Failed)
+            {
+                _logger.LogWarning("Invalid old password for user ID: {UserId}", id);
+                throw new UnauthorizedAccessException("Invalid old password");
+            }
+
+            var newPasswordVerificationResult = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, changePassword.NewPassword);
+            if (newPasswordVerificationResult == PasswordVerificationResult.Success)
+            {
+                _logger.LogWarning("New password cannot be the same as the old password for user ID: {UserId}", id);
+                throw new InvalidOperationException("New password cannot be the same as the old password");
             }
 
             user.PasswordHash = _passwordHasher.HashPassword(user, changePassword.NewPassword);
 
             var userResult = await _userRepository.UpdateUser(user);
 
-            if (userResult is null)
-                throw new InvalidOperationException("Failed to change password");
-
             _logger.LogInformation("Password changed successfully for user ID: {UserId}", id);
-            return true;
+            return new OperationResult 
+            { 
+                Success = true, 
+                Message = "Password changed successfully" 
+            };
         }
 
         /// <summary>
-        /// Sends an email to reset the user's password.
+        /// Sends a forgot password email to the user.
         /// </summary>
-        /// <param name="email">User's email.</param>
-        /// <returns>True if the email is sent successfully, otherwise false.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if the email does not exist.</exception>
-        public async Task<bool> SendForgotPasswordEmail(string email)
+        /// <param name="email">The email address to send the forgot password email to.</param>
+        /// <returns>
+        /// A task representing the asynchronous operation, with a boolean value indicating if the email was successfully sent.
+        /// </returns>
+        /// <exception cref="System.InvalidOperationException">User with this email does not exist</exception>
+        public async Task<OperationResult> SendForgotPasswordEmail(string email)
         {
             var user = await _userRepository.GetUserByEmail(email);
 
             if(user is null)
                 throw new InvalidOperationException("User with this email does not exist");
 
-            int token = _tokenGenerator.Generate6DigitToken();
+            var sixDigitCode = _tokenGenerator.Generate6DigitToken();
 
-            user.ResetPasswordCode = token;
+            user.ResetPasswordCode = sixDigitCode;
             user.ResetTokenExpiresAt = DateTime.UtcNow.AddHours(1);
+            await _userRepository.UpdateUser(user);
 
-            var userResult = await _userRepository.UpdateUser(user);
+            _emailService.SendForgotPassword(email, sixDigitCode);
 
-            if (userResult is null)
-                throw new InvalidOperationException("Failed to generate reset token");
-
-            var emailResult = _emailService.SendForgotPassword(email, token);
-
-            return emailResult;
+            return new OperationResult
+            {
+                Success = true,
+                Message = "Reset password email sent successfully"
+            };
         }
 
         /// <summary>
-        /// Verifies the reset code and generates a new token for password reset.
+        /// Verifies the reset code.
         /// </summary>
-        /// <param name="email">User's email.</param>
-        /// <param name="code">Reset code.</param>
-        /// <returns>A new reset token.</returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        public async Task<bool> VerifyResetCode(UserVerifyResetCodeDto verifyResetCodeDto)
+        /// <param name="verifyResetCodeDto">The verify reset code dto.</param>
+        /// <returns>A task representing the asynchronous operation, with an <see cref="OperationResult"/> indicating whether the reset code is valid.</returns>
+        /// <exception cref="System.InvalidOperationException">
+        /// User not found
+        /// or
+        /// Expired code
+        /// </exception>
+        public async Task<OperationResult> VerifyResetCode(UserVerifyResetCodeDto verifyResetCodeDto)
         {
             var user = await _userRepository.GetUserByEmail(verifyResetCodeDto.Email);
 
@@ -219,47 +279,58 @@ namespace EcommerceAPI.Services.Auth
             if (user.ResetTokenExpiresAt < DateTime.UtcNow)
                 throw new InvalidOperationException("Expired code");
 
-            if (!user.ResetPasswordCode.HasValue || !CryptographicOperations.FixedTimeEquals(BitConverter.GetBytes(user.ResetPasswordCode.Value), BitConverter.GetBytes(verifyResetCodeDto.Code)))
+            if (user.ResetPasswordCode != verifyResetCodeDto.Code)
+                throw new InvalidOperationException("Invalid reset code");
+
+            return new OperationResult
             {
-                throw new InvalidOperationException("Invalid code");
+                Success = true,
+                Message = "Reset code verified successfully"
+            };
+        }
+
+        /// <summary>
+        /// Resets the password.
+        /// </summary>
+        /// <param name="userResetPassword">The user reset password.</param>
+        /// <returns>A task representing the asynchronous operation, with an <see cref="OperationResult"/> indicating the result of the password reset operation.</returns>
+        /// <exception cref="System.InvalidOperationException">
+        /// Invalid or expired token
+        /// or
+        /// Failed to reset password
+        /// </exception>
+        public async Task<OperationResult> ResetPassword(UserResetPasswordDto userResetPassword)
+        {
+            var user = await _userRepository.GetUserByEmail(userResetPassword.Email);
+
+            if (user is null)
+            {
+                _logger.LogWarning("Reset password attempt failed: user not found for email {Email}", userResetPassword.Email);
+                throw new InvalidOperationException("User not found");
             }
 
+            if (user.ResetTokenExpiresAt < DateTime.UtcNow)
+            {
+                _logger.LogWarning("Reset password attempt failed: expired reset token for user {Email}", userResetPassword.Email);
+                throw new InvalidOperationException("Expired reset token");
+            }
+
+            if (user.ResetPasswordCode != userResetPassword.ResetCode)
+            {
+                _logger.LogWarning("Reset password attempt failed: invalid reset code for user {Email}", userResetPassword.Email);
+                throw new InvalidOperationException("Invalid reset code");
+            }
+
+            user.PasswordHash = _passwordHasher.HashPassword(user, userResetPassword.NewPassword);
             user.ResetPasswordCode = null;
             user.ResetTokenExpiresAt = null;
             await _userRepository.UpdateUser(user);
 
-            return true;
-        }
-
-        ///    <summary>
-        /// Resets the user's password using a valid reset token.
-        /// </summary>
-        /// <param name="email">User's email.</param>
-        /// <param name="code">Reset password token.</param>
-        /// <param name="password">New password.</param>
-        /// <returns>True if the password is reset successfully, otherwise false.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if the token is invalid, expired, or reset fails.</exception>
-        public async Task<bool> ResetPassword(UserResetPasswordDto userResetPassword)
-        {
-            var user = await _userRepository.GetUserByEmail(userResetPassword.Email);
-
-            _logger.LogInformation("Resetting password for user {Email}", userResetPassword.Email);
-            if (user is null || user.ResetPasswordCode != userResetPassword.ResetCode || user.ResetTokenExpiresAt < DateTime.UtcNow)
+            return new OperationResult
             {
-                _logger.LogWarning("Invalid or expired reset token for user {Email}", userResetPassword.Email);
-                throw new InvalidOperationException("Invalid or expired token");
-            }
-
-            user.PasswordHash = _passwordHasher.HashPassword(user, userResetPassword.NewPassword);
-
-            user.ResetPasswordCode = null;
-            user.ResetTokenExpiresAt = null;
-            var userResult = await _userRepository.UpdateUser(user);
-
-            if (userResult is null)
-                throw new InvalidOperationException("Failed to reset password");
-
-            return true;
+                Success = true,
+                Message = "Email confirmed successfully"
+            };
         }
     }
 }
