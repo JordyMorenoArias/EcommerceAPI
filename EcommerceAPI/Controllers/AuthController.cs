@@ -48,10 +48,7 @@ namespace EcommerceAPI.Controllers
         {
             var result = await _authService.Register(userRegister);
 
-            if (result)
-                return Ok(new { Message = "User registered successfully" });
-            else
-                return BadRequest(new { Message = "User registration failed" });
+            return Ok(result);
         }
 
         /// <summary>
@@ -65,10 +62,7 @@ namespace EcommerceAPI.Controllers
         {
             var result = await _authService.ConfirmEmail(email, token);
 
-            if (result)
-                return Ok(new { Message = "Email confirmed successfully" });
-            else
-                return BadRequest(new { Message = "Email confirmation failed" });
+            return Ok(result);
         }
 
         /// <summary>
@@ -82,10 +76,7 @@ namespace EcommerceAPI.Controllers
             var userAuth = _userService.GetAuthenticatedUser(HttpContext);
             var result = await _authService.ChangePassword(userAuth.Id, userChangePassword);
 
-            if (result)
-                return Ok(new { Message = "Password changed successfully" });
-            else
-                return BadRequest(new { Message = "Password change failed" });
+            return Ok(result);
         }
 
         /// <summary>
@@ -98,10 +89,7 @@ namespace EcommerceAPI.Controllers
         {
             var result = await _authService.SendForgotPasswordEmail(email);
 
-            if (result)
-                return Ok(new { Message = "Password reset email sent successfully" });
-            else
-                return BadRequest(new { Message = "Password reset email failed" });
+            return Ok(result);
         }
 
         /// <summary>
@@ -114,10 +102,7 @@ namespace EcommerceAPI.Controllers
         {
             var result = await _authService.VerifyResetCode(verifyResetCode);
 
-            if (result)
-                return Ok(new { Message = "Reset code verified successfully" });
-            else
-                return BadRequest(new { Message = "Reset code verification failed" });
+            return Ok(result);
         }
 
         /// <summary>
@@ -130,10 +115,7 @@ namespace EcommerceAPI.Controllers
         {
             var result = await _authService.ResetPassword(userResetPassword);
 
-            if (result)
-                return Ok(new { Message = "Password reset successfully" });
-            else
-                return BadRequest(new { Message = "Password reset failed" });
+            return Ok(result);
         }
     }
 }
