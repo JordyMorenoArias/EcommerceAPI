@@ -96,17 +96,14 @@ namespace EcommerceAPI.Services.Auth
                 throw new InvalidOperationException("User with this email already exists");
             }
 
-            userRegister.Password = _passwordHasher.HashPassword(new UserEntity(), userRegister.Password);
-
+            var passwordHash = _passwordHasher.HashPassword(new UserEntity(), userRegister.Password);
             string token = _tokenGenerator.GenerateToken();
 
             var userEntity = _mapper.Map<UserEntity>(userRegister);
+            userEntity.PasswordHash = passwordHash;
             userEntity.EmailConfirmedToken = token;
 
             var userResult = await _userRepository.AddUser(userEntity);
-
-            if (userResult is null)
-                throw new InvalidOperationException("Failed to register user");
 
             var emailResult = _emailService.SendVerificationEmail(userRegister.Email, token);
 
@@ -131,15 +128,20 @@ namespace EcommerceAPI.Services.Auth
         {
             var user = await _userRepository.GetUserByEmail(email);
 
-            if (user == null || user.EmailConfirmedToken != token)
+            if (user == null)
+                throw new InvalidOperationException("User not found");
+
+            if (user.IsEmailConfirmed)
+                throw new InvalidOperationException("Email already confirmed");
+
+            if (user.EmailConfirmedToken != token)
                 throw new InvalidOperationException("Invalid token");
 
-            var result = await _userRepository.ConfirmUser(token);
+            user.IsEmailConfirmed = true;
+            user.EmailConfirmedToken = string.Empty;
+            await _userRepository.UpdateUser(user);
 
-            if (!result)
-                throw new InvalidOperationException("Failed to confirm email");
-
-            return result;
+            return true;
         }
 
         /// <summary>

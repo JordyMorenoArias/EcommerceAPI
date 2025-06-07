@@ -17,13 +17,6 @@ namespace EcommerceAPI.Repositories.Interfaces
         Task<UserEntity> AddUser(UserEntity user);
 
         /// <summary>
-        /// Confirms the user with the provided token.
-        /// </summary>
-        /// <param name="token">The confirmation token for the user.</param>
-        /// <returns>True if the user is confirmed, otherwise false.</returns>
-        Task<bool> ConfirmUser(string token);
-
-        /// <summary>
         /// Deletes a user from the repository.
         /// </summary>
         /// <param name="user">The user entity to be deleted.</param>
@@ -62,6 +55,6 @@ namespace EcommerceAPI.Repositories.Interfaces
         /// </summary>
         /// <param name="user">The user entity with updated information.</param>
         /// <returns>The updated user entity, or null if the update failed.</returns>
-        Task<UserEntity?> UpdateUser(UserEntity user);
+        Task<UserEntity> UpdateUser(UserEntity user);
     }
 }

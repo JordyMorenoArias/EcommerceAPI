@@ -68,13 +68,9 @@ namespace EcommerceAPI.Repositories
         /// Updates an existing user in the database.
         /// </summary>
         /// <param name="user">The user entity with updated data.</param>
-        /// <returns>A task representing the asynchronous operation. The task result contains the updated user if found; otherwise, <c>null</c>.</returns>
-        public async Task<UserEntity?> UpdateUser(UserEntity user)
+        /// <returns>A task representing the asynchronous operation. The task result contains the updated user if found</returns>
+        public async Task<UserEntity> UpdateUser(UserEntity user)
         {
-            var existingUser = await GetUserById(user.Id);
-            if (existingUser is null)
-                return null;
-
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
             return user;
@@ -88,25 +84,6 @@ namespace EcommerceAPI.Repositories
         public async Task<bool> DeleteUser(UserEntity user)
         {
             _context.Users.Remove(user);
-            return await _context.SaveChangesAsync() > 0;
-        }
-
-        /// <summary>
-        /// Confirms a user's email using a confirmation token.
-        /// </summary>
-        /// <param name="token">The email confirmation token.</param>
-        /// <returns>A task representing the asynchronous operation. The task result indicates whether the confirmation was successful.</returns>
-        public async Task<bool> ConfirmUser(string token)
-        {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.EmailConfirmedToken == token);
-
-            if (user != null)
-            {
-                user.IsEmailConfirmed = true;
-                user.EmailConfirmedToken = string.Empty;
-                _context.Users.Update(user);
-            }
-
             return await _context.SaveChangesAsync() > 0;
         }
 
