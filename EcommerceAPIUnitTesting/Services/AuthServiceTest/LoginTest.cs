@@ -1,11 +1,9 @@
 ﻿using AutoFixture;
 using AutoMapper;
-using EcommerceAPI.Models.DTOs.Auth;
 using EcommerceAPI.Models.DTOs.User;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Repositories.Interfaces;
 using EcommerceAPI.Services.Auth;
-using EcommerceAPI.Services.Infrastructure;
 using EcommerceAPI.Services.Infrastructure.Interfaces;
 using EcommerceAPI.Services.Security.Interfaces;
 using Microsoft.AspNetCore.Identity;
@@ -14,6 +12,9 @@ using Moq;
 
 namespace EcommerceAPIUnitTesting.Services.AuthServiceTest
 {
+    /// <summary>
+    /// Unit tests for the AuthService Login method.
+    /// </summary>
     public class LoginTest
     {
         private readonly Mock<IUserRepository> _mockUserRepository;
@@ -26,6 +27,9 @@ namespace EcommerceAPIUnitTesting.Services.AuthServiceTest
         private readonly AuthService _authService;
         private readonly Fixture _fixture;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LoginTest"/> class.
+        /// </summary>
         public LoginTest()
         {
             // Initialize mocks
@@ -52,6 +56,9 @@ namespace EcommerceAPIUnitTesting.Services.AuthServiceTest
             );
         }
 
+        /// <summary>
+        /// Logins the with valid credentials returns authentication response.
+        /// </summary>
         [Fact]
         public async Task Login_WithValidCredentials_ReturnsAuthResponse()
         {
@@ -88,6 +95,9 @@ namespace EcommerceAPIUnitTesting.Services.AuthServiceTest
             _mockJwtService.Verify(jwt => jwt.GenerateJwtToken(userTokenDto), Times.Once);
         }
 
+        /// <summary>
+        /// Logins the with invalid email throws unauthorized access exception.
+        /// </summary>
         [Fact]
         public async Task Login_WithInvalidEmail_ThrowsUnauthorizedAccessException()
         {
@@ -105,6 +115,9 @@ namespace EcommerceAPIUnitTesting.Services.AuthServiceTest
             _mockJwtService.Verify(jwt => jwt.GenerateJwtToken(It.IsAny<UserGenerateTokenDto>()), Times.Never);
         }
 
+        /// <summary>
+        /// Logins the with null password hash throws unauthorized access exception.
+        /// </summary>
         [Fact]
         public async Task Login_WithNullPasswordHash_ThrowsUnauthorizedAccessException()
         {
@@ -125,6 +138,9 @@ namespace EcommerceAPIUnitTesting.Services.AuthServiceTest
             _mockJwtService.Verify(jwt => jwt.GenerateJwtToken(It.IsAny<UserGenerateTokenDto>()), Times.Never);
         }
 
+        /// <summary>
+        /// Logins the with invalid password throws unauthorized access exception.
+        /// </summary>
         [Fact]
         public async Task Login_WithInvalidPassword_ThrowsUnauthorizedAccessException()
         {
