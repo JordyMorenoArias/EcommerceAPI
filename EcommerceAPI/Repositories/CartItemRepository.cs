@@ -121,7 +121,9 @@ namespace EcommerceAPI.Repositories
         public async Task<bool> DeleteCartItem(int cartItemId)
         {
             var item = await _context.CartItems.FindAsync(cartItemId);
-            if (item is null) return false;
+
+            if (item is null) 
+                return false;
 
             _context.CartItems.Remove(item);
             return await _context.SaveChangesAsync() > 0;

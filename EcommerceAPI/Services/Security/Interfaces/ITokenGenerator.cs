@@ -8,8 +8,8 @@
         /// <summary>
         /// Generates a 6-digit token.
         /// </summary>
-        /// <returns>A 6-digit integer token.</returns>
-        int Generate6DigitToken();
+        /// <returns>A 6-digit token.</returns>
+        string Generate6DigitToken();
 
         /// <summary>
         /// Generates a general token as a string.

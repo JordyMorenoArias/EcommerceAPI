@@ -1,6 +1,7 @@
 ﻿using MimeKit;
 using MailKit.Net.Smtp;
 using EcommerceAPI.Services.Infrastructure.Interfaces;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EcommerceAPI.Services.Infrastructure
 {
@@ -61,7 +62,7 @@ namespace EcommerceAPI.Services.Infrastructure
         /// </summary>
         /// <param name="email">Recipient's email address.</param>
         /// <returns>Returns <c>true</c> if the email was sent successfully; otherwise, <c>false</c>.</returns>
-        public bool SendForgotPassword(string email, int code)
+        public bool SendForgotPassword(string email, string sixDigitCode)
         {
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress("EcommerceAPI", _username));
@@ -70,7 +71,7 @@ namespace EcommerceAPI.Services.Infrastructure
 
             message.Body = new TextPart("html")
             {
-                Text = $"<h1>Password Reset</h1><p>Your password reset code is: {code}</p>"
+                Text = $"<h1>Password Reset</h1><p>Your password reset code is: {sixDigitCode}</p>"
             };
 
             using (var client = new SmtpClient())

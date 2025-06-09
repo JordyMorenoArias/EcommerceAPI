@@ -1,4 +1,5 @@
 ﻿using EcommerceAPI.Models.DTOs.Cart;
+using EcommerceAPI.Models.DTOs.CartItem;
 using EcommerceAPI.Models.Entities;
 
 namespace EcommerceAPI.Services.CartItem.Interfaces
@@ -14,7 +15,7 @@ namespace EcommerceAPI.Services.CartItem.Interfaces
         /// <param name="userId">The identifier of the user.</param>
         /// <param name="cartItem">The cart item details to add.</param>
         /// <returns>The added cart item entity if successful, otherwise null.</returns>
-        Task<CartItemEntity?> AddItemToCart(int userId, CartItemAddDto cartItem);
+        Task<CartItemDto?> AddItemToCart(int userId, CartItemAddDto cartItem);
 
         /// <summary>
         /// Deletes an item from the user's shopping cart.
@@ -30,6 +31,6 @@ namespace EcommerceAPI.Services.CartItem.Interfaces
         /// <param name="userId">The identifier of the user.</param>
         /// <param name="cartItem">The cart item details with the updated quantity.</param>
         /// <returns>The updated cart item entity if successful, otherwise null.</returns>
-        Task<CartItemEntity?> UpdateCartItemQuantity(int userId, CartItemUpdateDto cartItem);
+        Task<CartItemDto?> UpdateCartItemQuantity(int userId, CartItemUpdateDto cartItem);
     }
 }

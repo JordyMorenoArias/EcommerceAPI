@@ -5,9 +5,8 @@ using EcommerceAPI.Services.Infrastructure.Interfaces;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Models.DTOs.Cart;
 using EcommerceAPI.Models;
-using Microsoft.EntityFrameworkCore;
-using EcommerceAPI.Services.Cart.Interfaces;
 using AutoMapper;
+using EcommerceAPI.Models.DTOs.CartItem;
 
 namespace EcommerceAPI.Services.CartItem
 {
@@ -18,10 +17,10 @@ namespace EcommerceAPI.Services.CartItem
     public class CartItemService : ICartItemService
     {
         private readonly ICartRepository _cartRepository;
-        private readonly IMapper _mapper;
         private readonly ICartItemRepository _cartItemRepository;
         private readonly IProductRepository _productRepository;
         private readonly ICacheService _cacheService;
+        private readonly IMapper _mapper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CartItemService"/> class.
@@ -50,7 +49,7 @@ namespace EcommerceAPI.Services.CartItem
         /// if successful; otherwise, <c>null</c>.
         /// </returns>
         /// <exception cref="System.ArgumentException">Quantity must be greater than zero - Quantity</exception>
-        public async Task<CartItemEntity?> AddItemToCart(int userId, CartItemAddDto cartItem)
+        public async Task<CartItemDto?> AddItemToCart(int userId, CartItemAddDto cartItem)
         {
             if (cartItem.Quantity <= 0)
                 throw new ArgumentException("Quantity must be greater than zero", nameof(cartItem.Quantity));
@@ -59,25 +58,27 @@ namespace EcommerceAPI.Services.CartItem
             var product = await GetProductOrThrow(cartItem.ProductId);
             var existingItem = await _cartItemRepository.GetCartItem(cart.Id, cartItem.ProductId);
 
-            ValidateStock(existingItem?.Quantity ?? 0, cartItem.Quantity, product.Stock);
+            if ((existingItem?.Quantity ?? 0) + cartItem.Quantity > product.Stock)
+                throw new InvalidOperationException("Not enough stock available");
 
-            CartItemEntity? updatedItem;
+            var newCartItem = new CartItemEntity();
 
-            if (existingItem != null)
+            if (existingItem is not null)
             {
                 existingItem.Quantity = cartItem.Quantity;
                 existingItem.UnitPrice = product.Price;
 
-                updatedItem = await _cartItemRepository.UpdateCartItem(existingItem);
+                newCartItem = await _cartItemRepository.UpdateCartItem(existingItem);
             }
             else
             {
-                updatedItem = await CreateNewCartItem(cart.Id, cartItem, product.Price);
+                newCartItem = await CreateNewCartItem(cart.Id, cartItem, product.Price);
             }
 
-            await RefreshCartCacheWithLatestCart(userId);
+            await RemoveCartCache(userId);
 
-            return updatedItem;
+            var dto = _mapper.Map<CartItemDto>(newCartItem);
+            return dto;
         }
 
         /// <summary>
@@ -95,13 +96,12 @@ namespace EcommerceAPI.Services.CartItem
         /// or
         /// Cart item not found
         /// </exception>
-        public async Task<CartItemEntity?> UpdateCartItemQuantity(int userId, CartItemUpdateDto cartItem)
+        public async Task<CartItemDto?> UpdateCartItemQuantity(int userId, CartItemUpdateDto cartItem)
         {
             if (cartItem.Quantity <= 0)
                 throw new ArgumentException("Quantity must be greater than zero", nameof(cartItem.Quantity));
 
-            var cart = await _cartRepository.GetCartByUserId(userId)
-                       ?? throw new KeyNotFoundException("Cart not found");
+            var cart = await _cartRepository.GetCartByUserId(userId) ?? throw new KeyNotFoundException("Cart not found");
 
             var product = await GetProductOrThrow(cartItem.ProductId);
 
@@ -110,15 +110,17 @@ namespace EcommerceAPI.Services.CartItem
             if (existingItem is null)
                 throw new KeyNotFoundException("Cart item not found");
 
-            ValidateStock(existingItem.Quantity, cartItem.Quantity, product.Stock);
+            if (cartItem.Quantity > product.Stock)
+                throw new InvalidOperationException("Not enough stock available");
 
             existingItem.Quantity = cartItem.Quantity;
             existingItem.UnitPrice = product.Price;
             var updatedItem = await _cartItemRepository.UpdateCartItem(existingItem);
 
-            await RefreshCartCacheWithLatestCart(userId);
+            await RemoveCartCache(userId);
 
-            return updatedItem;
+            var dto = _mapper.Map<CartItemDto>(updatedItem);
+            return dto;
         }
 
         /// <summary>
@@ -149,10 +151,7 @@ namespace EcommerceAPI.Services.CartItem
 
             var result = await _cartItemRepository.DeleteCartItem(existingItem.Id);
 
-            if (result)
-            {
-                await RefreshCartCacheWithLatestCart(userId);
-            }
+            await RemoveCartCache(userId);
 
             return result;
         }
@@ -201,19 +200,6 @@ namespace EcommerceAPI.Services.CartItem
         }
 
         /// <summary>
-        /// Validates the stock.
-        /// </summary>
-        /// <param name="currentQuantity">The current quantity.</param>
-        /// <param name="quantityToAdd">The quantity to add.</param>
-        /// <param name="stock">The stock.</param>
-        /// <exception cref="System.InvalidOperationException">Not enough stock available</exception>
-        private void ValidateStock(int currentQuantity, int quantityToAdd, int stock)
-        {
-            if (currentQuantity + quantityToAdd > stock)
-                throw new InvalidOperationException("Not enough stock available");
-        }
-
-        /// <summary>
         /// Creates the new cart item.
         /// </summary>
         /// <param name="cartId">The cart identifier.</param>
@@ -236,40 +222,13 @@ namespace EcommerceAPI.Services.CartItem
             return await _cartItemRepository.CreateCartItem(newItem);
         }
 
-        /// <summary>
-        /// Refreshes the cart cache with latest cart.
-        /// </summary>
-        /// <param name="userId">The user identifier.</param>
-        /// <exception cref="System.InvalidOperationException">Cart not found after update</exception>
-        private async Task RefreshCartCacheWithLatestCart(int userId)
-        {
-            var cart = await _cartRepository.GetCartByUserId(userId);
-
-            if (cart is null)
-                throw new InvalidOperationException("Cart not found after update");
-
-            await RefreshCartCache(userId, cart);
-        }
-
-        /// <summary>
-        /// Refreshes the cart cache.
-        /// </summary>
-        /// <param name="userId">The user identifier.</param>
-        /// <param name="cart">The cart.</param>
-        private async Task RefreshCartCache(int userId, CartEntity cart)
+        private async Task RemoveCartCache(int userId)
         {
             var cacheKey = $"cart_{userId}";
             var cacheKeyTotal = $"cart_total_{userId}";
 
             await _cacheService.Remove(cacheKey);
             await _cacheService.Remove(cacheKeyTotal);
-
-            var cartDto = _mapper.Map<CartDto>(cart);
-            var total = await _cartRepository.GetCartTotal(cart.Id);
-            cartDto.Total = (decimal)total;
-
-            await _cacheService.Set(cacheKey, cartDto, TimeSpan.FromMinutes(30));
-            await _cacheService.Set(cacheKeyTotal, total, TimeSpan.FromMinutes(30));
         }
     }
 }
