@@ -2,14 +2,10 @@
 using EcommerceAPI.Constants;
 using EcommerceAPI.Models.DTOs.Generic;
 using EcommerceAPI.Models.DTOs.Order;
-using EcommerceAPI.Models.DTOs.OrderDetail;
 using EcommerceAPI.Models.Entities;
-using EcommerceAPI.Repositories;
 using EcommerceAPI.Repositories.Interfaces;
-using EcommerceAPI.Services.Address.Interfaces;
 using EcommerceAPI.Services.Infrastructure.Interfaces;
 using EcommerceAPI.Services.Order.Interfaces;
-using EcommerceAPI.Services.OrderItem.Interfaces;
 
 namespace EcommerceAPI.Services.Order
 {
@@ -43,12 +39,10 @@ namespace EcommerceAPI.Services.Order
         /// Gets the order by identifier.
         /// </summary>
         /// <param name="userid">The userid.</param>
-        /// <param name="role">The role.</param>
-        /// <param name="id">The identifier.</param>
         /// <returns></returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
         /// <exception cref="System.UnauthorizedAccessException">You do not have permission to access this order.</exception>
-        public async Task<OrderDto?> GetOrderById(int userid, UserRole role, int id)
+        public async Task<OrderDto> GetOrderById(int id)
         {
             var cacheKey = $"order_{id}";
             var cachedOrder = await _cacheService.Get<OrderDto>(cacheKey);
@@ -61,11 +55,29 @@ namespace EcommerceAPI.Services.Order
             if (order is null)
                 throw new KeyNotFoundException("Order not found");
 
-            if (role == UserRole.Customer && order.UserId != userid)
-                throw new UnauthorizedAccessException("You do not have permission to access this order.");
+            var orderDto = _mapper.Map<OrderDto>(order);
+            await _cacheService.Set(cacheKey, orderDto, TimeSpan.FromMinutes(5));
+            return orderDto;
+        }
 
-            if (role == UserRole.Seller && order.ShippingAddress.UserId != userid)
-                throw new UnauthorizedAccessException("You do not have permission to access this order.");
+        /// <summary>
+        /// Gets the order with details.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <returns></returns>
+        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
+        public async Task<OrderDto> GetOrderWithDetails(int orderId)
+        {
+            var cacheKey = $"order_details_{orderId}";
+            var cachedOrder = await _cacheService.Get<OrderDto>(cacheKey);
+
+            if (cachedOrder is not null)
+                return cachedOrder;
+
+            var order = await _orderRepository.GetOrderWithDetails(orderId);
+
+            if (order is null)
+                throw new KeyNotFoundException("Order not found");
 
             var orderDto = _mapper.Map<OrderDto>(order);
             await _cacheService.Set(cacheKey, orderDto, TimeSpan.FromMinutes(5));
@@ -221,32 +233,6 @@ namespace EcommerceAPI.Services.Order
             var statusPart = status.HasValue ? status.Value.ToString() : "all_statuses";
 
             return $"{prefix}_{dateRangePart}_{userIdPart}_{sellerIdPart}_{statusPart}_Page_{page}_PageSize_{pageSize}";
-        }
-
-        /// <summary>
-        /// Gets the order with details.
-        /// </summary>
-        /// <param name="userId">The user identifier.</param>
-        /// <param name="role">The role.</param>
-        /// <param name="orderId">The order identifier.</param>
-        /// <returns></returns>
-        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
-        public async Task<OrderDto?> GetOrderWithDetails(int userId, UserRole role, int orderId)
-        {
-            var cacheKey = $"order_details_{orderId}";
-            var cachedOrder = await _cacheService.Get<OrderDto>(cacheKey);
-
-            if (cachedOrder is not null)
-                return cachedOrder;
-
-            var order = await _orderRepository.GetOrderWithDetails(orderId);
-
-            if (order is null)
-                throw new KeyNotFoundException("Order not found");
-
-            var orderDto = _mapper.Map<OrderDto>(order);
-            await _cacheService.Set(cacheKey, orderDto, TimeSpan.FromMinutes(5));
-            return orderDto;
         }
 
         /// <summary>

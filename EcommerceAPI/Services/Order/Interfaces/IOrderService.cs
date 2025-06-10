@@ -40,17 +40,6 @@ namespace EcommerceAPI.Services.Order.Interfaces
         Task<OrderDto> UpdateOrderStatus(int orderId, OrderStatus newStatus);
 
         /// <summary>
-        /// Gets the order by identifier.
-        /// </summary>
-        /// <param name="userid">The userid.</param>
-        /// <param name="role">The role.</param>
-        /// <param name="id">The identifier.</param>
-        /// <returns></returns>
-        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
-        /// <exception cref="System.UnauthorizedAccessException">You do not have permission to access this order.</exception>
-        Task<OrderDto?> GetOrderById(int userid, UserRole role, int id);
-
-        /// <summary>
         /// Gets the orders.
         /// </summary>
         /// <param name="userId">The user identifier.</param>
@@ -78,10 +67,17 @@ namespace EcommerceAPI.Services.Order.Interfaces
         /// Gets the order with details.
         /// </summary>
         /// <param name="userId">The user identifier.</param>
-        /// <param name="role">The role.</param>
-        /// <param name="orderId">The order identifier.</param>
         /// <returns></returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
-        Task<OrderDto?> GetOrderWithDetails(int userId, UserRole role, int orderId);
+        Task<OrderDto> GetOrderWithDetails(int orderId);
+
+        /// <summary>
+        /// Gets the order by identifier.
+        /// </summary>
+        /// <param name="userid">The userid.</param>
+        /// <returns></returns>
+        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
+        /// <exception cref="System.UnauthorizedAccessException">You do not have permission to access this order.</exception>
+        Task<OrderDto> GetOrderById(int id);
     }
 }

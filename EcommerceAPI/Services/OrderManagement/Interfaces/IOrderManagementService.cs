@@ -72,11 +72,15 @@ namespace EcommerceAPI.Services.OrderManagement.Interfaces
         Task<OrderDto> UpdateOrderAddress(int userId, int orderId, int addressId);
 
         /// <summary>
-        /// Updates the status of an order.
+        /// Updates the order status.
         /// </summary>
-        /// <param name="orderId">The identifier of the order whose status is being updated.</param>
-        /// <param name="newStatus">The new status to be set for the order.</param>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
+        /// <param name="orderId">The order identifier.</param>
+        /// <param name="newStatus">The new status.</param>
         /// <returns>The updated order with the new status.</returns>
-        Task<OrderDto> UpdateOrderStatus(int orderId, OrderStatus newStatus);
+        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order with ID {orderId} not found.</exception>
+        /// <exception cref="System.InvalidOperationException">You do not have permission to modify this order.</exception>
+        Task<OrderDto> UpdateOrderStatus(int userId, UserRole role, int orderId, OrderStatus newStatus);
     }
 }
