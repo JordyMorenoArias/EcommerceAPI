@@ -18,13 +18,6 @@ namespace EcommerceAPI.Repositories.Interfaces
         Task<OrderEntity> AddOrder(OrderEntity order);
 
         /// <summary>
-        /// Deletes an order from the repository by its ID.
-        /// </summary>
-        /// <param name="orderId">The ID of the order to be deleted.</param>
-        /// <returns>True if the order was successfully deleted, otherwise false.</returns>
-        Task<bool> DeleteOrder(int orderId);
-
-        /// <summary>
         /// Retrieves an order by its ID from the repository.
         /// </summary>
         /// <param name="id">The ID of the order to retrieve.</param>
@@ -57,7 +50,7 @@ namespace EcommerceAPI.Repositories.Interfaces
         /// </summary>
         /// <param name="order">The order.</param>
         /// <returns>The updated <see cref="OrderEntity"/> after saving changes to the database.</returns>
-        Task<OrderEntity?> UpdateOrder(OrderEntity order);
+        Task<OrderEntity> UpdateOrder(OrderEntity order);
 
         /// <summary>
         /// Deletes the order.

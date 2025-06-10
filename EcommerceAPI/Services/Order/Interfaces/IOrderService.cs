@@ -24,34 +24,6 @@ namespace EcommerceAPI.Services.Order.Interfaces
         Task<bool> DeleteOrder(int orderId);
 
         /// <summary>
-        /// Retrieves an order by its identifier.
-        /// </summary>
-        /// <param name="id">The identifier of the order to be retrieved.</param>
-        /// <returns>The order with the specified identifier, or null if not found.</returns>
-        Task<OrderDto?> GetOrderById(int id);
-
-        /// <summary>
-        /// Retrieves an order with its details by its identifier.
-        /// </summary>
-        /// <param name="orderId">The identifier of the order to be retrieved.</param>
-        /// <returns>The order with the specified identifier and its details, or null if not found.</returns>
-        Task<OrderDto?> GetOrderWithDetails(int orderId);
-
-        /// <summary>
-        /// Retrieves a paged list of orders based on the provided query parameters.
-        /// </summary>
-        /// <param name="parameters">The query parameters for retrieving orders.</param>
-        /// <returns>A paged result containing the orders matching the query parameters.</returns>
-        Task<PagedResult<OrderDto>> GetOrders(OrderQueryParameters parameters);
-
-        /// <summary>
-        /// Retrieves a paged list of orders for a seller based on the provided query parameters.
-        /// </summary>
-        /// <param name="parameters">The query parameters for retrieving seller orders.</param>
-        /// <returns>A paged result containing the seller's orders matching the query parameters.</returns>
-        Task<PagedResult<OrderDto>> GetSellerOrders(OrderSellerQueryParameters parameters);
-
-        /// <summary>
         /// Updates the address of an order.
         /// </summary>
         /// <param name="orderId">The identifier of the order to be updated.</param>
@@ -60,19 +32,56 @@ namespace EcommerceAPI.Services.Order.Interfaces
         Task<OrderDto> UpdateAddressOrder(int orderId, int addressId);
 
         /// <summary>
-        /// Updates the total amount of an order.
-        /// </summary>
-        /// <param name="orderId">The identifier of the order to be updated.</param>
-        /// <param name="amount">The new total amount for the order.</param>
-        /// <returns>The updated order.</returns>
-        Task<OrderDto> UpdateAmountOrder(int orderId, decimal amount);
-
-        /// <summary>
         /// Updates the status of an order.
         /// </summary>
         /// <param name="orderId">The identifier of the order to be updated.</param>
         /// <param name="newStatus">The new status for the order.</param>
         /// <returns>The updated order.</returns>
         Task<OrderDto> UpdateOrderStatus(int orderId, OrderStatus newStatus);
+
+        /// <summary>
+        /// Gets the order by identifier.
+        /// </summary>
+        /// <param name="userid">The userid.</param>
+        /// <param name="role">The role.</param>
+        /// <param name="id">The identifier.</param>
+        /// <returns></returns>
+        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
+        /// <exception cref="System.UnauthorizedAccessException">You do not have permission to access this order.</exception>
+        Task<OrderDto?> GetOrderById(int userid, UserRole role, int id);
+
+        /// <summary>
+        /// Gets the orders.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns>A paginated list of orders matching the provided filters as <see cref="PagedResult{OrderDto}"/>.</returns>
+        /// <exception cref="System.UnauthorizedAccessException">You do not have permission to access orders for this user.</exception>
+        Task<PagedResult<OrderDto>> GetOrders(int userId, UserRole role, OrderQueryParameters parameters);
+
+        /// <summary>
+        /// Gets the seller orders.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns>A paginated list of orders for a specific seller as <see cref="PagedResult{OrderDto}"/>.</returns>
+        /// <exception cref="System.UnauthorizedAccessException">
+        /// You do not have permission to access orders for this seller.
+        /// or
+        /// You do not have permission to access seller orders.
+        /// </exception>
+        Task<PagedResult<OrderDto>> GetSellerOrders(int userId, UserRole role, OrderSellerQueryParameters parameters);
+
+        /// <summary>
+        /// Gets the order with details.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
+        /// <param name="orderId">The order identifier.</param>
+        /// <returns></returns>
+        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
+        Task<OrderDto?> GetOrderWithDetails(int userId, UserRole role, int orderId);
     }
 }

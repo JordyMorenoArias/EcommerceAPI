@@ -2,7 +2,9 @@
 using EcommerceAPI.Constants;
 using EcommerceAPI.Models.DTOs.Generic;
 using EcommerceAPI.Models.DTOs.Order;
+using EcommerceAPI.Models.DTOs.OrderDetail;
 using EcommerceAPI.Models.Entities;
+using EcommerceAPI.Repositories;
 using EcommerceAPI.Repositories.Interfaces;
 using EcommerceAPI.Services.Address.Interfaces;
 using EcommerceAPI.Services.Infrastructure.Interfaces;
@@ -18,10 +20,9 @@ namespace EcommerceAPI.Services.Order
     public class OrderService : IOrderService
     {
         private readonly IOrderRepository _orderRepository;
-        private readonly IAddressService _addressService;
-        private readonly IMapper _mapper;
+        private readonly IAddressRepository _addressRepository;
         private readonly ICacheService _cacheService;
-
+        private readonly IMapper _mapper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OrderService"/> class.
@@ -30,21 +31,24 @@ namespace EcommerceAPI.Services.Order
         /// <param name="addressService">The address service.</param>
         /// <param name="mapper">The mapper.</param>
         /// <param name="cacheService">The cache service.</param>
-        public OrderService(IOrderRepository orderRepository, IAddressService addressService, IMapper mapper, ICacheService cacheService)
+        public OrderService(IOrderRepository orderRepository, IAddressRepository addressRepository, ICacheService cacheService, IMapper mapper)
         {
             _orderRepository = orderRepository;
-            _addressService = addressService;
-            _mapper = mapper;
+            _addressRepository = addressRepository;
             _cacheService = cacheService;
+            _mapper = mapper;
         }
 
         /// <summary>
         /// Gets the order by identifier.
         /// </summary>
+        /// <param name="userid">The userid.</param>
+        /// <param name="role">The role.</param>
         /// <param name="id">The identifier.</param>
-        /// <returns>The order matching the given identifier as an <see cref="OrderDto"/>, or null if not found in cache before DB lookup.</returns>
+        /// <returns></returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
-        public async Task<OrderDto?> GetOrderById(int id)
+        /// <exception cref="System.UnauthorizedAccessException">You do not have permission to access this order.</exception>
+        public async Task<OrderDto?> GetOrderById(int userid, UserRole role, int id)
         {
             var cacheKey = $"order_{id}";
             var cachedOrder = await _cacheService.Get<OrderDto>(cacheKey);
@@ -57,6 +61,12 @@ namespace EcommerceAPI.Services.Order
             if (order is null)
                 throw new KeyNotFoundException("Order not found");
 
+            if (role == UserRole.Customer && order.UserId != userid)
+                throw new UnauthorizedAccessException("You do not have permission to access this order.");
+
+            if (role == UserRole.Seller && order.ShippingAddress.UserId != userid)
+                throw new UnauthorizedAccessException("You do not have permission to access this order.");
+
             var orderDto = _mapper.Map<OrderDto>(order);
             await _cacheService.Set(cacheKey, orderDto, TimeSpan.FromMinutes(5));
             return orderDto;
@@ -65,38 +75,42 @@ namespace EcommerceAPI.Services.Order
         /// <summary>
         /// Gets the orders.
         /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
         /// <param name="parameters">The parameters.</param>
         /// <returns>A paginated list of orders matching the provided filters as <see cref="PagedResult{OrderDto}"/>.</returns>
-        /// <exception cref="System.ArgumentException">Start date must be less than or equal to end date</exception>
-        public async Task<PagedResult<OrderDto>> GetOrders(OrderQueryParameters parameters)
+        /// <exception cref="System.UnauthorizedAccessException">You do not have permission to access orders for this user.</exception>
+        public async Task<PagedResult<OrderDto>> GetOrders(int userId, UserRole role, OrderQueryParameters parameters)
         {
-            if (parameters.Page <= 0 || parameters.PageSize <= 0)
-                throw new ArgumentException("Page and PageSize must be greater than 0.");
+            ValidatePaginationAndDates(
+                parameters.Page,
+                parameters.PageSize,
+                parameters.StartDate,
+                parameters.EndDate
+            );
 
-            if (parameters.StartDate.HasValue && parameters.EndDate.HasValue && parameters.StartDate > parameters.EndDate)
-                throw new ArgumentException("Start date must be less than or equal to end date");
+            if (parameters.UserId.HasValue && parameters.UserId != userId && role != UserRole.Admin)
+                throw new UnauthorizedAccessException("You do not have permission to access orders for this user.");
 
-            var dateRangePart = parameters.StartDate.HasValue && parameters.EndDate.HasValue
-                    ? $"{parameters.StartDate:yyyyMMdd}_{parameters.EndDate:yyyyMMdd}"
-                    : "all_dates";
+            var cacheKey = BuildCacheKey(
+                prefix: "orders",
+                startDate: parameters.StartDate,
+                endDate: parameters.EndDate,
+                userId: parameters.UserId,
+                sellerId: null,
+                status: parameters.Status,
+                page: parameters.Page,
+                pageSize: parameters.PageSize
+            );
 
-            var userIdPart = parameters.UserId.HasValue 
-                ? parameters.UserId.Value.ToString() 
-                : "all_users";
-
-            var statusPart = parameters.Status.HasValue
-                ? parameters.Status.Value.ToString()
-                : "all_statuses";
-
-            var cacheKey = $"orders_{dateRangePart}_{userIdPart}_{statusPart}_Page_{parameters.Page}_PageSize_{parameters.PageSize}";
             var cachedOrders = await _cacheService.Get<PagedResult<OrderDto>>(cacheKey);
 
             if (cachedOrders is not null)
                 return cachedOrders;
 
             var orders = await _orderRepository.GetOrders(parameters);
-
             var orderDtos = _mapper.Map<PagedResult<OrderDto>>(orders);
+
             await _cacheService.Set(cacheKey, orderDtos, TimeSpan.FromMinutes(5));
             return orderDtos;
         }
@@ -104,31 +118,47 @@ namespace EcommerceAPI.Services.Order
         /// <summary>
         /// Gets the seller orders.
         /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
         /// <param name="parameters">The parameters.</param>
         /// <returns>A paginated list of orders for a specific seller as <see cref="PagedResult{OrderDto}"/>.</returns>
-        /// <exception cref="System.ArgumentException">Start date must be less than or equal to end date</exception>
-        public async Task<PagedResult<OrderDto>> GetSellerOrders(OrderSellerQueryParameters parameters)
+        /// <exception cref="System.UnauthorizedAccessException">
+        /// You do not have permission to access orders for this seller.
+        /// or
+        /// You do not have permission to access seller orders.
+        /// </exception>
+        public async Task<PagedResult<OrderDto>> GetSellerOrders(int userId, UserRole role, OrderSellerQueryParameters parameters)
         {
-            var dateRangePart = parameters.StartDate.HasValue && parameters.EndDate.HasValue
-                    ? $"{parameters.StartDate:yyyyMMdd}_{parameters.EndDate:yyyyMMdd}"
-                    : "all_dates";
+            ValidatePaginationAndDates(
+                parameters.Page,
+                parameters.PageSize,
+                parameters.StartDate,
+                parameters.EndDate
+            );
 
-            var statusPart = parameters.Status.HasValue
-                ? parameters.Status.Value.ToString()
-                : "all_statuses";
+            if (parameters.SellerId != userId && role != UserRole.Admin)
+                throw new UnauthorizedAccessException("You do not have permission to access orders for this seller.");
 
-            var cacheKey = $"orders_seller_{parameters.SellerId}_{dateRangePart}_{statusPart}_Page_{parameters.Page}_PageSize_{parameters.PageSize}";
+            if (role != UserRole.Seller && role != UserRole.Admin)
+                throw new UnauthorizedAccessException("You do not have permission to access seller orders.");
+
+            var cacheKey = BuildCacheKey(
+                prefix: "orders_seller",
+                startDate: parameters.StartDate,
+                endDate: parameters.EndDate,
+                userId: null,
+                sellerId: parameters.SellerId,
+                status: parameters.Status,
+                page: parameters.Page,
+                pageSize: parameters.PageSize
+            );
 
             var cachedOrders = await _cacheService.Get<PagedResult<OrderDto>>(cacheKey);
 
             if (cachedOrders is not null)
                 return cachedOrders;
 
-            if (parameters.StartDate.HasValue && parameters.EndDate.HasValue && parameters.StartDate > parameters.EndDate)
-                throw new ArgumentException("Start date must be less than or equal to end date");
-
             var orders = await _orderRepository.GetSellerOrders(parameters);
-
             var orderDtos = _mapper.Map<PagedResult<OrderDto>>(orders);
 
             await _cacheService.Set(cacheKey, orderDtos, TimeSpan.FromMinutes(5));
@@ -136,12 +166,72 @@ namespace EcommerceAPI.Services.Order
         }
 
         /// <summary>
+        /// Validates the pagination and dates.
+        /// </summary>
+        /// <param name="page">The page.</param>
+        /// <param name="pageSize">Size of the page.</param>
+        /// <param name="startDate">The start date.</param>
+        /// <param name="endDate">The end date.</param>
+        /// <exception cref="System.ArgumentException">
+        /// PageSize cannot exceed {MaxPageSize}.
+        /// or
+        /// Page and PageSize must be greater than 0.
+        /// or
+        /// Start date must be less than or equal to end date.
+        /// or
+        /// Dates cannot be in the future.
+        /// </exception>
+        private void ValidatePaginationAndDates(int page, int pageSize, DateTime? startDate, DateTime? endDate)
+        {
+            const int MaxPageSize = 100;
+
+            if (pageSize > MaxPageSize)
+                throw new ArgumentException($"PageSize cannot exceed {MaxPageSize}.");
+
+            if (page <= 0 || pageSize <= 0)
+                throw new ArgumentException("Page and PageSize must be greater than 0.");
+
+            if (startDate.HasValue && endDate.HasValue && startDate > endDate)
+                throw new ArgumentException("Start date must be less than or equal to end date.");
+
+            if ((startDate.HasValue && startDate > DateTime.UtcNow) ||
+                (endDate.HasValue && endDate > DateTime.UtcNow))
+                throw new ArgumentException("Dates cannot be in the future.");
+        }
+
+        /// <summary>
+        /// Builds the cache key.
+        /// </summary>
+        /// <param name="prefix">The prefix.</param>
+        /// <param name="startDate">The start date.</param>
+        /// <param name="endDate">The end date.</param>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="sellerId">The seller identifier.</param>
+        /// <param name="status">The status.</param>
+        /// <param name="page">The page.</param>
+        /// <param name="pageSize">Size of the page.</param>
+        private string BuildCacheKey(string prefix, DateTime? startDate, DateTime? endDate, int? userId, int? sellerId, OrderStatus? status, int page, int pageSize)
+        {
+            var dateRangePart = startDate.HasValue && endDate.HasValue
+                ? $"{startDate:yyyyMMdd}_{endDate:yyyyMMdd}"
+                : "all_dates";
+
+            var userIdPart = userId.HasValue ? userId.Value.ToString() : "all_users";
+            var sellerIdPart = sellerId.HasValue ? sellerId.Value.ToString() : "all_sellers";
+            var statusPart = status.HasValue ? status.Value.ToString() : "all_statuses";
+
+            return $"{prefix}_{dateRangePart}_{userIdPart}_{sellerIdPart}_{statusPart}_Page_{page}_PageSize_{pageSize}";
+        }
+
+        /// <summary>
         /// Gets the order with details.
         /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
         /// <param name="orderId">The order identifier.</param>
-        /// <returns>The order with additional details as <see cref="OrderDto"/>, or null if not found in cache before DB lookup.</returns>
+        /// <returns></returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
-        public async Task<OrderDto?> GetOrderWithDetails(int orderId)
+        public async Task<OrderDto?> GetOrderWithDetails(int userId, UserRole role, int orderId)
         {
             var cacheKey = $"order_details_{orderId}";
             var cachedOrder = await _cacheService.Get<OrderDto>(cacheKey);
@@ -167,7 +257,7 @@ namespace EcommerceAPI.Services.Order
         /// <exception cref="System.InvalidOperationException">User does not have a default address</exception>
         public async Task<OrderDto> AddOrder(int userId)
         {
-            var defaultAddress = await _addressService.GetDefaultAddressForUser(userId);
+            var defaultAddress = await _addressRepository.GetDefaultAddressForUserAsync(userId);
 
             if (defaultAddress is null)
                 throw new InvalidOperationException("User does not have a default address");
@@ -183,35 +273,8 @@ namespace EcommerceAPI.Services.Order
 
             var createdOrder = await _orderRepository.AddOrder(order);
 
-            var cacheKey = $"order_{createdOrder.Id}";
             var orderDto = _mapper.Map<OrderDto>(createdOrder);
-            await _cacheService.Set(cacheKey, orderDto, TimeSpan.FromMinutes(5));
-            return orderDto;
-        }
-
-        /// <summary>
-        /// Updates the amount order.
-        /// </summary>
-        /// <param name="orderId">The order identifier.</param>
-        /// <param name="amount">The amount.</param>
-        /// <returns>The updated order with the new amount as <see cref="OrderDto"/>.</returns>
-        /// <exception cref="System.ArgumentException">Amount cannot be negative</exception>
-        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
-        public async Task<OrderDto> UpdateAmountOrder(int orderId, decimal amount)
-        {
-            if (amount < 0)
-                throw new ArgumentException("Amount cannot be negative");
-
-            var order = await _orderRepository.UpdateAmountOrder(orderId, amount);
-
-            if (order is null)
-                throw new KeyNotFoundException("Order not found");
-
-            await InvalidateOrderCache(orderId);
-
-            var cacheKey = $"order_{orderId}";
-            var orderDto = _mapper.Map<OrderDto>(order);
-            await _cacheService.Set(cacheKey, orderDto, TimeSpan.FromMinutes(5));
+            await SaveOrderToCache(orderDto);
             return orderDto;
         }
 
@@ -224,17 +287,22 @@ namespace EcommerceAPI.Services.Order
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
         public async Task<OrderDto> UpdateAddressOrder(int orderId, int addressId)
         {
-
-            var order = await _orderRepository.UpdateAddressOrder(orderId, addressId);
+            var order = await _orderRepository.GetOrderById(orderId);
 
             if (order is null)
                 throw new KeyNotFoundException("Order not found");
 
-            await InvalidateOrderCache(orderId);
+            var address = await _addressRepository.GetAddressById(addressId);
 
-            var cacheKey = $"order_{orderId}";
-            var orderDto = _mapper.Map<OrderDto>(order);
-            await _cacheService.Set(cacheKey, orderDto, TimeSpan.FromMinutes(5));
+            if (address is null)
+                throw new KeyNotFoundException("Address not found");
+
+            order.ShippingAddressId = addressId;
+            var orderUpdate = await _orderRepository.UpdateOrder(order);
+
+            var orderDto = _mapper.Map<OrderDto>(orderUpdate);
+            await InvalidateOrderCache(orderDto.Id);
+            await SaveOrderToCache(orderDto);
             return orderDto;
         }
 
@@ -247,17 +315,17 @@ namespace EcommerceAPI.Services.Order
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
         public async Task<OrderDto> UpdateOrderStatus(int orderId, OrderStatus newStatus)
         {
-
-            var order = await _orderRepository.UpdateOrderStatus(orderId, newStatus);
+            var order = await _orderRepository.GetOrderById(orderId);
 
             if (order is null)
                 throw new KeyNotFoundException("Order not found");
 
-            await InvalidateOrderCache(orderId, null, newStatus);
+            order.Status = newStatus;
+            var orderUpdate = await _orderRepository.UpdateOrder(order);
 
-            var cacheKey = $"order_{orderId}";
             var orderDto = _mapper.Map<OrderDto>(order);
-            await _cacheService.Set(cacheKey, orderDto, TimeSpan.FromMinutes(5));
+            await InvalidateOrderCache(orderDto.Id);
+            await SaveOrderToCache(orderDto);
             return orderDto;
         }
 
@@ -268,17 +336,31 @@ namespace EcommerceAPI.Services.Order
         /// <returns><c>true</c> if the order was successfully deleted; otherwise, <c>false</c>.</returns>
         public async Task<bool> DeleteOrder(int orderId)
         {
-            await InvalidateOrderCache(orderId);
-            return await _orderRepository.DeleteOrder(orderId);
+            var order = await _orderRepository.GetOrderById(orderId);
+
+            if (order is null)
+                throw new KeyNotFoundException("Order not found");
+
+            await InvalidateOrderCache(order.Id);
+            return await _orderRepository.DeleteOrder(order);
+        }
+
+        /// <summary>
+        /// Saves the order to cache.
+        /// </summary>
+        /// <param name="orderDto">The order dto.</param>
+        /// <exception cref="System.ArgumentNullException">orderDto</exception>
+        private async Task SaveOrderToCache(OrderDto orderDto)
+        {
+            var cacheKey = $"order_{orderDto.Id}";
+            await _cacheService.Set(cacheKey, orderDto, TimeSpan.FromMinutes(5));
         }
 
         /// <summary>
         /// Invalidates the order cache.
         /// </summary>
         /// <param name="orderId">The order identifier.</param>
-        /// <param name="userId">The user identifier.</param>
-        /// <param name="status">The status.</param>
-        private async Task InvalidateOrderCache(int orderId, int? userId = null, OrderStatus? status = null)
+        private async Task InvalidateOrderCache(int orderId)
         {
             // Eliminar la cache específica de la orden
             await _cacheService.Remove($"order_{orderId}");

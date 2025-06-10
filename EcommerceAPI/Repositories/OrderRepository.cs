@@ -171,7 +171,7 @@ namespace EcommerceAPI.Repositories
         /// </summary>
         /// <param name="order">The order.</param>
         /// <returns>The updated <see cref="OrderEntity"/> after saving changes to the database.</returns>
-        public async Task<OrderEntity?> UpdateOrder(OrderEntity order)
+        public async Task<OrderEntity> UpdateOrder(OrderEntity order)
         {
             _context.Orders.Update(order);
             await _context.SaveChangesAsync();
