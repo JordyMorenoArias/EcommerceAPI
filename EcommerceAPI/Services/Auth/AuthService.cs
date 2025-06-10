@@ -8,6 +8,7 @@ using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Services.Auth.Interfaces;
 using EcommerceAPI.Services.Infrastructure.Interfaces;
 using EcommerceAPI.Constants;
+using EcommerceAPI.Models.DTOs.Generic;
 
 namespace EcommerceAPI.Services.Auth
 {

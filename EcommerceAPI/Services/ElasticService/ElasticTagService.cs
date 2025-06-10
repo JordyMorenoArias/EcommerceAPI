@@ -1,8 +1,8 @@
 ﻿using EcommerceAPI.Models.DTOs.Tag;
 using EcommerceAPI.Services.ElasticService.Interfaces;
 using Elastic.Clients.Elasticsearch;
-using EcommerceAPI.Models.DTOs;
 using Elastic.Clients.Elasticsearch.QueryDsl;
+using EcommerceAPI.Models.DTOs.Generic;
 
 namespace EcommerceAPI.Services.ElasticService
 {

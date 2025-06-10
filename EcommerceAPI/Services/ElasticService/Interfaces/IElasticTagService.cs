@@ -1,4 +1,4 @@
-﻿using EcommerceAPI.Models.DTOs;
+﻿using EcommerceAPI.Models.DTOs.Generic;
 using EcommerceAPI.Models.DTOs.Tag;
 
 namespace EcommerceAPI.Services.ElasticService.Interfaces

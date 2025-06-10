@@ -1,4 +1,5 @@
 ﻿using EcommerceAPI.Models.DTOs.Auth;
+using EcommerceAPI.Models.DTOs.Generic;
 using EcommerceAPI.Models.DTOs.User;
 
 namespace EcommerceAPI.Services.Auth.Interfaces

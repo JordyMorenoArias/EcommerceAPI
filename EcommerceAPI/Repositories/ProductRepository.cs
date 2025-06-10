@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using EcommerceAPI.Data;
 using EcommerceAPI.Models;
-using EcommerceAPI.Models.DTOs;
+using EcommerceAPI.Models.DTOs.Generic;
 using EcommerceAPI.Models.DTOs.Product;
 using Microsoft.EntityFrameworkCore;
 

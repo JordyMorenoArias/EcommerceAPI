@@ -1,5 +1,5 @@
 ﻿using EcommerceAPI.Constants;
-using EcommerceAPI.Models.DTOs;
+using EcommerceAPI.Models.DTOs.Generic;
 using EcommerceAPI.Models.DTOs.Order;
 using EcommerceAPI.Models.DTOs.OrderDetail;
 

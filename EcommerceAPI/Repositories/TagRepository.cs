@@ -1,5 +1,5 @@
 ﻿using EcommerceAPI.Data;
-using EcommerceAPI.Models.DTOs;
+using EcommerceAPI.Models.DTOs.Generic;
 using EcommerceAPI.Models.DTOs.Tag;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Repositories.Interfaces;
