@@ -3,6 +3,7 @@ using AutoMapper;
 using EcommerceAPI.Constants;
 using EcommerceAPI.Models;
 using EcommerceAPI.Models.DTOs;
+using EcommerceAPI.Models.DTOs.Generic;
 using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Repositories;
 using EcommerceAPI.Services.ElasticService.Interfaces;
