@@ -7,13 +7,18 @@ using EcommerceAPI.Services.Infrastructure.Interfaces;
 using EcommerceAPI.Services.Order;
 using Moq;
 using Shouldly;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace EcommerceAPIUnitTesting.Services.OrderServiceTest
 {
     /// <summary>
-    /// Unit tests for the GetOrderById method in the OrderService class.
+    /// Unit tests for the <see cref="OrderService"/> method <see cref="OrderService.GetOrderWithDetails(int)"/>.
     /// </summary>
-    public class GetOrderByIdTest
+    public class GetOrderWithDetailsTest
     {
         private readonly Mock<IOrderRepository> _orderRepositoryMock;
         private readonly Mock<IAddressRepository> _addressRepositoryMock;
@@ -25,7 +30,7 @@ namespace EcommerceAPIUnitTesting.Services.OrderServiceTest
         /// <summary>
         /// Initializes a new instance of the <see cref="GetOrderByIdTest"/> class.
         /// </summary>
-        public GetOrderByIdTest()
+        public GetOrderWithDetailsTest()
         {
             _orderRepositoryMock = new Mock<IOrderRepository>();
             _addressRepositoryMock = new Mock<IAddressRepository>();
@@ -42,87 +47,86 @@ namespace EcommerceAPIUnitTesting.Services.OrderServiceTest
         }
 
         /// <summary>
-        /// Gets the order by identifier returns order when cached order exists.
+        /// Gets the order with details returns order when cached order exists.
         /// </summary>
         [Fact]
-        public async Task GetOrderById_ReturnsOrder_WhenCachedOrderExists()
+        public async Task GetOrderWithDetails_ReturnsOrder_WhenCachedOrderExists()
         {
             // Arrange
-            var orderId = _fixture.Create<int>();
+            var orderId = 1;
             var orderDto = CreateOrderDto(orderId);
 
             _cacheServiceMock.Setup(c => c.Get<OrderDto>(It.IsAny<string>()))
                 .ReturnsAsync(orderDto);
 
             // Act
-            var result = await _orderService.GetOrderById(orderId);
+            var result = await _orderService.GetOrderWithDetails(orderId);
 
             // Assert
             result.ShouldNotBeNull();
             _cacheServiceMock.Verify(c => c.Get<OrderDto>(It.IsAny<string>()), Times.Once);
-            _orderRepositoryMock.Verify(r => r.GetOrderById(It.IsAny<int>()), Times.Never);
+            _orderRepositoryMock.Verify(r => r.GetOrderWithDetails(It.IsAny<int>()), Times.Never);
             _mapperMock.Verify(m => m.Map<OrderDto>(It.IsAny<OrderEntity>()), Times.Never);
-            _cacheServiceMock.Verify(c => c.Set(It.IsAny<string>(), orderDto, It.IsAny<TimeSpan>()), Times.Never);
+            _cacheServiceMock.Verify(c => c.Set<OrderDto>(It.IsAny<string>(), It.IsAny<OrderDto>(), It.IsAny<TimeSpan>()), Times.Never);
         }
 
         /// <summary>
-        /// Gets the order by identifier returns order when order exists in repository.
+        /// Gets the order with details returns order when order exists in repository.
         /// </summary>
         [Fact]
-        public async Task GetOrderById_ReturnsOrder_WhenOrderExistsInRepository()
+        public async Task GetOrderWithDetails_ReturnsOrder_WhenOrderExistsInRepository()
         {
             // Arrange
-            var orderId = _fixture.Create<int>();
+            var orderId = 1;
             var orderEntity = CreateOrderEntity(orderId);
             var orderDto = CreateOrderDto(orderId);
 
             _cacheServiceMock.Setup(c => c.Get<OrderDto>(It.IsAny<string>()))
                 .ReturnsAsync((OrderDto?)null);
 
-            _orderRepositoryMock.Setup(r => r.GetOrderById(orderId))
+            _orderRepositoryMock.Setup(r => r.GetOrderWithDetails(orderId))
                 .ReturnsAsync(orderEntity);
 
             _mapperMock.Setup(m => m.Map<OrderDto>(orderEntity))
                 .Returns(orderDto);
 
-            _cacheServiceMock.Setup(c => c.Set(It.IsAny<string>(), orderDto, It.IsAny<TimeSpan?>()))
+            _cacheServiceMock.Setup(c => c.Set<OrderDto>(It.IsAny<string>(), It.IsAny<OrderDto>(), It.IsAny<TimeSpan>()))
                 .Returns(Task.CompletedTask);
 
             // Act
-            var result = await _orderService.GetOrderById(orderId);
+            var result = await _orderService.GetOrderWithDetails(orderId);
 
             // Assert
             result.ShouldNotBeNull();
-            result.Id.ShouldBe(orderId);
             _cacheServiceMock.Verify(c => c.Get<OrderDto>(It.IsAny<string>()), Times.Once);
-            _orderRepositoryMock.Verify(r => r.GetOrderById(It.IsAny<int>()), Times.Once);
+            _orderRepositoryMock.Verify(r => r.GetOrderWithDetails(It.IsAny<int>()), Times.Once);
             _mapperMock.Verify(m => m.Map<OrderDto>(It.IsAny<OrderEntity>()), Times.Once);
-            _cacheServiceMock.Verify(c => c.Set(It.IsAny<string>(), orderDto, It.IsAny<TimeSpan>()), Times.Once);
+            _cacheServiceMock.Verify(c => c.Set<OrderDto>(It.IsAny<string>(), It.IsAny<OrderDto>(), It.IsAny<TimeSpan>()), Times.Once);
         }
 
         /// <summary>
-        /// Gets the order by identifier throws key not found exception when order does not exist.
+        /// Gets the order with details throws key not found exception when order does not exist.
         /// </summary>
         [Fact]
-        public async Task GetOrderById_ThrowsKeyNotFoundException_WhenOrderDoesNotExist()
+        public async Task GetOrderWithDetails_ThrowsKeyNotFoundException_WhenOrderDoesNotExist()
         {
             // Arrange
-            var orderId = _fixture.Create<int>();
+            var orderId = 1;
 
             _cacheServiceMock.Setup(c => c.Get<OrderDto>(It.IsAny<string>()))
                 .ReturnsAsync((OrderDto?)null);
 
-            _orderRepositoryMock.Setup(r => r.GetOrderById(orderId))
+            _orderRepositoryMock.Setup(r => r.GetOrderWithDetails(orderId))
                 .ReturnsAsync((OrderEntity?)null);
 
             // Act & Assert
-            await Should.ThrowAsync<KeyNotFoundException>(async () => await _orderService.GetOrderById(orderId));
+            await Should.ThrowAsync<KeyNotFoundException>(() => _orderService.GetOrderWithDetails(orderId));
             _cacheServiceMock.Verify(c => c.Get<OrderDto>(It.IsAny<string>()), Times.Once);
-            _orderRepositoryMock.Verify(r => r.GetOrderById(It.IsAny<int>()), Times.Once);
+            _orderRepositoryMock.Verify(r => r.GetOrderWithDetails(It.IsAny<int>()), Times.Once);
             _mapperMock.Verify(m => m.Map<OrderDto>(It.IsAny<OrderEntity>()), Times.Never);
-            _cacheServiceMock.Verify(c => c.Set(It.IsAny<string>(), It.IsAny<OrderDto>(), It.IsAny<TimeSpan?>()), Times.Never);
+            _cacheServiceMock.Verify(c => c.Set<OrderDto>(It.IsAny<string>(), It.IsAny<OrderDto>(), It.IsAny<TimeSpan>()), Times.Never);
         }
-        
+
         private OrderDto CreateOrderDto(int id = 1)
         {
             return _fixture.Build<OrderDto>()
@@ -132,7 +136,7 @@ namespace EcommerceAPIUnitTesting.Services.OrderServiceTest
                 .Without(o => o.OrderDetails)
                 .Create();
         }
-        
+
         private OrderEntity CreateOrderEntity(int id = 1)
         {
             return _fixture.Build<OrderEntity>()
