@@ -172,7 +172,6 @@ namespace EcommerceAPI.Services.Order
 
             var orders = await _orderRepository.GetSellerOrders(parameters);
             var orderDtos = _mapper.Map<PagedResult<OrderDto>>(orders);
-
             await _cacheService.Set(cacheKey, orderDtos, TimeSpan.FromMinutes(5));
             return orderDtos;
         }
@@ -258,7 +257,6 @@ namespace EcommerceAPI.Services.Order
             };
 
             var createdOrder = await _orderRepository.AddOrder(order);
-
             var orderDto = _mapper.Map<OrderDto>(createdOrder);
             await SaveOrderToCache(orderDto);
             return orderDto;
@@ -267,16 +265,29 @@ namespace EcommerceAPI.Services.Order
         /// <summary>
         /// Updates the address order.
         /// </summary>
+        /// <param name="userId">The user identifier.</param>
         /// <param name="orderId">The order identifier.</param>
         /// <param name="addressId">The address identifier.</param>
         /// <returns>The updated order with the new shipping address as <see cref="OrderDto"/>.</returns>
-        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
-        public async Task<OrderDto> UpdateAddressOrder(int orderId, int addressId)
+        /// <exception cref="System.Collections.Generic.KeyNotFoundException">
+        /// Order not found
+        /// or
+        /// Address not found
+        /// </exception>
+        /// <exception cref="System.UnauthorizedAccessException">You do not have permission to update this order</exception>
+        /// <exception cref="System.InvalidOperationException">Only draft orders can have their shipping address updated</exception>
+        public async Task<OrderDto> UpdateOrderAddress(int userId, int orderId, int addressId)
         {
             var order = await _orderRepository.GetOrderById(orderId);
 
             if (order is null)
                 throw new KeyNotFoundException("Order not found");
+
+            if (order.UserId != userId)
+                throw new UnauthorizedAccessException("You do not have permission to update this order");
+
+            if (order.Status != OrderStatus.Draft)
+                throw new InvalidOperationException("Only draft orders can have their shipping address updated");
 
             var address = await _addressRepository.GetAddressById(addressId);
 
@@ -295,16 +306,22 @@ namespace EcommerceAPI.Services.Order
         /// <summary>
         /// Updates the order status.
         /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
         /// <param name="orderId">The order identifier.</param>
         /// <param name="newStatus">The new status.</param>
-        /// <returns>The updated order with the new status as <see cref="OrderDto"/>.</returns>
+        /// <returns></returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
-        public async Task<OrderDto> UpdateOrderStatus(int orderId, OrderStatus newStatus)
+        /// <exception cref="System.UnauthorizedAccessException">You do not have permission to update order status</exception>
+        public async Task<OrderDto> UpdateOrderStatus(int userId, UserRole role, int orderId, OrderStatus newStatus)
         {
             var order = await _orderRepository.GetOrderById(orderId);
 
             if (order is null)
                 throw new KeyNotFoundException("Order not found");
+
+            if (role != UserRole.Admin && order.UserId != userId)
+                throw new UnauthorizedAccessException("You do not have permission to update order status");
 
             order.Status = newStatus;
             var orderUpdate = await _orderRepository.UpdateOrder(order);

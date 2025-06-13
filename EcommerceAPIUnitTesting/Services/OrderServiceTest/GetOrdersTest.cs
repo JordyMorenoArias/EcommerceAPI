@@ -25,7 +25,7 @@ namespace EcommerceAPIUnitTesting.Services.OrderServiceTest
         private readonly Fixture _fixture;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GetOrderByIdTest"/> class.
+        /// Initializes a new instance of the <see cref="GetOrdersTest"/> class.
         /// </summary>
         public GetOrdersTest()
         {
@@ -50,7 +50,7 @@ namespace EcommerceAPIUnitTesting.Services.OrderServiceTest
         public async Task GetOrders_ThrowsUnauthorizedAccessException_WhenUserAccessesOtherUserOrders_AndIsNotAdmin()
         {
             // Arrange
-            int userId = _fixture.Create<int>();
+            int userId = 1;
             var role = UserRole.Customer;
             var parameters = CreateQueryParameters(2);
 
@@ -70,7 +70,7 @@ namespace EcommerceAPIUnitTesting.Services.OrderServiceTest
         public async Task GetOrders_ReturnsOrders_WhenCachedOrdersExist()
         {
             // Arrange
-            int userId = _fixture.Create<int>();
+            int userId = 1;
             var role = UserRole.Customer;
             var parameters = CreateQueryParameters(userId);
             var pagedOrderDto = CreatePagedResultOrderDto(userId);
@@ -96,7 +96,7 @@ namespace EcommerceAPIUnitTesting.Services.OrderServiceTest
         public async Task GetOrders_ReturnsOrders_WhenOrdersExistInRepository()
         {
             // Arrange
-            int userId = _fixture.Create<int>();
+            int userId = 1;
             var role = UserRole.Customer;
             var parameters = CreateQueryParameters(userId);
             var pagedOrderEntity = CreatePagedResultOrderEntity(userId);
@@ -132,7 +132,7 @@ namespace EcommerceAPIUnitTesting.Services.OrderServiceTest
         public async Task GetOrders_ThrowsArgumentException_WhenPaginationOrDatesAreInvalid()
         {
             // Arrange
-            int userId = _fixture.Create<int>();
+            int userId = 1;
             var role = UserRole.Customer;
             var parameters = CreateQueryParameters(userId, startDate: DateTime.UtcNow.AddDays(1), page: 0, pageSize: 0);
 

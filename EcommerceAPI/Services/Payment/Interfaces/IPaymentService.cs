@@ -33,15 +33,31 @@ namespace EcommerceAPI.Services.Payment.Interfaces
         Task<PagedResult<PaymentProcessDto>> GetPayments(int userId, UserRole role, PaymentQueryParameters parameters);
 
         /// <summary>
-        /// Processes a payment for a given order and user.
+        /// Processes the payment.
         /// </summary>
-        /// <param name="userId">The identifier of the user making the payment.</param>
-        /// <param name="orderId">The identifier of the order to pay for.</param>
-        /// <param name="paymentDto">The data transfer object containing payment details.</param>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
+        /// <param name="orderId">The order identifier.</param>
+        /// <param name="paymentDto">The payment dto.</param>
         /// <returns>
-        /// A <see cref="PaymentResultDto"/> containing the result of the payment transaction.
+        /// A <see cref="PaymentResultDto"/> object containing the result of the payment transaction.
         /// </returns>
-        Task<PaymentResultDto> ProcessPayment(int userId, int orderId, PaymentProcessDto paymentDto);
+        /// <exception cref="System.ArgumentException">
+        /// Invalid card number.
+        /// or
+        /// Card is expired.
+        /// </exception>
+        /// <exception cref="System.Exception">
+        /// Order not found
+        /// or
+        /// Order already paid
+        /// or
+        /// Order is canceled
+        /// or
+        /// User not authorized to pay for this order
+        /// or
+        /// Payment failed: {transaction.Message}
+        Task<PaymentResultDto> ProcessPayment(int userId, UserRole role, int orderId, PaymentProcessDto paymentDto);
     }
 
 }

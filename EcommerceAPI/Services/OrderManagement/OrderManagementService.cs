@@ -151,15 +151,9 @@ namespace EcommerceAPI.Services.Order
         /// <returns>The updated order with the new status.</returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order with ID {orderId} not found.</exception>
         /// <exception cref="System.InvalidOperationException">You do not have permission to modify this order.</exception>
-        public async Task<OrderDto> UpdateOrderStatus(int userId, UserRole role, int orderId, OrderStatus newStatus)
-        {
-            var order = await _orderService.GetOrderById(orderId);
+        public async Task<OrderDto> UpdateOrderStatus(int userId, UserRole role, int orderId, OrderStatus newStatus) 
+            => await _orderService.UpdateOrderStatus(userId, role, orderId, newStatus);
 
-            if (role != UserRole.Admin && order.UserId != userId)
-                throw new InvalidOperationException("You do not have permission to modify this order.");
-
-            return await _orderService.UpdateOrderStatus(order.Id, newStatus);
-        }
 
         /// <summary>
         /// Updates the shipping address for an order.
@@ -176,18 +170,8 @@ namespace EcommerceAPI.Services.Order
         /// or
         /// Only draft orders can have their address updated.
         /// </exception>
-        public async Task<OrderDto> UpdateOrderAddress(int userId, int orderId, int addressId)
-        {
-            var order = await _orderService.GetOrderById(orderId);
-
-            if (order.UserId != userId)
-                throw new InvalidOperationException("You do not have permission to modify this order.");
-
-            if (order.Status != OrderStatus.Draft)
-                throw new InvalidOperationException("Only draft orders can have their address updated.");
-
-            return await _orderService.UpdateAddressOrder(order.Id, addressId);
-        }
+        public async Task<OrderDto> UpdateOrderAddress(int userId, int orderId, int addressId) 
+            => await _orderService.UpdateOrderAddress(userId, orderId, addressId);
 
         /// <summary>
         /// Deletes the order.

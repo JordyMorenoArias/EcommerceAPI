@@ -24,22 +24,6 @@ namespace EcommerceAPI.Services.Order.Interfaces
         Task<bool> DeleteOrder(int orderId);
 
         /// <summary>
-        /// Updates the address of an order.
-        /// </summary>
-        /// <param name="orderId">The identifier of the order to be updated.</param>
-        /// <param name="addressId">The identifier of the new address for the order.</param>
-        /// <returns>The updated order.</returns>
-        Task<OrderDto> UpdateAddressOrder(int orderId, int addressId);
-
-        /// <summary>
-        /// Updates the status of an order.
-        /// </summary>
-        /// <param name="orderId">The identifier of the order to be updated.</param>
-        /// <param name="newStatus">The new status for the order.</param>
-        /// <returns>The updated order.</returns>
-        Task<OrderDto> UpdateOrderStatus(int orderId, OrderStatus newStatus);
-
-        /// <summary>
         /// Gets the orders.
         /// </summary>
         /// <param name="userId">The user identifier.</param>
@@ -79,5 +63,33 @@ namespace EcommerceAPI.Services.Order.Interfaces
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
         /// <exception cref="System.UnauthorizedAccessException">You do not have permission to access this order.</exception>
         Task<OrderDto> GetOrderById(int id);
+
+        /// <summary>
+        /// Updates the address order.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="orderId">The order identifier.</param>
+        /// <param name="addressId">The address identifier.</param>
+        /// <returns>The updated order with the new shipping address as <see cref="OrderDto"/>.</returns>
+        /// <exception cref="System.Collections.Generic.KeyNotFoundException">
+        /// Order not found
+        /// or
+        /// Address not found
+        /// </exception>
+        /// <exception cref="System.UnauthorizedAccessException">You do not have permission to update this order</exception>
+        /// <exception cref="System.InvalidOperationException">Only draft orders can have their shipping address updated</exception>
+        Task<OrderDto> UpdateOrderAddress(int userId, int orderId, int addressId);
+
+        /// <summary>
+        /// Updates the order status.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
+        /// <param name="orderId">The order identifier.</param>
+        /// <param name="newStatus">The new status.</param>
+        /// <returns></returns>
+        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
+        /// <exception cref="System.UnauthorizedAccessException">You do not have permission to update order status</exception>
+        Task<OrderDto> UpdateOrderStatus(int userId, UserRole role, int orderId, OrderStatus newStatus);
     }
 }

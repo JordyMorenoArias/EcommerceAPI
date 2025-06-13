@@ -72,7 +72,7 @@ namespace EcommerceAPI.Controllers
         public async Task<IActionResult> ProcessPayment([FromBody] PaymentRequestDto request)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
-            var paymentResult = await _paymentService.ProcessPayment(userAuthenticated.Id, request.OrderId, request.PaymentDto);
+            var paymentResult = await _paymentService.ProcessPayment(userAuthenticated.Id, userAuthenticated.Role, request.OrderId, request.PaymentDto);
             return Ok(paymentResult);
         }
     }
