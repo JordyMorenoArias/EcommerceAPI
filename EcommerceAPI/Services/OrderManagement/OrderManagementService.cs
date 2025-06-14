@@ -143,21 +143,13 @@ namespace EcommerceAPI.Services.Order
         /// <summary>
         /// Deletes the order.
         /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
         /// <param name="orderId">The order identifier.</param>
-        /// <returns>True if the deletion was successful; otherwise, false.</returns>
-        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order with ID {orderId} not found.</exception>
-        /// <exception cref="System.InvalidOperationException">Only draft orders can be deleted.</exception>
-        public async Task<bool> DeleteOrder(int userId, int orderId)
-        {
-            var order = await _orderService.GetOrderById(orderId);
-
-            if (order.UserId != userId)
-                throw new InvalidOperationException("You do not have permission to delete this order.");
-
-            if (order.Status != OrderStatus.Draft)
-                throw new InvalidOperationException("Only draft orders can be deleted.");
-
-            return await _orderService.DeleteOrder(order.Id);
-        }
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains an OperationResult object indicating the success or failure of the operation.
+        /// </returns>
+        public async Task<OperationResult> DeleteOrder(int userId, UserRole role, int orderId)
+        => await _orderService.DeleteOrder(userId, role, orderId);
     }
 }

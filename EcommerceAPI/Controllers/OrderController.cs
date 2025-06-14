@@ -84,7 +84,7 @@ namespace EcommerceAPI.Controllers
         public async Task<IActionResult> CreateOrderWithDetails([FromBody] IEnumerable<OrderDetailAddDto> orderDetails)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
-            var order = await _orderManagementService.CreateOrderWithDetails(userAuthenticated.Id, orderDetails);
+            var order = await _orderManagementService.CreateOrderWithDetails(userAuthenticated.Id, userAuthenticated.Role, orderDetails);
             return CreatedAtAction(nameof(GetOrderWithDetails), new { orderId = order.Id }, order);
         }
 
@@ -99,7 +99,7 @@ namespace EcommerceAPI.Controllers
         public async Task<IActionResult> AddOrderDetailToOrder(int orderId, [FromBody] IEnumerable<OrderDetailAddDto> orderDetails)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
-            var order = await _orderManagementService.AddOrderDetailToOrder(userAuthenticated.Id, orderId, orderDetails);
+            var order = await _orderManagementService.AddOrderDetailToOrder(userAuthenticated.Id, userAuthenticated.Role, orderId, orderDetails);
             return Ok(order);
         }
 
@@ -128,7 +128,7 @@ namespace EcommerceAPI.Controllers
         public async Task<IActionResult> DeleteOrder(int orderId)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
-            var result = await _orderManagementService.DeleteOrder(userAuthenticated.Id, orderId);
+            var result = await _orderManagementService.DeleteOrder(userAuthenticated.Id, userAuthenticated.Role, orderId);
             return Ok("Order deleted successfully.");
         }
     }

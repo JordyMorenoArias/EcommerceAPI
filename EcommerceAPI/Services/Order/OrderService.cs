@@ -341,17 +341,34 @@ namespace EcommerceAPI.Services.Order
         /// <summary>
         /// Deletes the order.
         /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
         /// <param name="orderId">The order identifier.</param>
-        /// <returns><c>true</c> if the order was successfully deleted; otherwise, <c>false</c>.</returns>
-        public async Task<bool> DeleteOrder(int orderId)
+        ///  <returns>A task that represents the asynchronous operation. The task result contains an OperationResult object indicating the success or failure of the operation.</returns>
+        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
+        /// <exception cref="System.UnauthorizedAccessException">You do not have permission to delete this order</exception>
+        /// <exception cref="System.InvalidOperationException">Only draft orders can be deleted</exception>
+        public async Task<OperationResult> DeleteOrder(int userId, UserRole role, int orderId)
         {
             var order = await _orderRepository.GetOrderById(orderId);
 
             if (order is null)
                 throw new KeyNotFoundException("Order not found");
 
+            if (role != UserRole.Admin && order.UserId != userId)
+                throw new UnauthorizedAccessException("You do not have permission to delete this order");
+
+            if (order.Status != OrderStatus.Draft)
+                throw new InvalidOperationException("Only draft orders can be deleted");
+
             await InvalidateOrderCache(order.Id);
-            return await _orderRepository.DeleteOrder(order);
+            await _orderRepository.DeleteOrder(order);
+
+            return new OperationResult
+            {
+                Success = true,
+                Message = "Order deleted successfully"
+            };
         }
 
         /// <summary>

@@ -16,12 +16,6 @@ namespace EcommerceAPI.Services.Order.Interfaces
         /// <returns>The created order.</returns>
         Task<OrderDto> AddOrder(int userId);
 
-        /// <summary>
-        /// Deletes an order by its identifier.
-        /// </summary>
-        /// <param name="orderId">The identifier of the order to be deleted.</param>
-        /// <returns>True if the order was successfully deleted, otherwise false.</returns>
-        Task<bool> DeleteOrder(int orderId);
 
         /// <summary>
         /// Gets the orders.
@@ -79,5 +73,14 @@ namespace EcommerceAPI.Services.Order.Interfaces
         /// <param name="newStatus">The new status.</param>
         /// <returns>A task that represents the asynchronous operation.The task result contains the updated OrderDto.</returns>
         Task<OrderDto> UpdateOrderStatus(int userId, UserRole role, int orderId, OrderStatus newStatus);
+
+        /// <summary>
+        /// Deletes the order.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
+        /// <param name="orderId">The order identifier.</param>
+        ///  <returns>A task that represents the asynchronous operation. The task result contains an OperationResult object indicating the success or failure of the operation.</returns>
+        Task<OperationResult> DeleteOrder(int userId, UserRole role, int orderId);
     }
 }

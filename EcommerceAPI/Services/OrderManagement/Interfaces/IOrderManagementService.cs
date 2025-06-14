@@ -34,12 +34,15 @@ namespace EcommerceAPI.Services.OrderManagement.Interfaces
         Task<OrderDto> CreateOrderWithDetails(int userId, UserRole role, IEnumerable<OrderDetailAddDto> orderDetails);
 
         /// <summary>
-        /// Deletes an existing order.
+        /// Deletes the order.
         /// </summary>
-        /// <param name="userId">The identifier of the user requesting the deletion.</param>
-        /// <param name="orderId">The identifier of the order to be deleted.</param>
-        /// <returns>True if the order was successfully deleted, otherwise false.</returns>
-        Task<bool> DeleteOrder(int userId, int orderId);
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
+        /// <param name="orderId">The order identifier.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains an OperationResult object indicating the success or failure of the operation.
+        /// </returns>
+        Task<OperationResult> DeleteOrder(int userId, UserRole role, int orderId);
 
         /// <summary>
         /// Gets a paginated list of orders based on query parameters.
