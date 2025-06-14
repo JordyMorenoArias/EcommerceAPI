@@ -39,7 +39,7 @@ namespace EcommerceAPI.Services.Order
         /// Gets the order by identifier.
         /// </summary>
         /// <param name="userid">The userid.</param>
-        /// <returns></returns>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the OrderDto for the specified order ID.</returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
         /// <exception cref="System.UnauthorizedAccessException">You do not have permission to access this order.</exception>
         public async Task<OrderDto> GetOrderById(int id)
@@ -64,9 +64,12 @@ namespace EcommerceAPI.Services.Order
         /// Gets the order with details.
         /// </summary>
         /// <param name="userId">The user identifier.</param>
-        /// <returns></returns>
+        /// <param name="role">The role.</param>
+        /// <param name="orderId">The order identifier.</param>
+        /// <returns>A task that represents the asynchronous operation.The task result contains the OrderDto with order details.</returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
-        public async Task<OrderDto> GetOrderWithDetails(int orderId)
+        /// <exception cref="System.InvalidOperationException">You do not have permission to access this order.</exception>
+        public async Task<OrderDto> GetOrderWithDetails(int userId, UserRole role, int orderId)
         {
             var cacheKey = $"order_details_{orderId}";
             var cachedOrder = await _cacheService.Get<OrderDto>(cacheKey);
@@ -78,6 +81,9 @@ namespace EcommerceAPI.Services.Order
 
             if (order is null)
                 throw new KeyNotFoundException("Order not found");
+
+            if (role != UserRole.Admin && order.UserId != userId)
+                throw new InvalidOperationException("You do not have permission to access this order.");
 
             var orderDto = _mapper.Map<OrderDto>(order);
             await _cacheService.Set(cacheKey, orderDto, TimeSpan.FromMinutes(5));
@@ -310,7 +316,7 @@ namespace EcommerceAPI.Services.Order
         /// <param name="role">The role.</param>
         /// <param name="orderId">The order identifier.</param>
         /// <param name="newStatus">The new status.</param>
-        /// <returns></returns>
+        /// <returns>A task that represents the asynchronous operation.The task result contains the updated OrderDto.</returns>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order not found</exception>
         /// <exception cref="System.UnauthorizedAccessException">You do not have permission to update order status</exception>
         public async Task<OrderDto> UpdateOrderStatus(int userId, UserRole role, int orderId, OrderStatus newStatus)

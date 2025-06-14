@@ -11,21 +11,27 @@ namespace EcommerceAPI.Services.OrderManagement.Interfaces
     public interface IOrderManagementService
     {
         /// <summary>
-        /// Adds order details to an existing order.
+        /// Adds the order detail to order.
         /// </summary>
-        /// <param name="userId">The identifier of the user making the request.</param>
-        /// <param name="orderId">The identifier of the order to which details are being added.</param>
-        /// <param name="orderDetails">The order details to be added.</param>
-        /// <returns>The updated order with the added details.</returns>
-        Task<OrderDto> AddOrderDetailToOrder(int userId, int orderId, IEnumerable<OrderDetailAddDto> orderDetails);
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
+        /// <param name="orderId">The order identifier.</param>
+        /// <param name="orderDetails">The order details.</param>
+        /// <returns>
+        /// The updated order with the added details.
+        /// </returns>
+        Task<OrderDto> AddOrderDetailToOrder(int userId, UserRole role, int orderId, IEnumerable<OrderDetailAddDto> orderDetails);
 
         /// <summary>
-        /// Creates a new order with details.
+        /// Creates the order with details.
         /// </summary>
-        /// <param name="userId">The identifier of the user creating the order.</param>
-        /// <param name="orderDetails">The details of the items being added to the order.</param>
-        /// <returns>The created order with its details.</returns>
-        Task<OrderDto> CreateOrderWithDetails(int userId, IEnumerable<OrderDetailAddDto> orderDetails);
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
+        /// <param name="orderDetails">The order details.</param>
+        /// <returns>
+        /// The created order with its details.
+        /// </returns>
+        Task<OrderDto> CreateOrderWithDetails(int userId, UserRole role, IEnumerable<OrderDetailAddDto> orderDetails);
 
         /// <summary>
         /// Deletes an existing order.
@@ -79,8 +85,6 @@ namespace EcommerceAPI.Services.OrderManagement.Interfaces
         /// <param name="orderId">The order identifier.</param>
         /// <param name="newStatus">The new status.</param>
         /// <returns>The updated order with the new status.</returns>
-        /// <exception cref="System.Collections.Generic.KeyNotFoundException">Order with ID {orderId} not found.</exception>
-        /// <exception cref="System.InvalidOperationException">You do not have permission to modify this order.</exception>
         Task<OrderDto> UpdateOrderStatus(int userId, UserRole role, int orderId, OrderStatus newStatus);
     }
 }
