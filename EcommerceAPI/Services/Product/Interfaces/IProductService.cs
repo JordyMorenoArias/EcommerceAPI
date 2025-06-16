@@ -1,6 +1,6 @@
 ﻿
 using EcommerceAPI.Constants;
-using EcommerceAPI.Models.DTOs;
+using EcommerceAPI.Models.DTOs.Generic;
 using EcommerceAPI.Models.DTOs.Product;
 
 namespace EcommerceAPI.Services.Product.Interfaces

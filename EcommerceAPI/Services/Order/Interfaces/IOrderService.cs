@@ -1,5 +1,5 @@
 ﻿using EcommerceAPI.Constants;
-using EcommerceAPI.Models.DTOs;
+using EcommerceAPI.Models.DTOs.Generic;
 using EcommerceAPI.Models.DTOs.Order;
 
 namespace EcommerceAPI.Services.Order.Interfaces
@@ -16,63 +16,71 @@ namespace EcommerceAPI.Services.Order.Interfaces
         /// <returns>The created order.</returns>
         Task<OrderDto> AddOrder(int userId);
 
-        /// <summary>
-        /// Deletes an order by its identifier.
-        /// </summary>
-        /// <param name="orderId">The identifier of the order to be deleted.</param>
-        /// <returns>True if the order was successfully deleted, otherwise false.</returns>
-        Task<bool> DeleteOrder(int orderId);
 
         /// <summary>
-        /// Retrieves an order by its identifier.
+        /// Gets the orders.
         /// </summary>
-        /// <param name="id">The identifier of the order to be retrieved.</param>
-        /// <returns>The order with the specified identifier, or null if not found.</returns>
-        Task<OrderDto?> GetOrderById(int id);
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns>A paginated list of orders matching the provided filters as <see cref="PagedResult{OrderDto}"/>.</returns>
+        Task<PagedResult<OrderDto>> GetOrders(int userId, UserRole role, OrderQueryParameters parameters);
 
         /// <summary>
-        /// Retrieves an order with its details by its identifier.
+        /// Gets the seller orders.
         /// </summary>
-        /// <param name="orderId">The identifier of the order to be retrieved.</param>
-        /// <returns>The order with the specified identifier and its details, or null if not found.</returns>
-        Task<OrderDto?> GetOrderWithDetails(int orderId);
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns>A paginated list of orders for a specific seller as <see cref="PagedResult{OrderDto}"/>.</returns>
+        Task<PagedResult<OrderDto>> GetSellerOrders(int userId, UserRole role, OrderSellerQueryParameters parameters);
 
         /// <summary>
-        /// Retrieves a paged list of orders based on the provided query parameters.
+        /// Gets the order with details.
         /// </summary>
-        /// <param name="parameters">The query parameters for retrieving orders.</param>
-        /// <returns>A paged result containing the orders matching the query parameters.</returns>
-        Task<PagedResult<OrderDto>> GetOrders(OrderQueryParameters parameters);
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
+        /// <param name="orderId">The order identifier.</param>
+        /// <returns>A task that represents the asynchronous operation.The task result contains the OrderDto with order details.</returns>
+        Task<OrderDto> GetOrderWithDetails(int userId, UserRole role, int orderId);
 
         /// <summary>
-        /// Retrieves a paged list of orders for a seller based on the provided query parameters.
+        /// Gets the order by identifier.
         /// </summary>
-        /// <param name="parameters">The query parameters for retrieving seller orders.</param>
-        /// <returns>A paged result containing the seller's orders matching the query parameters.</returns>
-        Task<PagedResult<OrderDto>> GetSellerOrders(OrderSellerQueryParameters parameters);
+        /// <param name="userid">The userid.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the OrderDto for the specified order ID.</returns>
+        Task<OrderDto> GetOrderById(int id);
 
         /// <summary>
-        /// Updates the address of an order.
+        /// Updates the address order.
         /// </summary>
-        /// <param name="orderId">The identifier of the order to be updated.</param>
-        /// <param name="addressId">The identifier of the new address for the order.</param>
-        /// <returns>The updated order.</returns>
-        Task<OrderDto> UpdateAddressOrder(int orderId, int addressId);
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="orderId">The order identifier.</param>
+        /// <param name="addressId">The address identifier.</param>
+        /// <returns>The updated order with the new shipping address as <see cref="OrderDto"/>.</returns>
+        /// <exception cref="System.Collections.Generic.KeyNotFoundException">
+        /// Order not found
+        /// or
+        /// Address not found
+        Task<OrderDto> UpdateOrderAddress(int userId, int orderId, int addressId);
 
         /// <summary>
-        /// Updates the total amount of an order.
+        /// Updates the order status.
         /// </summary>
-        /// <param name="orderId">The identifier of the order to be updated.</param>
-        /// <param name="amount">The new total amount for the order.</param>
-        /// <returns>The updated order.</returns>
-        Task<OrderDto> UpdateAmountOrder(int orderId, decimal amount);
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
+        /// <param name="orderId">The order identifier.</param>
+        /// <param name="newStatus">The new status.</param>
+        /// <returns>A task that represents the asynchronous operation.The task result contains the updated OrderDto.</returns>
+        Task<OrderDto> UpdateOrderStatus(int userId, UserRole role, int orderId, OrderStatus newStatus);
 
         /// <summary>
-        /// Updates the status of an order.
+        /// Deletes the order.
         /// </summary>
-        /// <param name="orderId">The identifier of the order to be updated.</param>
-        /// <param name="newStatus">The new status for the order.</param>
-        /// <returns>The updated order.</returns>
-        Task<OrderDto> UpdateOrderStatus(int orderId, OrderStatus newStatus);
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
+        /// <param name="orderId">The order identifier.</param>
+        ///  <returns>A task that represents the asynchronous operation. The task result contains an OperationResult object indicating the success or failure of the operation.</returns>
+        Task<OperationResult> DeleteOrder(int userId, UserRole role, int orderId);
     }
 }

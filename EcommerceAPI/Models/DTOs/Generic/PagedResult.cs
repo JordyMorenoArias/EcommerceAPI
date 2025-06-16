@@ -1,4 +1,4 @@
-﻿namespace EcommerceAPI.Models.DTOs
+﻿namespace EcommerceAPI.Models.DTOs.Generic
 {
     public class PagedResult<T>
     {

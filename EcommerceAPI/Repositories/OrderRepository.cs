@@ -2,7 +2,7 @@
 using EcommerceAPI.Constants;
 using EcommerceAPI.Data;
 using EcommerceAPI.Models;
-using EcommerceAPI.Models.DTOs;
+using EcommerceAPI.Models.DTOs.Generic;
 using EcommerceAPI.Models.DTOs.Order;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Repositories.Interfaces;
@@ -167,70 +167,24 @@ namespace EcommerceAPI.Repositories
         }
 
         /// <summary>
-        /// Updates the total amount of a specific order.
+        /// Updates the order.
         /// </summary>
-        /// <param name="orderId">The ID of the order.</param>
-        /// <param name="amount">The new total amount.</param>
-        /// <returns>The updated order if found; otherwise, <c>null</c>.</returns>
-        public async Task<OrderEntity?> UpdateAmountOrder(int orderId, decimal amount)
+        /// <param name="order">The order.</param>
+        /// <returns>The updated <see cref="OrderEntity"/> after saving changes to the database.</returns>
+        public async Task<OrderEntity> UpdateOrder(OrderEntity order)
         {
-            var order = await _context.Orders.FindAsync(orderId);
-
-            if (order == null)
-                return null;
-
-            order.TotalAmount = amount;
             _context.Orders.Update(order);
             await _context.SaveChangesAsync();
             return order;
         }
 
         /// <summary>
-        /// Updates the shipping address of an order.
+        /// Deletes the order.
         /// </summary>
-        /// <param name="orderId">The ID of the order.</param>
-        /// <param name="addressId">The ID of the new shipping address.</param>
-        /// <returns>The updated order if found; otherwise, <c>null</c>.</returns>
-        public async Task<OrderEntity?> UpdateAddressOrder(int orderId, int addressId)
+        /// <param name="order">The order.</param>
+        /// <returns>A boolean indicating whether the deletion was successful (<c>true</c>) or not (<c>false</c>).</returns>
+        public async Task<bool> DeleteOrder(OrderEntity order)
         {
-            var order = await _context.Orders.FindAsync(orderId);
-
-            if (order == null)
-                return null;
-
-            order.ShippingAddressId = addressId;
-            _context.Orders.Update(order);
-            await _context.SaveChangesAsync();
-            return order;
-        }
-
-        /// <summary>
-        /// Updates the status of an order.
-        /// </summary>
-        /// <param name="orderId">The ID of the order.</param>
-        /// <param name="newStatus">The new status to assign to the order.</param>
-        /// <returns>The updated order if found; otherwise, <c>null</c>.</returns>
-        public async Task<OrderEntity?> UpdateOrderStatus(int orderId, OrderStatus newStatus)
-        {
-            var order = await _context.Orders.FindAsync(orderId);
-
-            if (order == null)
-                return null;
-
-            order.Status = newStatus;
-            _context.Orders.Update(order);
-            await _context.SaveChangesAsync();
-            return order;
-        }
-
-        /// <summary>
-        /// Deletes an order by its ID.
-        /// </summary>
-        /// <param name="orderId">The ID of the order to delete.</param>
-        /// <returns><c>true</c> if the order was deleted successfully; otherwise, <c>false</c>.</returns>
-        public async Task<bool> DeleteOrder(int orderId)
-        {
-            var order = new OrderEntity { Id = orderId };
             _context.Orders.Attach(order);
             _context.Orders.Remove(order);
             return await _context.SaveChangesAsync() > 0;

@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using EcommerceAPI.Constants;
-using EcommerceAPI.Models.DTOs;
+using EcommerceAPI.Models.DTOs.Generic;
 using EcommerceAPI.Models.DTOs.Payment;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Repositories.Interfaces;
@@ -123,11 +123,17 @@ namespace EcommerceAPI.Services.Payment
         /// Processes the payment.
         /// </summary>
         /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
         /// <param name="orderId">The order identifier.</param>
         /// <param name="paymentDto">The payment dto.</param>
         /// <returns>
         /// A <see cref="PaymentResultDto"/> object containing the result of the payment transaction.
         /// </returns>
+        /// <exception cref="System.ArgumentException">
+        /// Invalid card number.
+        /// or
+        /// Card is expired.
+        /// </exception>
         /// <exception cref="System.Exception">
         /// Order not found
         /// or
@@ -136,8 +142,10 @@ namespace EcommerceAPI.Services.Payment
         /// Order is canceled
         /// or
         /// User not authorized to pay for this order
+        /// or
+        /// Payment failed: {transaction.Message}
         /// </exception>
-        public async Task<PaymentResultDto> ProcessPayment(int userId, int orderId, PaymentProcessDto paymentDto)
+        public async Task<PaymentResultDto> ProcessPayment(int userId, UserRole role, int orderId, PaymentProcessDto paymentDto)
         {
             var expMonth = int.Parse(paymentDto.ExpirationMonth);
             var expYear = int.Parse(paymentDto.ExpirationYear);
@@ -180,7 +188,7 @@ namespace EcommerceAPI.Services.Payment
             };
 
             var result = await _paymentRepository.AddPayment(payment);
-            await _orderService.UpdateOrderStatus(order.Id, OrderStatus.Paid);
+            await _orderService.UpdateOrderStatus(userId, role, order.Id, OrderStatus.Paid);
 
             return transaction;
         }

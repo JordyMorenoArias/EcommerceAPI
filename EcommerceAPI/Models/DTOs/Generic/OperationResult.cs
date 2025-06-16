@@ -1,4 +1,4 @@
-﻿namespace EcommerceAPI.Models.DTOs.Auth
+﻿namespace EcommerceAPI.Models.DTOs.Generic
 {
     public class OperationResult
     {

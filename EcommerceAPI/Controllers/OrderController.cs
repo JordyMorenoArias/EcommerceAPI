@@ -83,15 +83,8 @@ namespace EcommerceAPI.Controllers
         [AuthorizeRole(UserRole.Customer)]
         public async Task<IActionResult> CreateOrderWithDetails([FromBody] IEnumerable<OrderDetailAddDto> orderDetails)
         {
-            if (orderDetails == null || !orderDetails.Any())
-                return BadRequest("Order details cannot be null or empty.");
-
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
-            var order = await _orderManagementService.CreateOrderWithDetails(userAuthenticated.Id, orderDetails);
-
-            if (order == null)
-                return BadRequest("Failed to create order.");
-
+            var order = await _orderManagementService.CreateOrderWithDetails(userAuthenticated.Id, userAuthenticated.Role, orderDetails);
             return CreatedAtAction(nameof(GetOrderWithDetails), new { orderId = order.Id }, order);
         }
 
@@ -106,11 +99,7 @@ namespace EcommerceAPI.Controllers
         public async Task<IActionResult> AddOrderDetailToOrder(int orderId, [FromBody] IEnumerable<OrderDetailAddDto> orderDetails)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
-            var order = await _orderManagementService.AddOrderDetailToOrder(userAuthenticated.Id, orderId, orderDetails);
-
-            if (order == null)
-                return BadRequest("Failed to add order details.");
-
+            var order = await _orderManagementService.AddOrderDetailToOrder(userAuthenticated.Id, userAuthenticated.Role, orderId, orderDetails);
             return Ok(order);
         }
 
@@ -126,10 +115,6 @@ namespace EcommerceAPI.Controllers
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
             var order = await _orderManagementService.UpdateOrderAddress(userAuthenticated.Id, orderId, addressId);
-
-            if (order == null)
-                return BadRequest("Failed to update order address.");
-
             return Ok(order);
         }
 
@@ -143,11 +128,7 @@ namespace EcommerceAPI.Controllers
         public async Task<IActionResult> DeleteOrder(int orderId)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
-            var result = await _orderManagementService.DeleteOrder(userAuthenticated.Id, orderId);
-
-            if (!result)
-                return BadRequest("Failed to delete order.");
-
+            var result = await _orderManagementService.DeleteOrder(userAuthenticated.Id, userAuthenticated.Role, orderId);
             return Ok("Order deleted successfully.");
         }
     }

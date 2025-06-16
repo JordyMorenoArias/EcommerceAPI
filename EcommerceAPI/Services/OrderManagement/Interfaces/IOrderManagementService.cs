@@ -1,5 +1,5 @@
 ﻿using EcommerceAPI.Constants;
-using EcommerceAPI.Models.DTOs;
+using EcommerceAPI.Models.DTOs.Generic;
 using EcommerceAPI.Models.DTOs.Order;
 using EcommerceAPI.Models.DTOs.OrderDetail;
 
@@ -11,29 +11,38 @@ namespace EcommerceAPI.Services.OrderManagement.Interfaces
     public interface IOrderManagementService
     {
         /// <summary>
-        /// Adds order details to an existing order.
+        /// Adds the order detail to order.
         /// </summary>
-        /// <param name="userId">The identifier of the user making the request.</param>
-        /// <param name="orderId">The identifier of the order to which details are being added.</param>
-        /// <param name="orderDetails">The order details to be added.</param>
-        /// <returns>The updated order with the added details.</returns>
-        Task<OrderDto> AddOrderDetailToOrder(int userId, int orderId, IEnumerable<OrderDetailAddDto> orderDetails);
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
+        /// <param name="orderId">The order identifier.</param>
+        /// <param name="orderDetails">The order details.</param>
+        /// <returns>
+        /// The updated order with the added details.
+        /// </returns>
+        Task<OrderDto> AddOrderDetailToOrder(int userId, UserRole role, int orderId, IEnumerable<OrderDetailAddDto> orderDetails);
 
         /// <summary>
-        /// Creates a new order with details.
+        /// Creates the order with details.
         /// </summary>
-        /// <param name="userId">The identifier of the user creating the order.</param>
-        /// <param name="orderDetails">The details of the items being added to the order.</param>
-        /// <returns>The created order with its details.</returns>
-        Task<OrderDto> CreateOrderWithDetails(int userId, IEnumerable<OrderDetailAddDto> orderDetails);
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
+        /// <param name="orderDetails">The order details.</param>
+        /// <returns>
+        /// The created order with its details.
+        /// </returns>
+        Task<OrderDto> CreateOrderWithDetails(int userId, UserRole role, IEnumerable<OrderDetailAddDto> orderDetails);
 
         /// <summary>
-        /// Deletes an existing order.
+        /// Deletes the order.
         /// </summary>
-        /// <param name="userId">The identifier of the user requesting the deletion.</param>
-        /// <param name="orderId">The identifier of the order to be deleted.</param>
-        /// <returns>True if the order was successfully deleted, otherwise false.</returns>
-        Task<bool> DeleteOrder(int userId, int orderId);
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
+        /// <param name="orderId">The order identifier.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains an OperationResult object indicating the success or failure of the operation.
+        /// </returns>
+        Task<OperationResult> DeleteOrder(int userId, UserRole role, int orderId);
 
         /// <summary>
         /// Gets a paginated list of orders based on query parameters.
@@ -72,11 +81,13 @@ namespace EcommerceAPI.Services.OrderManagement.Interfaces
         Task<OrderDto> UpdateOrderAddress(int userId, int orderId, int addressId);
 
         /// <summary>
-        /// Updates the status of an order.
+        /// Updates the order status.
         /// </summary>
-        /// <param name="orderId">The identifier of the order whose status is being updated.</param>
-        /// <param name="newStatus">The new status to be set for the order.</param>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="role">The role.</param>
+        /// <param name="orderId">The order identifier.</param>
+        /// <param name="newStatus">The new status.</param>
         /// <returns>The updated order with the new status.</returns>
-        Task<OrderDto> UpdateOrderStatus(int orderId, OrderStatus newStatus);
+        Task<OrderDto> UpdateOrderStatus(int userId, UserRole role, int orderId, OrderStatus newStatus);
     }
 }

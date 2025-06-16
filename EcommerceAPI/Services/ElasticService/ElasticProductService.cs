@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using EcommerceAPI.Models;
-using EcommerceAPI.Models.DTOs;
+using EcommerceAPI.Models.DTOs.Generic;
 using EcommerceAPI.Models.DTOs.Product;
 using EcommerceAPI.Services.ElasticService.Interfaces;
 using Elastic.Clients.Elasticsearch;

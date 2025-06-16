@@ -1,6 +1,5 @@
 ﻿using EcommerceAPI.Constants;
 using EcommerceAPI.Models.DTOs.Product;
-using EcommerceAPI.Models.DTOs;
 using EcommerceAPI.Models;
 using AutoMapper;
 using EcommerceAPI.Repositories;
@@ -9,6 +8,7 @@ using EcommerceAPI.Services.Infrastructure.Interfaces;
 using Moq;
 using EcommerceAPI.Services.Product;
 using AutoFixture;
+using EcommerceAPI.Models.DTOs.Generic;
 
 namespace EcommerceAPIUnitTesting.Services.ProductServiceTest
 {

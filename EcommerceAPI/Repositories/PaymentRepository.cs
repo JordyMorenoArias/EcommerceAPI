@@ -1,6 +1,6 @@
 ﻿using EcommerceAPI.Constants;
 using EcommerceAPI.Data;
-using EcommerceAPI.Models.DTOs;
+using EcommerceAPI.Models.DTOs.Generic;
 using EcommerceAPI.Models.DTOs.Payment;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Repositories.Interfaces;
