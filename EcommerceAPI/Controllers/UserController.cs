@@ -31,9 +31,7 @@ namespace EcommerceAPI.Controllers
         public async Task<IActionResult> GetUserById([FromRoute] int id)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
-
             var user = await _userService.GetUserById(id);
-
             return Ok(user);
         }
 
@@ -46,10 +44,6 @@ namespace EcommerceAPI.Controllers
         public async Task<IActionResult> GetUserByEmail([FromQuery] string email)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
-
-            if (email == default)
-                return BadRequest("Email is required.");
-
             var user = await _userService.GetUserByEmail(email);
             return Ok(user);
         }
@@ -65,12 +59,7 @@ namespace EcommerceAPI.Controllers
         public async Task<IActionResult> GetUsersByRole([FromQuery] UserRole role)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
-
-            if (userAuthenticated.Role != UserRole.Admin)
-                return Unauthorized("You are not authorized to access this resource.");
-
             var users = await _userService.GetUsersByRole(role);
-
             return Ok(users);
         }
 
@@ -81,9 +70,10 @@ namespace EcommerceAPI.Controllers
         /// <returns>A list of all users.</returns>
         [AuthorizeRole(UserRole.Admin)]
         [HttpGet("users")]
-        public async Task<IActionResult> GetUsers()
+        public async Task<IActionResult> GetUsers([FromQuery] QueryUserParameters parameters)
         {
-            var users = await _userService.GetAllUsers();
+            var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
+            var users = await _userService.GetUsers(userAuthenticated.Role, parameters);
             return Ok(users);
         }
 
@@ -96,9 +86,7 @@ namespace EcommerceAPI.Controllers
         public async Task<IActionResult> UpdateUser([FromBody] UserUpdateDto userUpdateDto)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
-
             var user = await _userService.UpdateUser(userAuthenticated.Id, userUpdateDto);
-
             return Ok(user);
         }
 
@@ -113,7 +101,6 @@ namespace EcommerceAPI.Controllers
         public async Task<IActionResult> AssignRole([FromBody] UserRoleDto userRoleDto)
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
-
             var user = await _userService.AssignRole(userRoleDto.Id, userRoleDto.Role);
             return Ok(user);
         }
@@ -125,15 +112,10 @@ namespace EcommerceAPI.Controllers
         /// <param name="id">The ID of the user to delete.</param>
         /// <returns>A success message upon deletion.</returns>
         [HttpDelete("delete")]
-        public async Task<IActionResult> DeleteUser([FromQuery] int id)
+        public async Task<IActionResult> DeleteUser()
         {
             var userAuthenticated = _userService.GetAuthenticatedUser(HttpContext);
-
-            if (userAuthenticated.Role != Constants.UserRole.Admin || userAuthenticated.Id != id)
-                return Unauthorized("You are not authorized to access this resource.");
-
-            await _userService.DeleteUser(id);
-
+            await _userService.DeleteUser(userAuthenticated.Id);
             return Ok("User deleted successfully.");
         }
     }

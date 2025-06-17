@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using EcommerceAPI.Constants;
+using EcommerceAPI.Models.DTOs.Generic;
 using EcommerceAPI.Models.DTOs.User;
 
 namespace EcommerceAPI.Services.User.Interfaces
@@ -25,12 +26,6 @@ namespace EcommerceAPI.Services.User.Interfaces
         Task<bool> DeleteUser(int id);
 
         /// <summary>
-        /// Retrieves all users.
-        /// </summary>
-        /// <returns>A task representing the asynchronous operation, with an <see cref="IEnumerable{UserDto}"/> containing the list of all users.</returns>
-        Task<IEnumerable<UserDto>> GetAllUsers();
-
-        /// <summary>
         /// Retrieves the authenticated user from the HTTP context.
         /// </summary>
         /// <param name="httpContext">The HTTP context containing the current user's information.</param>
@@ -50,6 +45,16 @@ namespace EcommerceAPI.Services.User.Interfaces
         /// <param name="id">The identifier of the user to retrieve.</param>
         /// <returns>A task representing the asynchronous operation, with an <see cref="UserDto"/> containing the user details.</returns>
         Task<UserDto> GetUserById(int id);
+
+        /// <summary>
+        /// Gets a paginated list of users. Only accessible by admin users.
+        /// </summary>
+        /// <param name="role">The role of the current user. Must be Admin to access this method.</param>
+        /// <param name="parameters">The parameters used to filter and paginate the user list.</param>
+        /// <returns>A paged result containing user data as <see cref="UserDto"/> objects.</returns>
+        /// <exception cref="System.UnauthorizedAccessException">Thrown when the role is not Admin.</exception>
+
+        Task<PagedResult<UserDto>> GetUsers(UserRole role, QueryUserParameters parameters);
 
         /// <summary>
         /// Retrieves all users with a specific role.
