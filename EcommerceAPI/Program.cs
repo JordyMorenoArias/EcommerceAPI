@@ -47,8 +47,16 @@ using EcommerceAPI.Services.ProductTag;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(8080);
+    //options.ListenAnyIP(5204, listenOptions =>
+    //{
+    //    listenOptions.UseHttps("certificate.pfx", "password"); // Replace with your certificate path and password
+    //});
+});
 
+// Add services to the container.
 builder.Services.AddControllers();
 
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
@@ -77,11 +85,11 @@ builder.Services.AddStackExchangeRedisCache(options =>
 
 builder.Services.AddSingleton(sp =>
 {
-    var elasticSearchUri = builder.Configuration["ElasticSearch:Uri"];
+    var elasticSearchUri = builder.Configuration["ELASTICSEARCH:URI"];
 
     if (string.IsNullOrEmpty(elasticSearchUri))
     {
-        throw new Exception("ElasticSearch:Uri is missing in appsettings.json");
+        throw new ArgumentNullException("ElasticSearch:Uri is not configured");
     }
 
     var settings = new ElasticsearchClientSettings(new Uri(elasticSearchUri));
@@ -140,12 +148,12 @@ builder.Services.AddSingleton<IElasticGenericService<TagDto>>(sp =>
     ));
 
 //  JWT Authentication
-var jwtKey = builder.Configuration["Jwt:Key"];
+var jwtKey = builder.Configuration["JWT:KEY"];
 
 if (string.IsNullOrEmpty(jwtKey))
 {
-    throw new Exception("Jwt:Key is missing in appsettings.json");
-}
+    throw new Exception("JWT:KEY is not configured");
+}  
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
@@ -156,8 +164,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
 
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
+        ValidIssuer = builder.Configuration["JWT:ISSUER"],
+        ValidAudience = builder.Configuration["JWT:AUDIENCE"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
     };
 
@@ -165,12 +173,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     {
         OnAuthenticationFailed = context =>
         {
-            Console.WriteLine($"Authentication failed: {context.Exception.Message}");
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogError($"Authentication failed: {context.Exception.Message}");
             return Task.CompletedTask;
         },
         OnTokenValidated = context =>
         {
-            Console.WriteLine("Token validated successfully!");
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogInformation("Token validated successfully.");
             return Task.CompletedTask;
         }
     };
