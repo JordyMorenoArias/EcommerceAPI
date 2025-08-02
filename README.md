@@ -113,6 +113,90 @@ dotnet run
 Using Visual Studio 2022
 Press F5 or click on the Start Debugging button.
 
+## 🧾 README – Running EcommerceAPI in Docker with Kestrel + HTTPS
+🚀 Prerequisites
+- .NET 6+ SDK
+- Docker
+- A .pfx certificate file for HTTPS (self-signed or CA-issued)
+- Properly configured .env file (see below)
+
+## ⚙️ How to Run
+Run the project using Docker Compose with:
+```bash
+docker-compose up --build
+```
+
+## 🌐 Access Swagger UI
+If running in Development mode (ASPNETCORE_ENVIRONMENT=Development), Swagger will be available at:
+```bash
+http://localhost:8080/swagger
+https://localhost:8081/swagger
+```
+
+## 🔐 HTTPS with Kestrel
+To enable HTTPS in production or any other environment, ensure that:
+1. You have a .pfx certificate file with its password.
+2. The certificate is mounted inside the Docker container.
+3. The following environment variables are set:
+```bash
+KESTREL__CERTIFICATES__DEFAULT__PATH=/https/certificate.pfx
+KESTREL__CERTIFICATES__DEFAULT__PASSWORD=your-password
+```
+
+## 🧪 Required Environment Variables (Placeholders)
+Create a .env file in your project root with these variables (replace values accordingly):
+```env
+# ──────────────── ASP.NET Core Settings ────────────────
+ASPNETCORE_ENVIRONMENT=Development
+
+# ──────────────── Connection Strings ────────────────
+CONNECTIONSTRINGS__DEFAULTCONNECTION=Server=your-sql-server;Database=your-db;User=your-user;Password=your-password;
+CONNECTIONSTRINGS__REDISCONNECTION=redis:6379
+
+# ──────────────── JWT Settings ────────────────
+JWT__KEY=your-jwt-key
+JWT__ISSUER=http://localhost:8080
+JWT__AUDIENCE=http://localhost:8080
+JWT__SUBJECT=your-jwt-subject
+
+# ──────────────── Stripe Settings ────────────────
+STRIPE__PUBLICKEY=your-stripe-public-key
+STRIPE__SECRETKEY=your-stripe-secret-key
+
+# ────────────────  Kestrel certificado  ──────────────── 
+KESTREL__CERTIFICATES__DEFAULT__PATH=/https/certificate.pfx
+KESTREL__CERTIFICATES__DEFAULT__PASSWORD=your-certificate-password
+
+# ──────────────── Google OAuth ────────────────
+GOOGLE_OAUTH__REDIRECT_URI=http://localhost:8080/Auth/oauth/callback
+GOOGLE_OAUTH__GRANT_TYPE=authorization_code
+GOOGLE_OAUTH__CLIENT_SECRET=your-google-client-secret
+GOOGLE_OAUTH__CLIENT_ID=your-google-client-id
+
+# ──────────────── Email Settings ────────────────
+EMAILSETTINGS__USERNAME=your-email-username
+EMAILSETTINGS__PASSWORD=your-email-password
+
+# ──────────────── Elasticsearch ────────────────
+ELASTICSEARCH__URI=http://elasticsearch:9200
+
+# ──────────────── App Settings ────────────────
+APPSETTINGS__BASEURL=http://localhost:8080
+
+#  ──────────────── SQL Server SA Password ────────────────
+SA_PASSWORD=your-sa-password
+```
+## 📁 Certificate Folder Structure
+Place your .pfx certificate file inside a folder named certs at your project root:
+```bash
+/certs
+  └── certificate.pfx
+```
+Mount this file in your docker-compose.yml:
+```bash
+volumes:
+  - ./certs/certificate.pfx:/https/certificate.pfx
+```
 ## 📬 Contact
 Jordy Moreno Arias
 📧 yordimorenoarias.11@gmail.com
