@@ -113,7 +113,7 @@ dotnet run
 Using Visual Studio 2022
 Press F5 or click on the Start Debugging button.
 
-## 🧾 README – Running EcommerceAPI in Docker with Kestrel + HTTPS
+## 🧾 🐳 Running with Docker
 🚀 Prerequisites
 - .NET 6+ SDK
 - Docker
