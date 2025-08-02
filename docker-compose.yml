@@ -1,0 +1,92 @@
+services:
+
+  # Define the services for the Ecommerce API application
+  ecommerceapi:
+    image: ${DOCKER_REGISTRY-}ecommerceapi
+    container_name: ecommerceapi
+    build:
+      context: .
+      dockerfile: EcommerceAPI/Dockerfile
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - STRIPE__SECRETKEY=${STRIPE__SECRETKEY}
+      - STRIPE__PUBLICKEY=${STRIPE__PUBLICKEY}
+      - KESTREL__CERTIFICATES__DEVELOPMENT__PASSWORD=${KESTREL__CERTIFICATES__PASSWORD}
+      - JWT__SUBJECT=${JWT__SUBJECT}
+      - JWT__KEY=${JWT__KEY}
+      - JWT__ISSUER=${JWT__ISSUER}
+      - JWT__AUDIENCE=${JWT__AUDIENCE}
+      - GOOGLE_OAUTH__REDIRECT_URI=${GOOGLE_OAUTH__REDIRECT_URI}
+      - GOOGLE_OAUTH__GRANT_TYPE=${GOOGLE_OAUTH__GRANT_TYPE}
+      - GOOGLE_OAUTH__CLIENT_SECRET=${GOOGLE_OAUTH__CLIENT_SECRET}
+      - GOOGLE_OAUTH__CLIENT_ID=${GOOGLE_OAUTH__CLIENT_ID}
+      - EMAILSETTINGS__USERNAME=${EMAILSETTINGS__USERNAME}
+      - EMAILSETTINGS__PASSWORD=${EMAILSETTINGS__PASSWORD}
+      - ELASTICSEARCH__URI=${ELASTICSEARCH__URI}
+      - CONNECTIONSTRINGS__REDISCONNECTION=${CONNECTIONSTRINGS__REDISCONNECTION}
+      - CONNECTIONSTRINGS__DEFAULTCONNECTION=${CONNECTIONSTRINGS__DEFAULTCONNECTION}
+      - APPSETTINGS__BASEURL=${APPSETTINGS__BASEURL}
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+  
+  # Define the database services
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    healthcheck:
+        test: ["CMD", "bash", "-c", "</dev/tcp/localhost/1433 && echo OK || exit 1"]
+        interval: 15s
+        timeout: 10s
+        retries: 6
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${SA_PASSWORD}
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+
+  # Define the caching services
+  redis:
+    image: redis:latest
+    container_name: redis
+    healthcheck:
+        test: ["CMD", "redis-cli", "ping"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+  
+  # Define the search services
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    container_name: elasticsearch
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:9200"]
+        interval: 20s
+        timeout: 10s
+        retries: 6
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+
+volumes:
+  sqlserver_data:
+  redis_data:
+  elasticsearch_data:

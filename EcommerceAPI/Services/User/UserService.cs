@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using EcommerceAPI.Constants;
+using EcommerceAPI.Models.DTOs.Generic;
 using EcommerceAPI.Models.DTOs.User;
 using EcommerceAPI.Repositories.Interfaces;
 using EcommerceAPI.Services.User.Interfaces;
@@ -63,18 +64,36 @@ namespace EcommerceAPI.Services.User
         }
 
         /// <summary>
-        /// Retrieves all users in the system.
+        /// Retrieves a user by their email address.
         /// </summary>
-        /// <returns>A list of <see cref="UserDto"/>.</returns>
-        /// <exception cref="KeyNotFoundException">Thrown when no users are found.</exception>
-        public async Task<IEnumerable<UserDto>> GetAllUsers()
+        /// <param name="email">The user's email address.</param>
+        /// <returns>A <see cref="UserDto"/> representing the user.</returns>
+        /// <exception cref="KeyNotFoundException">Thrown when the user is not found.</exception>
+        public async Task<UserDto> GetUserByEmail(string email)
         {
-            var users = await _userRepository.GetAllUsers();
+            var user = await _userRepository.GetUserByEmail(email);
 
-            if (users == null || !users.Any())
-                throw new KeyNotFoundException("No users found.");
+            if (user == null)
+                throw new KeyNotFoundException("User not found.");
 
-            return _mapper.Map<IEnumerable<UserDto>>(users);
+            return _mapper.Map<UserDto>(user);
+        }
+
+        /// <summary>
+        /// Gets a paginated list of users. Only accessible by admin users.
+        /// </summary>
+        /// <param name="role">The role of the current user. Must be Admin to access this method.</param>
+        /// <param name="parameters">The parameters used to filter and paginate the user list.</param>
+        /// <returns>A paged result containing user data as <see cref="UserDto"/> objects.</returns>
+        /// <exception cref="System.UnauthorizedAccessException">Thrown when the role is not Admin.</exception>
+        public async Task<PagedResult<UserDto>> GetUsers(UserRole role, QueryUserParameters parameters)
+        {
+            if (role != UserRole.Admin)
+                throw new UnauthorizedAccessException("Only admins can retrieve all users.");
+
+            var users = await _userRepository.GetUsers(parameters);
+            var userDtos = _mapper.Map<PagedResult<UserDto>>(users.Items);
+            return userDtos;
         }
 
         /// <summary>
@@ -115,22 +134,6 @@ namespace EcommerceAPI.Services.User
                 throw new KeyNotFoundException("User not found.");
 
             return await _userRepository.DeleteUser(user);
-        }
-
-        /// <summary>
-        /// Retrieves a user by their email address.
-        /// </summary>
-        /// <param name="email">The user's email address.</param>
-        /// <returns>A <see cref="UserDto"/> representing the user.</returns>
-        /// <exception cref="KeyNotFoundException">Thrown when the user is not found.</exception>
-        public async Task<UserDto> GetUserByEmail(string email)
-        {
-            var user = await _userRepository.GetUserByEmail(email);
-
-            if (user == null)
-                throw new KeyNotFoundException("User not found.");
-
-            return _mapper.Map<UserDto>(user);
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
 ﻿using EcommerceAPI.Constants;
+using EcommerceAPI.Models.DTOs.Generic;
 using EcommerceAPI.Models.DTOs.User;
 using EcommerceAPI.Models.Entities;
 
@@ -24,12 +25,6 @@ namespace EcommerceAPI.Repositories.Interfaces
         Task<bool> DeleteUser(UserEntity user);
 
         /// <summary>
-        /// Retrieves all users from the repository.
-        /// </summary>
-        /// <returns>An enumerable collection of all users.</returns>
-        Task<IEnumerable<UserEntity>> GetAllUsers();
-
-        /// <summary>
         /// Retrieves a user by their email.
         /// </summary>
         /// <param name="email">The email of the user.</param>
@@ -37,11 +32,18 @@ namespace EcommerceAPI.Repositories.Interfaces
         Task<UserEntity?> GetUserByEmail(string email);
 
         /// <summary>
-        /// Retrieves a user by their ID.
+        /// Retrieves a user by their unique identifier.
         /// </summary>
-        /// <param name="id">The ID of the user.</param>
-        /// <returns>The user entity if found, otherwise null.</returns>
+        /// <param name="id">The user ID.</param>
+        /// <returns>A task representing the asynchronous operation. The task result contains the user if found; otherwise, <c>null</c>.</returns>
         Task<UserEntity?> GetUserById(int id);
+
+        /// <summary>
+        /// Gets the users.
+        /// </summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns>A paged result containing a list of users that match the given parameters.</returns>
+        Task<PagedResult<UserEntity>> GetUsers(QueryUserParameters parameters);
 
         /// <summary>
         /// Retrieves users based on their role.

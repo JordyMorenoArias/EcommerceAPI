@@ -1,5 +1,6 @@
 ﻿using EcommerceAPI.Constants;
 using EcommerceAPI.Data;
+using EcommerceAPI.Models.DTOs.Generic;
 using EcommerceAPI.Models.DTOs.User;
 using EcommerceAPI.Models.Entities;
 using EcommerceAPI.Repositories.Interfaces;
@@ -34,12 +35,37 @@ namespace EcommerceAPI.Repositories
         }
 
         /// <summary>
-        /// Retrieves all users from the database.
+        /// Gets the users.
         /// </summary>
-        /// <returns>A task representing the asynchronous operation. The task result contains a list of all users.</returns>
-        public async Task<IEnumerable<UserEntity>> GetAllUsers()
+        /// <param name="parameters">The parameters.</param>
+        /// <returns>A paged result containing a list of users that match the given parameters.</returns>
+        public async Task<PagedResult<UserEntity>> GetUsers(QueryUserParameters parameters)
         {
-            return await _context.Users.AsNoTracking().ToListAsync();
+            var query = _context.Users.AsQueryable();
+
+            if (parameters.IsActive.HasValue)
+                query = query.Where(u => u.IsActive == parameters.IsActive.Value);
+
+            if (!string.IsNullOrEmpty(parameters.Role))
+                query = query.Where(u => u.Role.ToString() == parameters.Role);
+
+            if (!string.IsNullOrEmpty(parameters.Email))
+                query = query.Where(u => u.Email.Contains(parameters.Email));
+
+            var totalItems = await query.CountAsync();
+            var users = await query
+                .Skip((parameters.Page - 1) * parameters.PageSize)
+                .Take(parameters.PageSize)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return new PagedResult<UserEntity>
+            {
+                Items = users,
+                TotalItems = totalItems,
+                Page = parameters.Page,
+                PageSize = parameters.PageSize,
+            };
         }
 
         /// <summary>
